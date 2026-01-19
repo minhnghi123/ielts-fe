@@ -23,13 +23,13 @@ export function HomeNavbar() {
               Home
             </a>
             <a
-              href="#"
+              href="/tests"
               className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
             >
               Tests
             </a>
             <a
-              href="#"
+              href="/results"
               className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
             >
               Results
