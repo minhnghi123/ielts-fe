@@ -1,7 +1,12 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export function HeroSection() {
+  const router = useRouter();
+
   return (
     <section className="mb-10">
       <Card className="overflow-hidden border-border shadow-sm">
@@ -24,13 +29,17 @@ export function HeroSection() {
               </p>
             </div>
             <div className="flex flex-wrap gap-4">
-              <Button className="bg-primary hover:bg-blue-700 font-bold px-8 py-6 text-base shadow-md shadow-blue-500/20">
+              <Button
+                onClick={() => router.push("/practice")}
+                className="bg-primary hover:bg-blue-700 font-bold px-8 py-6 text-base shadow-md shadow-blue-500/20"
+              >
                 <span className="material-symbols-outlined mr-2">
                   play_arrow
                 </span>
                 Resume Practice
               </Button>
               <Button
+                onClick={() => router.push("/dashboard")}
                 variant="secondary"
                 className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-8 py-6 text-base"
               >

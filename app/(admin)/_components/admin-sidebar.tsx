@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { authApi } from "@/lib/api/auth";
 
-export function LearnerSidebar() {
+export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -24,25 +23,36 @@ export function LearnerSidebar() {
   };
 
   const routes = [
-    { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-    { href: "/practice", label: "Practice Tests", icon: "book_2" },
-    { href: "/analysis", label: "Results Analysis", icon: "bar_chart" },
-    { href: "/schedule", label: "Schedule", icon: "calendar_month" },
+    { href: "/admin", label: "Dashboard", icon: "dashboard" },
+    { href: "/admin/users", label: "User Management", icon: "group" },
+    { href: "/admin/tests", label: "Test Management", icon: "assignment" },
+    { href: "/admin/analytics", label: "Analytics", icon: "analytics" },
+    { href: "/admin/settings", label: "System Settings", icon: "settings" },
   ];
 
   return (
     <div className="hidden lg:flex flex-col w-[280px] border-r h-full bg-background">
       <div className="flex flex-col flex-1 p-6 gap-6">
-        {/* User Profile */}
+        {/* Logo/Brand */}
+        <div className="flex items-center gap-2 pb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
+            <span className="material-symbols-outlined text-[20px]">
+              school
+            </span>
+          </div>
+          <span className="text-lg font-bold">IELTS Admin</span>
+        </div>
+
+        {/* Admin Profile */}
         <div className="flex items-center gap-3 pb-6 border-b">
           <div className="relative">
-            <Avatar className="h-12 w-12 border-2 border-background">
+            <Avatar className="h-12 w-12 border-2 border-orange-500">
               <AvatarImage
                 src="https://github.com/shadcn.png"
-                alt={user?.email || "User"}
+                alt={user?.email || "Admin"}
               />
-              <AvatarFallback>
-                {user?.email?.charAt(0).toUpperCase() || "U"}
+              <AvatarFallback className="bg-orange-100 text-orange-600">
+                {user?.email?.charAt(0).toUpperCase() || "A"}
               </AvatarFallback>
             </Avatar>
             <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-background"></div>
@@ -52,8 +62,8 @@ export function LearnerSidebar() {
             <h1 className="text-sm font-semibold text-foreground">
               {user?.email || "Loading..."}
             </h1>
-            <p className="text-xs text-muted-foreground capitalize">
-              {user?.role || "Standard Plan"}
+            <p className="text-xs text-orange-600 font-semibold uppercase">
+              Administrator
             </p>
           </div>
         </div>
@@ -69,7 +79,7 @@ export function LearnerSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary font-semibold"
+                    ? "bg-orange-500/10 text-orange-600 font-semibold"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground font-medium",
                 )}
               >
@@ -84,16 +94,6 @@ export function LearnerSidebar() {
 
         {/* Bottom Actions */}
         <div className="mt-auto flex flex-col gap-2">
-          <Link
-            href="/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <span className="material-symbols-outlined text-[24px]">
-              settings
-            </span>
-            <span className="text-sm font-medium">Settings</span>
-          </Link>
-
           <button
             onClick={handleLogout}
             className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 border text-foreground hover:bg-accent transition-colors"

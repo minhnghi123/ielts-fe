@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -16,44 +15,45 @@ import {
 } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
   });
-
-  const registered = searchParams.get("registered");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await authApi.login(formData);
+      const response = await authApi.register({
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
 
-      if (response.statusCode === 201 && response.data.accessToken) {
-        const userRole = response.data.user.role;
-
-        // Role-based redirect
-        if (userRole === "admin") {
-          window.location.href = "/admin";
-        } else if (userRole === "learner") {
-          window.location.href = "/";
-        } else {
-          window.location.href = "/";
-        }
+      if (response.statusCode === 201) {
+        // Registration successful, redirect to login
+        router.push("/login?registered=true");
       }
     } catch (err: any) {
-      console.error("Login error:", err);
       setError(
         err.response?.data?.error?.message ||
-          "Login failed. Please check your credentials.",
+          "Registration failed. Please try again.",
       );
+    } finally {
       setIsLoading(false);
     }
   };
@@ -67,23 +67,19 @@ export function LoginForm() {
           </div>
           <span className="text-xl font-bold">IELTS Prep</span>
         </div>
-        <CardTitle className="text-3xl font-black">Welcome Back</CardTitle>
-        <CardDescription>Please enter your details to sign in.</CardDescription>
+        <CardTitle className="text-3xl font-black">Create Account</CardTitle>
+        <CardDescription>
+          Enter your details to create your account.
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-0">
-        {registered && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-3 rounded-lg text-sm mb-6">
-            Registration successful! Please sign in with your credentials.
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm mb-6">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={onSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -97,31 +93,51 @@ export function LoginForm() {
               required
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
+              placeholder="Min. 8 characters"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Must contain uppercase, lowercase, number and special character
+            </p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Re-enter password"
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              required
+            />
+          </div>
+
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing In..." : "Sign In"}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
 
           <div className="text-center text-sm">
             <span className="text-muted-foreground">
-              Don't have an account?{" "}
+              Already have an account?{" "}
             </span>
             <Link
-              href="/register"
+              href="/login"
               className="text-primary font-semibold hover:underline"
             >
-              Create Account
+              Sign In
             </Link>
           </div>
         </form>

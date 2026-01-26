@@ -1,11 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils"; // Hàm tiện ích có sẵn khi cài shadcn
 
 export function ModuleGrid() {
+  const router = useRouter();
+
   const modules = [
     {
       id: "listening",
@@ -114,6 +117,7 @@ export function ModuleGrid() {
                 />
 
                 <Button
+                  onClick={() => router.push(`/practice?module=${module.id}`)}
                   className={cn(
                     "mt-6 w-full font-bold text-white shadow-md transition-colors",
                     colors.btnColor,
