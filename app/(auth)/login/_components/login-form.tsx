@@ -16,8 +16,9 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
+import { Suspense } from "react";
 
-export function LoginForm() {
+export function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -181,5 +182,12 @@ export function LoginForm() {
         </div>
       </CardFooter>
     </Card>
+  );
+}
+export function LoginForm() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-[420px] h-[400px] flex items-center justify-center">Loading...</div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

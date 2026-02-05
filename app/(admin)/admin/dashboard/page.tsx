@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
 
 export default function AdminDashboardPage() {
   return (
