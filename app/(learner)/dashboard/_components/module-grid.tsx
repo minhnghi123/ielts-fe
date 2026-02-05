@@ -28,6 +28,24 @@ export function ModuleGrid() {
       icon: "menu_book",
       theme: "purple",
     },
+    {
+      id: "writing",
+      title: "Writing Module",
+      info: "60 mins • 2 Tasks • Academic/General",
+      available: 6,
+      progress: 30,
+      icon: "edit_note",
+      theme: "orange",
+    },
+    {
+      id: "speaking",
+      title: "Speaking Module",
+      info: "11-14 mins • 3 Parts • One-on-one",
+      available: 10,
+      progress: 55,
+      icon: "record_voice_over",
+      theme: "pink",
+    },
   ];
 
   return (
@@ -35,25 +53,47 @@ export function ModuleGrid() {
       {modules.map((module) => {
         // Cấu hình màu sắc dựa trên theme
         const isBlue = module.theme === "blue";
+        const isPurple = module.theme === "purple";
+        const isOrange = module.theme === "orange";
+        const isPink = module.theme === "pink";
 
-        const colors = {
-          bgIcon: isBlue
-            ? "bg-blue-100 dark:bg-blue-900/30"
-            : "bg-purple-100 dark:bg-purple-900/30",
-          textIcon: isBlue
-            ? "text-primary"
-            : "text-purple-600 dark:text-purple-400",
-          bgDecoration: isBlue
-            ? "bg-blue-50 dark:bg-blue-900/10"
-            : "bg-purple-50 dark:bg-purple-900/10",
-          hoverBorder: isBlue
-            ? "hover:border-primary"
-            : "hover:border-purple-500",
-          btnColor: isBlue
-            ? "bg-primary hover:bg-blue-700"
-            : "bg-purple-600 hover:bg-purple-700 dark:bg-purple-600",
-          progressIndicator: isBlue ? "bg-primary" : "bg-purple-600",
+        let colors = {
+          bgIcon: "bg-blue-100 dark:bg-blue-900/30",
+          textIcon: "text-primary",
+          bgDecoration: "bg-blue-50 dark:bg-blue-900/10",
+          hoverBorder: "hover:border-primary",
+          btnColor: "bg-primary hover:bg-blue-700",
+          progressIndicator: "bg-primary"
         };
+
+        if (isPurple) {
+          colors = {
+            bgIcon: "bg-purple-100 dark:bg-purple-900/30",
+            textIcon: "text-purple-600 dark:text-purple-400",
+            bgDecoration: "bg-purple-50 dark:bg-purple-900/10",
+            hoverBorder: "hover:border-purple-500",
+            btnColor: "bg-purple-600 hover:bg-purple-700",
+            progressIndicator: "bg-purple-600"
+          };
+        } else if (isOrange) {
+          colors = {
+            bgIcon: "bg-orange-100 dark:bg-orange-900/30",
+            textIcon: "text-orange-600 dark:text-orange-400",
+            bgDecoration: "bg-orange-50 dark:bg-orange-900/10",
+            hoverBorder: "hover:border-orange-500",
+            btnColor: "bg-orange-600 hover:bg-orange-700",
+            progressIndicator: "bg-orange-600"
+          };
+        } else if (isPink) {
+          colors = {
+            bgIcon: "bg-pink-100 dark:bg-pink-900/30",
+            textIcon: "text-pink-600 dark:text-pink-400",
+            bgDecoration: "bg-pink-50 dark:bg-pink-900/10",
+            hoverBorder: "hover:border-pink-500",
+            btnColor: "bg-pink-600 hover:bg-pink-700",
+            progressIndicator: "bg-pink-600"
+          };
+        }
 
         return (
           <Card

@@ -27,22 +27,22 @@ export function HomeNavbar() {
               Home
             </Link>
             <Link
-              href="/dashboard"
-              className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
-            >
-              My Progress
-            </Link>
-            <Link
               href="/practice"
               className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
             >
-              Practice
+              Tests
             </Link>
             <Link
               href="/analysis"
               className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
             >
-              Analysis
+              Results
+            </Link>
+            <Link
+              href="/resources"
+              className="text-muted-foreground text-sm font-medium hover:text-primary transition-colors"
+            >
+              Resources
             </Link>
           </nav>
         </div>
