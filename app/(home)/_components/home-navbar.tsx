@@ -15,7 +15,7 @@ export function HomeNavbar() {
             <div className="text-primary h-8 w-8 bg-primary/10 flex items-center justify-center rounded-lg">
               <span className="material-symbols-outlined">school</span>
             </div>
-            <h2 className="text-xl font-bold tracking-tight">IELTS Master</h2>
+            <h2 className="text-xl font-bold tracking-tight">IELTS MINHNGHEEE</h2>
           </Link>
 
           {/* Menu */}
