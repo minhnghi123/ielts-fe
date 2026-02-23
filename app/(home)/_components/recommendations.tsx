@@ -16,7 +16,7 @@ export function Recommendations() {
         title="Task 2 Writing Mastery"
         desc="Based on your last writing score of 6.5. Improve your cohesion."
         tag="45 min lesson"
-        onClick={() => router.push("/practice?module=writing")}
+        onClick={() => router.push("/tests?skill=writing")}
       />
       <RecommendCard
         icon="record_voice_over"
@@ -24,7 +24,7 @@ export function Recommendations() {
         title="Part 3 Speaking Strategies"
         desc="Learn how to extend your answers and use complex grammar."
         tag="Live Workshop"
-        onClick={() => router.push("/practice?module=speaking")}
+        onClick={() => router.push("/tests?skill=speaking")}
       />
       <RecommendCard
         icon="menu_book"
@@ -32,7 +32,7 @@ export function Recommendations() {
         title="Advanced Vocabulary Quiz"
         desc="100+ high-frequency academic words for Band 8.0+ candidates."
         tag="Quick Drill"
-        onClick={() => router.push("/practice?module=reading")}
+        onClick={() => router.push("/tests?skill=reading")}
       />
 
       {/* Promo Card */}

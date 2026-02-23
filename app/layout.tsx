@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Lexend, Noto_Sans } from "next/font/google"; // Import font chuẩn Google
-import "./globals.css"; // Import Tailwind CSS
+import { Lexend, Noto_Sans } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/contexts/auth-context";
 
-// Cấu hình Font
 const lexend = Lexend({
   subsets: ["latin"],
   variable: "--font-lexend",
@@ -29,15 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${lexend.variable} ${notoSans.variable}`}>
       <head>
-        {/* Import Icon Google Material Symbols */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
       </head>
-      {/* Body gốc của toàn app */}
       <body className="bg-background font-display text-foreground antialiased">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
