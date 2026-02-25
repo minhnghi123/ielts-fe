@@ -14,6 +14,7 @@ interface ParsePreview {
     writingTasks: { taskNumber: number; prompt: string; wordLimit: number }[];
     speakingParts: { partNumber: number; prompt: string }[];
     stats: { sections: number; questions: number; writingTasks: number; speakingParts: number };
+    parsed?: ParsePreview;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_TEST_SERVICE_URL || "http://localhost:3001";
