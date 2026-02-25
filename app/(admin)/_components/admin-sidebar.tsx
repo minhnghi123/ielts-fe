@@ -23,11 +23,12 @@ export function AdminSidebar() {
   };
 
   const routes = [
-    { href: "/admin", label: "Dashboard", icon: "dashboard" },
-    { href: "/admin/users", label: "User Management", icon: "group" },
-    { href: "/admin/tests", label: "Test Management", icon: "assignment" },
-    { href: "/admin/analytics", label: "Analytics", icon: "analytics" },
-    { href: "/admin/settings", label: "System Settings", icon: "settings" },
+    { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
+    { href: "/admin/tests", label: "Test Management", icon: "assignment", exact: false },
+    { href: "/admin/tests/import", label: "Import Test", icon: "upload_file", exact: false },
+    { href: "/admin/users", label: "User Management", icon: "group", exact: false },
+    { href: "/admin/analytics", label: "Analytics", icon: "analytics", exact: false },
+    { href: "/admin/settings", label: "System Settings", icon: "settings", exact: false },
   ];
 
   return (
@@ -71,7 +72,7 @@ export function AdminSidebar() {
         {/* Navigation */}
         <div className="flex flex-col gap-2">
           {routes.map((route) => {
-            const isActive = pathname === route.href;
+            const isActive = route.exact ? pathname === route.href : pathname.startsWith(route.href);
             return (
               <Link
                 key={route.href}
