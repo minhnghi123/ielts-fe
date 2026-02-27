@@ -79,14 +79,14 @@ export default function MatchingQuestion({
 
                         {(options || []).map((opt, i) => (
                             <div key={i} className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-slate-600 bg-white border border-slate-200 w-8 h-8 rounded flex items-center justify-center">
+                                <span className="text-sm font-bold text-slate-600 bg-white border border-slate-200 w-8 h-8 rounded flex items-center justify-center shrink-0">
                                     {String.fromCharCode(65 + i)}
                                 </span>
                                 <input
                                     value={opt}
                                     onChange={(e) => handleOptionChange(i, e.target.value)}
                                     className="flex-1 border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
-                                    placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                                    placeholder={`Option statement...`}
                                 />
                                 <button onClick={() => removeOption(i)} className="text-slate-400 hover:text-red-500 p-1">
                                     <Trash2 className="w-4 h-4" />
@@ -107,24 +107,31 @@ export default function MatchingQuestion({
                             Correct Match
                         </label>
                         <div className="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100/50 flex flex-col items-center justify-center h-[calc(100%-24px)] min-h-[120px]">
-                            <p className="text-sm text-slate-500 mb-3 text-center">
+                            <p className="text-sm text-slate-600 mb-4 text-center">
                                 Select the correct option letter for this statement:
                             </p>
-                            <select
-                                value={correctAnswers[0] || ""}
-                                onChange={(e) => onUpdateAnswer('correctAnswers', [e.target.value])}
-                                className="border border-emerald-300 text-emerald-800 font-bold rounded-lg p-2.5 focus:ring-4 focus:ring-emerald-100 outline-none bg-white w-32 text-center text-lg"
-                            >
-                                <option value="" disabled>Select</option>
+
+                            <div className="flex flex-wrap gap-2 justify-center">
                                 {(options || []).map((_, i) => {
                                     const letter = String.fromCharCode(65 + i);
+                                    const isSelected = correctAnswers[0] === letter;
                                     return (
-                                        <option key={letter} value={letter}>
-                                            Option {letter}
-                                        </option>
+                                        <button
+                                            key={letter}
+                                            onClick={() => onUpdateAnswer('correctAnswers', [letter])}
+                                            className={`w-12 h-12 rounded-lg font-bold text-lg transition-all ${isSelected
+                                                    ? 'bg-emerald-500 text-white shadow-md scale-110 ring-2 ring-emerald-200'
+                                                    : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-emerald-300 hover:text-emerald-500'
+                                                }`}
+                                        >
+                                            {letter}
+                                        </button>
                                     );
                                 })}
-                            </select>
+                                {(!options || options.length === 0) && (
+                                    <div className="text-xs text-slate-400 italic">Add options first</div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

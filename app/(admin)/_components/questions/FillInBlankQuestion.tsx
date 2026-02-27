@@ -29,7 +29,7 @@ export default function FillInBlankQuestion({
                         Q{order}
                     </span>
                     <span className="text-sm font-semibold text-slate-500 uppercase tracking-widest">
-                        Fill in the Blank
+                        Fill in Language
                     </span>
                 </div>
                 <button
@@ -58,13 +58,11 @@ export default function FillInBlankQuestion({
                 {/* Answers Configuration */}
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-4">
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center justify-between mb-2">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Accepted Answers</label>
-                            <div className="group relative cursor-help">
-                                <Info className="w-4 h-4 text-blue-400" />
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-slate-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                    Divide multiple accepted valid answers with a pipe character "|". Example: "Paris | paris | The City of Light"
-                                </div>
+                            <div className="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded gap-1.5">
+                                <Info className="w-3.5 h-3.5" />
+                                <span>Separate variations with a pipe <strong> | </strong></span>
                             </div>
                         </div>
 
@@ -74,12 +72,15 @@ export default function FillInBlankQuestion({
                                 const values = e.target.value.split('|').map(v => v.trim()).filter(v => v);
                                 onUpdateAnswer('correctAnswers', values);
                             }}
-                            className="w-full border border-slate-300 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-green-500 bg-white placeholder:text-slate-300"
-                            placeholder="e.g. True | T | YES"
+                            className="w-full border border-slate-300 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-green-500 bg-white placeholder:text-slate-300 font-medium text-green-700"
+                            placeholder="e.g. Paris | paris | The City of Light"
                         />
                     </div>
 
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                        <span className="text-sm font-medium text-slate-600">
+                            Require Exact Capitalization
+                        </span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
@@ -87,11 +88,9 @@ export default function FillInBlankQuestion({
                                 onChange={(e) => onUpdateAnswer('caseSensitive', e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
-                        <span className="text-sm font-medium text-slate-600">
-                            Strict Case Sensitivity Formatting Required
-                        </span>
+
                     </div>
                 </div>
             </div>
