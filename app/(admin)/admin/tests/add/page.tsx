@@ -13,8 +13,9 @@ import MultipleChoiceQuestion from "@/app/(admin)/_components/questions/Multiple
 import FillInBlankQuestion from "@/app/(admin)/_components/questions/FillInBlankQuestion";
 import MatchingQuestion from "@/app/(admin)/_components/questions/MatchingQuestion";
 import HeadingMatchingQuestion from "@/app/(admin)/_components/questions/HeadingMatchingQuestion";
+import { Suspense } from "react";
 
-export default function AddTestPage() {
+export function AddTestPageSuspense() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user } = useAuth();
@@ -361,5 +362,12 @@ export default function AddTestPage() {
                 </div>
             </div>
         </div>
+    );
+}
+export default function AddTestPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <AddTestPageSuspense />
+        </Suspense>
     );
 }
