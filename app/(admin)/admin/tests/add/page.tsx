@@ -6,10 +6,17 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { createManualTest, CreateManualTestRequest } from "@/lib/api.tests";
 import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
-import { PlusCircle, Trash2, ArrowLeft, Save, GripVertical } from 'lucide-react';
+import { useSearchParams } from "next/navigation";
+import { PlusCircle, Trash2, ArrowLeft, Save, GripVertical, Lock } from 'lucide-react';
+
+import MultipleChoiceQuestion from "@/app/(admin)/_components/questions/MultipleChoiceQuestion";
+import FillInBlankQuestion from "@/app/(admin)/_components/questions/FillInBlankQuestion";
+import MatchingQuestion from "@/app/(admin)/_components/questions/MatchingQuestion";
+import HeadingMatchingQuestion from "@/app/(admin)/_components/questions/HeadingMatchingQuestion";
 
 export default function AddTestPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useAuth();
 
     // In our simplified auth setup, we should have an adminId, 
@@ -17,10 +24,13 @@ export default function AddTestPage() {
     const defaultAdminId = 'a1b2c3d4-0000-0000-0000-000000000001';
     const createdBy = user?.id || defaultAdminId;
 
+    const initialSkill = searchParams.get('skill') as "reading" | "listening" | "writing" | "speaking" || "reading";
+    const [isSkillLocked, setIsSkillLocked] = useState(!!searchParams.get('skill'));
+
     // Form State
     const [isSaving, setIsSaving] = useState(false);
     const [testData, setTestData] = useState<CreateManualTestRequest>({
-        skill: "reading",
+        skill: initialSkill,
         title: "",
         isMock: false,
         createdBy,
@@ -204,81 +214,76 @@ export default function AddTestPage() {
                                 {/* Questions List */}
                                 <div className="mt-8">
                                     <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Questions</h3>
-                                    <div className="space-y-4">
-                                        {section.questions.map((q, qIndex) => (
-                                            <div key={qIndex} className="border border-slate-200 rounded-lg p-4 bg-slate-50 relative group">
-                                                <div className="absolute top-4 right-4 flex gap-2">
-                                                    <button
-                                                        onClick={() => removeQuestion(sIndex, qIndex)}
-                                                        className="text-slate-400 hover:text-red-500"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
 
-                                                <div className="flex items-center gap-2 mb-4">
-                                                    <span className="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-sm">
-                                                        Q{q.questionOrder}
-                                                    </span>
-                                                    <select
-                                                        value={q.questionType}
-                                                        onChange={(e) => updateQuestion(sIndex, qIndex, 'questionType', e.target.value)}
-                                                        className="border rounded px-2 py-1 text-sm outline-none w-48 bg-white"
-                                                    >
-                                                        <option value="multiple_choice">Multiple Choice</option>
-                                                        <option value="fill_in_blank">Fill in Blank</option>
-                                                        <option value="matching">Matching</option>
-                                                        <option value="heading">Heading Matching</option>
-                                                    </select>
-                                                </div>
+                                    <div className="space-y-6">
+                                        {section.questions.map((q, qIndex) => {
 
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Question Text</label>
-                                                        <input
-                                                            value={q.questionText}
-                                                            onChange={(e) => updateQuestion(sIndex, qIndex, 'questionText', e.target.value)}
-                                                            className="w-full border rounded p-2 text-sm outline-none focus:border-blue-500 bg-white"
-                                                            placeholder="e.g. What is the main idea of paragraph 2?"
-                                                        />
+                                            // Common props for all question components
+                                            const commonProps = {
+                                                order: q.questionOrder || (qIndex + 1),
+                                                questionText: q.questionText,
+                                                correctAnswers: q.answer?.correctAnswers || [""],
+                                                caseSensitive: q.answer?.caseSensitive || false,
+                                                onUpdateField: (field: string, value: any) => updateQuestion(sIndex, qIndex, field, value),
+                                                onUpdateAnswer: (field: string, value: any) => updateAnswer(sIndex, qIndex, field, value),
+                                                onRemove: () => removeQuestion(sIndex, qIndex)
+                                            };
+
+                                            return (
+                                                <div key={qIndex} className="relative">
+                                                    {/* Question Type Selector Container */}
+                                                    <div className="flex items-center gap-2 mb-3 bg-slate-100 p-2 rounded-lg w-fit border border-slate-200">
+                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">Type:</span>
+                                                        <select
+                                                            value={q.questionType}
+                                                            onChange={(e) => updateQuestion(sIndex, qIndex, 'questionType', e.target.value)}
+                                                            className="border-0 bg-white rounded px-3 py-1 text-sm font-medium text-slate-700 outline-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
+                                                        >
+                                                            <option value="multiple_choice">Multiple Choice</option>
+                                                            <option value="fill_in_blank">Fill in Blank</option>
+                                                            <option value="matching">Matching</option>
+                                                            <option value="heading">Heading Matching</option>
+                                                        </select>
                                                     </div>
 
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Correct Answer(s)</label>
-                                                        <input
-                                                            value={q.answer.correctAnswers.join(' | ')}
-                                                            onChange={(e) => {
-                                                                const values = e.target.value.split('|').map(v => v.trim()).filter(v => v);
-                                                                updateAnswer(sIndex, qIndex, 'correctAnswers', values);
-                                                            }}
-                                                            className="w-full border rounded p-2 text-sm outline-none focus:border-green-500 bg-white placeholder:text-slate-300"
-                                                            placeholder="Separate multiple valid answers with | (e.g. True | T)"
+                                                    {/* Render specifically typed question component */}
+                                                    {q.questionType === 'multiple_choice' && (
+                                                        <MultipleChoiceQuestion
+                                                            {...commonProps}
+                                                            options={q.config?.options || ["", "", "", ""]}
                                                         />
-                                                    </div>
+                                                    )}
 
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`case-sensitive-${sIndex}-${qIndex}`}
-                                                            checked={q.answer.caseSensitive}
-                                                            onChange={(e) => updateAnswer(sIndex, qIndex, 'caseSensitive', e.target.checked)}
-                                                            className="rounded text-blue-600"
+                                                    {q.questionType === 'fill_in_blank' && (
+                                                        <FillInBlankQuestion
+                                                            {...commonProps}
                                                         />
-                                                        <label htmlFor={`case-sensitive-${sIndex}-${qIndex}`} className="text-sm text-slate-600 cursor-pointer">
-                                                            Case Sensitive Answer
-                                                        </label>
-                                                    </div>
+                                                    )}
+
+                                                    {q.questionType === 'matching' && (
+                                                        <MatchingQuestion
+                                                            {...commonProps}
+                                                            options={q.config?.options || ["", "", ""]}
+                                                        />
+                                                    )}
+
+                                                    {q.questionType === 'heading' && (
+                                                        <HeadingMatchingQuestion
+                                                            {...commonProps}
+                                                            options={q.config?.options || ["", "", "", ""]}
+                                                        />
+                                                    )}
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
 
                                     <button
                                         onClick={() => addQuestion(sIndex)}
-                                        className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
+                                        className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-3 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
                                     >
-                                        <PlusCircle className="w-4 h-4" />
-                                        Add Question
+                                        <PlusCircle className="w-5 h-5" />
+                                        Add New Question
                                     </button>
                                 </div>
                             </div>
@@ -313,17 +318,27 @@ export default function AddTestPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Skill Category</label>
-                                <select
-                                    value={testData.skill}
-                                    onChange={(e) => handleTestChange('skill', e.target.value)}
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                >
-                                    <option value="reading">Reading</option>
-                                    <option value="listening">Listening</option>
-                                    <option value="writing">Writing</option>
-                                    <option value="speaking">Speaking</option>
-                                </select>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Skill Category
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={testData.skill}
+                                        onChange={(e) => handleTestChange('skill', e.target.value)}
+                                        disabled={isSkillLocked}
+                                        className={`w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none ${isSkillLocked ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                                    >
+                                        <option value="reading">Reading</option>
+                                        <option value="listening">Listening</option>
+                                        <option value="writing">Writing</option>
+                                        <option value="speaking">Speaking</option>
+                                    </select>
+                                    {isSkillLocked && (
+                                        <div className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400" title="Skill is locked based on your navigation">
+                                            <Lock className="w-4 h-4" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex justify-between items-center p-3 bg-slate-50 border rounded-lg">
