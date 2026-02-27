@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lexend, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
+import { Toaster } from "sonner";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -35,7 +36,10 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background font-display text-foreground antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </AuthProvider>
       </body>
     </html>
   );

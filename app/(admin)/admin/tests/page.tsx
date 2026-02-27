@@ -78,13 +78,22 @@ export default function TestsManagementPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Test Management</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">{total} tests total</p>
                 </div>
-                <Link
-                    href="/admin/tests/import"
-                    className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors text-sm"
-                >
-                    <span className="material-symbols-outlined text-sm">upload_file</span>
-                    Import DOCX
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href="/admin/tests/add"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"
+                    >
+                        <span className="material-symbols-outlined text-sm">add_circle</span>
+                        Add Test
+                    </Link>
+                    <Link
+                        href="/admin/tests/import"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors text-sm"
+                    >
+                        <span className="material-symbols-outlined text-sm">upload_file</span>
+                        Import DOCX
+                    </Link>
+                </div>
             </div>
 
             {/* Skill tabs */}

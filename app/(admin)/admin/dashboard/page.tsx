@@ -1,7 +1,38 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
 
+const AUTH_API = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || "http://localhost:5001";
+const TEST_API = process.env.NEXT_PUBLIC_TEST_SERVICE_URL || "http://localhost:3001";
+
 export default function AdminDashboardPage() {
+  const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  const [totalTests, setTotalTests] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        const [usersRes, testsRes] = await Promise.all([
+          fetch(`${AUTH_API}/auth/users?limit=1`).then(r => r.json().catch(() => ({}))),
+          fetch(`${TEST_API}/tests?limit=1`).then(r => r.json().catch(() => ({})))
+        ]);
+
+        setTotalUsers(usersRes.total ?? 0);
+        setTotalTests(testsRes.total ?? 0);
+      } catch (err) {
+        console.error("Failed to load dashboard stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto w-full flex flex-col gap-8">
       {/* Header */}
@@ -18,14 +49,14 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Users"
-          value="2,847"
+          value={loading || totalUsers === null ? "..." : totalUsers}
           trend="+12%"
           icon="group"
           color="blue"
         />
         <StatCard
           title="Active Tests"
-          value="156"
+          value={loading || totalTests === null ? "..." : totalTests}
           trend="+8"
           icon="assignment"
           color="green"
@@ -36,13 +67,15 @@ export default function AdminDashboardPage() {
           trend="+0.3"
           icon="grade"
           color="purple"
+          subtext="Coming soon"
         />
         <StatCard
           title="Revenue"
-          value="$48.5k"
-          trend="+18%"
+          value="$0"
+          trend="0%"
           icon="payments"
           color="orange"
+          subtext="Coming soon"
         />
       </div>
 
