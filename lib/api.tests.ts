@@ -7,17 +7,20 @@ export interface CreateManualTestRequest {
         sectionOrder: number;
         passage?: string;
         audioUrl?: string;
-        timeLimit?: number;
-        questions: {
-            questionOrder: number;
-            questionType: string;
-            questionText: string;
-            config: any;
-            explanation?: string;
-            answer: {
-                correctAnswers: string[];
-                caseSensitive: boolean;
-            }
+        groups: {
+            groupOrder: number;
+            instructions?: string;
+            questions: {
+                questionOrder: number;
+                questionType: string;
+                questionText: string;
+                config: any;
+                explanation?: string;
+                answer: {
+                    correctAnswers: string[];
+                    caseSensitive: boolean;
+                }
+            }[];
         }[];
     }[];
 }
@@ -27,7 +30,7 @@ export const createManualTest = async (data: CreateManualTestRequest) => {
         ? document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1] || ''
         : '';
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/tests/manual`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/tests/manual`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

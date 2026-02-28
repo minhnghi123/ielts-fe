@@ -45,7 +45,7 @@ export default function FillInBlankQuestion({
                 {/* Question Text */}
                 <div>
                     <div className="flex items-center justify-between mb-1">
-                        <label className="block text-sm font-medium text-slate-700">Question Text</label>
+                        <label className="block text-sm font-medium text-slate-700">Question Text (Optional)</label>
                     </div>
                     <textarea
                         value={questionText}

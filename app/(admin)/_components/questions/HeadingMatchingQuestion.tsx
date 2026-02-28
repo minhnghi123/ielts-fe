@@ -76,7 +76,7 @@ export default function HeadingMatchingQuestion({
                 {/* Paragraph/Section Identifier */}
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Paragraph/Section (e.g. Paragraph A)
+                        Paragraph/Section (e.g. Paragraph A) (Optional)
                     </label>
                     <input
                         value={questionText}
@@ -139,8 +139,8 @@ export default function HeadingMatchingQuestion({
                                             key={numeral}
                                             onClick={() => onUpdateAnswer('correctAnswers', [numeral])}
                                             className={`min-w-[48px] h-12 px-3 rounded-lg font-bold text-lg transition-all ${isSelected
-                                                    ? 'bg-emerald-500 text-white shadow-md scale-110 ring-2 ring-emerald-200'
-                                                    : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-emerald-300 hover:text-emerald-500'
+                                                ? 'bg-emerald-500 text-white shadow-md scale-110 ring-2 ring-emerald-200'
+                                                : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-emerald-300 hover:text-emerald-500'
                                                 }`}
                                         >
                                             {numeral}

@@ -18,7 +18,7 @@ interface TestsPage {
     totalPages: number;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_TEST_SERVICE_URL || "http://localhost:3001";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 const SKILL_TABS = ["all", "reading", "listening", "writing", "speaking"];
 
@@ -70,7 +70,8 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
             const params = new URLSearchParams({ page: String(p), limit: "12" });
             if (skill !== "all") params.set("skill", skill);
             const res = await fetch(`${API_BASE}/tests?${params}`);
-            const data: TestsPage = await res.json();
+            //have to add .data because the response is wrapped in data
+            const data: TestsPage = (await res.json()).data;
             setTests(data.data ?? []);
             setTotal(data.total ?? 0);
             setTotalPages(data.totalPages ?? 1);
@@ -142,8 +143,8 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                         key={tab}
                                         onClick={() => handleSkillChange(tab)}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                                                ? "bg-blue-50 text-blue-700 font-semibold"
-                                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                            ? "bg-blue-50 text-blue-700 font-semibold"
+                                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                             }`}
                                     >
                                         <span className="capitalize">{tab}</span>

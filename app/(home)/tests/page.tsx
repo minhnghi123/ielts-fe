@@ -45,14 +45,14 @@ const SKILLS = ['all', 'reading', 'listening', 'writing', 'speaking'] as const;
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([]);
   const [skill, setSkill] = useState<string>('all');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const LIMIT = 12;
+  const LIMIT: number = 12;
 
   useEffect(() => {
     fetchTests();

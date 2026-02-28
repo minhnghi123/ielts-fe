@@ -60,7 +60,7 @@ export default function MatchingQuestion({
                 {/* Statement/Prompt Text */}
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Statement to be Matched
+                        Statement to be Matched (Optional)
                     </label>
                     <textarea
                         value={questionText}
@@ -120,8 +120,8 @@ export default function MatchingQuestion({
                                             key={letter}
                                             onClick={() => onUpdateAnswer('correctAnswers', [letter])}
                                             className={`w-12 h-12 rounded-lg font-bold text-lg transition-all ${isSelected
-                                                    ? 'bg-emerald-500 text-white shadow-md scale-110 ring-2 ring-emerald-200'
-                                                    : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-emerald-300 hover:text-emerald-500'
+                                                ? 'bg-emerald-500 text-white shadow-md scale-110 ring-2 ring-emerald-200'
+                                                : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-emerald-300 hover:text-emerald-500'
                                                 }`}
                                         >
                                             {letter}

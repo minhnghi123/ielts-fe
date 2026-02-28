@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
 
-const AUTH_API = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || "http://localhost:5001";
-const TEST_API = process.env.NEXT_PUBLIC_TEST_SERVICE_URL || "http://localhost:3001";
+const AUTH_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
+const TEST_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 export default function AdminDashboardPage() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);

@@ -17,7 +17,7 @@ interface ParsePreview {
     parsed?: ParsePreview;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_TEST_SERVICE_URL || "http://localhost:3001";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 const ADMIN_ID = "a1b2c3d4-0000-0000-0000-000000000001";
 
 // ─── Skill badge colours ──────────────────────────────────────────────────────

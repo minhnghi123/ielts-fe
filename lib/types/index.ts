@@ -23,12 +23,20 @@ export interface Section {
     passage?: string;
     audioUrl?: string;
     timeLimit?: number;
+    groups?: QuestionGroup[];
+}
+
+export interface QuestionGroup {
+    id: string;
+    sectionId: string;
+    groupOrder: number;
+    instructions?: string;
     questions?: Question[];
 }
 
 export interface Question {
     id: string;
-    sectionId: string;
+    questionGroupId: string;
     questionOrder: number;
     questionType: string;
     questionText: string;

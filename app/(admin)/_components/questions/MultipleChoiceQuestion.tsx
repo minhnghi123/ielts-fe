@@ -6,6 +6,7 @@ interface MultipleChoiceQuestionProps {
     correctAnswers: string[];
     caseSensitive: boolean;
     options: string[]; // specific config for MCQ
+    questionType?: string;
     onUpdateField: (field: string, value: any) => void;
     onUpdateAnswer: (field: string, value: any) => void;
     onRemove: () => void;
@@ -16,6 +17,7 @@ export default function MultipleChoiceQuestion({
     questionText,
     correctAnswers,
     options,
+    questionType,
     onUpdateField,
     onUpdateAnswer,
     onRemove
@@ -54,7 +56,9 @@ export default function MultipleChoiceQuestion({
                         Q{order}
                     </span>
                     <span className="text-sm font-semibold text-slate-500 uppercase tracking-widest">
-                        Multiple Choice
+                        {questionType === 'true_false_not_given' ? 'True / False / Not Given'
+                            : questionType === 'yes_no_not_given' ? 'Yes / No / Not Given'
+                                : 'Multiple Choice'}
                     </span>
                 </div>
                 <button
@@ -69,7 +73,7 @@ export default function MultipleChoiceQuestion({
             <div className="space-y-6">
                 {/* Question Text */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Question Text</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Question Text (Optional)</label>
                     <textarea
                         value={questionText}
                         onChange={(e) => onUpdateField('questionText', e.target.value)}

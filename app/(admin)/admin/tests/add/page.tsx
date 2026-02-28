@@ -35,20 +35,43 @@ export function AddTestPageSuspense() {
         title: "",
         isMock: false,
         createdBy,
-        sections: [
-            {
-                sectionOrder: 1,
-                passage: "",
-                audioUrl: "",
-                timeLimit: 20,
+        sections: Array.from({ length: initialSkill === 'reading' || initialSkill === 'listening' ? 3 : 1 }).map((_, i) => ({
+            sectionOrder: i + 1,
+            passage: "",
+            audioUrl: "",
+            groups: [{
+                groupOrder: 1,
+                instructions: "",
                 questions: []
-            }
-        ]
+            }]
+        }))
     });
 
     // --- Handlers ---
     const handleTestChange = (field: keyof CreateManualTestRequest, value: any) => {
-        setTestData(prev => ({ ...prev, [field]: value }));
+        setTestData(prev => {
+            const next = { ...prev, [field]: value };
+            // Adjust sections if skill changes
+            if (field === 'skill' && (value === 'listening' || value === 'reading')) {
+                const requiredLength = 3;
+                let newSecs = [...next.sections];
+                if (newSecs.length < requiredLength) {
+                    const diff = requiredLength - newSecs.length;
+                    for (let i = 0; i < diff; i++) {
+                        newSecs.push({
+                            sectionOrder: newSecs.length + 1,
+                            passage: "",
+                            audioUrl: "",
+                            groups: [{ groupOrder: 1, instructions: "", questions: [] }]
+                        });
+                    }
+                } else if (newSecs.length > requiredLength) {
+                    newSecs = newSecs.slice(0, requiredLength);
+                }
+                next.sections = newSecs;
+            }
+            return next;
+        });
     };
 
     const addSection = () => {
@@ -60,8 +83,7 @@ export function AddTestPageSuspense() {
                     sectionOrder: prev.sections.length + 1,
                     passage: "",
                     audioUrl: "",
-                    timeLimit: 20,
-                    questions: []
+                    groups: [{ groupOrder: 1, instructions: "", questions: [] }]
                 }
             ]
         }));
@@ -80,10 +102,36 @@ export function AddTestPageSuspense() {
         setTestData({ ...testData, sections: newSections });
     };
 
-    const addQuestion = (sIndex: number) => {
+    // Group Handlers
+    const addGroup = (sIndex: number) => {
         const newSections = [...testData.sections];
-        newSections[sIndex].questions.push({
-            questionOrder: newSections[sIndex].questions.length + 1,
+        newSections[sIndex].groups.push({
+            groupOrder: newSections[sIndex].groups.length + 1,
+            instructions: "",
+            questions: []
+        });
+        setTestData({ ...testData, sections: newSections });
+    };
+
+    const updateGroup = (sIndex: number, gIndex: number, field: string, value: any) => {
+        const newSections = [...testData.sections];
+        (newSections[sIndex].groups[gIndex] as any)[field] = value;
+        setTestData({ ...testData, sections: newSections });
+    };
+
+    const removeGroup = (sIndex: number, gIndex: number) => {
+        const newSections = [...testData.sections];
+        newSections[sIndex].groups = newSections[sIndex].groups.filter((_, i) => i !== gIndex);
+        // Reorder
+        newSections[sIndex].groups.forEach((g, idx) => { g.groupOrder = idx + 1; });
+        setTestData({ ...testData, sections: newSections });
+    };
+
+    // Question Handlers
+    const addQuestion = (sIndex: number, gIndex: number) => {
+        const newSections = [...testData.sections];
+        newSections[sIndex].groups[gIndex].questions.push({
+            questionOrder: newSections[sIndex].groups[gIndex].questions.length + 1,
             questionType: "multiple_choice",
             questionText: "",
             config: {},
@@ -96,23 +144,23 @@ export function AddTestPageSuspense() {
         setTestData({ ...testData, sections: newSections });
     };
 
-    const updateQuestion = (sIndex: number, qIndex: number, field: string, value: any) => {
+    const updateQuestion = (sIndex: number, gIndex: number, qIndex: number, field: string, value: any) => {
         const newSections = [...testData.sections];
-        (newSections[sIndex].questions[qIndex] as any)[field] = value;
+        (newSections[sIndex].groups[gIndex].questions[qIndex] as any)[field] = value;
         setTestData({ ...testData, sections: newSections });
     };
 
-    const updateAnswer = (sIndex: number, qIndex: number, field: string, value: any) => {
+    const updateAnswer = (sIndex: number, gIndex: number, qIndex: number, field: string, value: any) => {
         const newSections = [...testData.sections];
-        (newSections[sIndex].questions[qIndex].answer as any)[field] = value;
+        (newSections[sIndex].groups[gIndex].questions[qIndex].answer as any)[field] = value;
         setTestData({ ...testData, sections: newSections });
     };
 
-    const removeQuestion = (sIndex: number, qIndex: number) => {
+    const removeQuestion = (sIndex: number, gIndex: number, qIndex: number) => {
         const newSections = [...testData.sections];
-        newSections[sIndex].questions = newSections[sIndex].questions.filter((_, i) => i !== qIndex);
+        newSections[sIndex].groups[gIndex].questions = newSections[sIndex].groups[gIndex].questions.filter((_, i) => i !== qIndex);
         // Reorder
-        newSections[sIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
+        newSections[sIndex].groups[gIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
         setTestData({ ...testData, sections: newSections });
     };
 
@@ -179,15 +227,6 @@ export function AddTestPageSuspense() {
                             <div className="p-6 space-y-6">
                                 {/* Section Details */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Time Limit (mins)</label>
-                                        <input
-                                            type="number"
-                                            value={section.timeLimit}
-                                            onChange={(e) => updateSection(sIndex, 'timeLimit', parseInt(e.target.value))}
-                                            className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        />
-                                    </div>
                                     {testData.skill === 'listening' && (
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1">Audio URL</label>
@@ -212,79 +251,93 @@ export function AddTestPageSuspense() {
                                     </div>
                                 )}
 
-                                {/* Questions List */}
+                                {/* Groups List */}
                                 <div className="mt-8">
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Questions</h3>
+                                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                        <h3 className="text-lg font-semibold text-slate-800">Question Groups</h3>
+                                    </div>
 
                                     <div className="space-y-6">
-                                        {section.questions.map((q, qIndex) => {
+                                        {section.groups.map((group, gIndex) => (
+                                            <div key={gIndex} className="p-4 border border-slate-200 rounded-lg bg-slate-50 relative group/g">
+                                                <button
+                                                    onClick={() => removeGroup(sIndex, gIndex)}
+                                                    title="Remove Group"
+                                                    className="absolute top-2 right-2 p-2 text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover/g:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
 
-                                            // Common props for all question components
-                                            const commonProps = {
-                                                order: q.questionOrder || (qIndex + 1),
-                                                questionText: q.questionText,
-                                                correctAnswers: q.answer?.correctAnswers || [""],
-                                                caseSensitive: q.answer?.caseSensitive || false,
-                                                onUpdateField: (field: string, value: any) => updateQuestion(sIndex, qIndex, field, value),
-                                                onUpdateAnswer: (field: string, value: any) => updateAnswer(sIndex, qIndex, field, value),
-                                                onRemove: () => removeQuestion(sIndex, qIndex)
-                                            };
-
-                                            return (
-                                                <div key={qIndex} className="relative">
-                                                    {/* Question Type Selector Container */}
-                                                    <div className="flex items-center gap-2 mb-3 bg-slate-100 p-2 rounded-lg w-fit border border-slate-200">
-                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">Type:</span>
-                                                        <select
-                                                            value={q.questionType}
-                                                            onChange={(e) => updateQuestion(sIndex, qIndex, 'questionType', e.target.value)}
-                                                            className="border-0 bg-white rounded px-3 py-1 text-sm font-medium text-slate-700 outline-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            <option value="multiple_choice">Multiple Choice</option>
-                                                            <option value="fill_in_blank">Fill in Blank</option>
-                                                            <option value="matching">Matching</option>
-                                                            <option value="heading">Heading Matching</option>
-                                                        </select>
-                                                    </div>
-
-                                                    {/* Render specifically typed question component */}
-                                                    {q.questionType === 'multiple_choice' && (
-                                                        <MultipleChoiceQuestion
-                                                            {...commonProps}
-                                                            options={q.config?.options || ["", "", "", ""]}
-                                                        />
-                                                    )}
-
-                                                    {q.questionType === 'fill_in_blank' && (
-                                                        <FillInBlankQuestion
-                                                            {...commonProps}
-                                                        />
-                                                    )}
-
-                                                    {q.questionType === 'matching' && (
-                                                        <MatchingQuestion
-                                                            {...commonProps}
-                                                            options={q.config?.options || ["", "", ""]}
-                                                        />
-                                                    )}
-
-                                                    {q.questionType === 'heading' && (
-                                                        <HeadingMatchingQuestion
-                                                            {...commonProps}
-                                                            options={q.config?.options || ["", "", "", ""]}
-                                                        />
-                                                    )}
+                                                <div className="mb-6">
+                                                    <label className="block text-sm font-medium text-slate-700 mb-2">Instructions (Optional)</label>
+                                                    <RichTextEditor
+                                                        value={group.instructions || ''}
+                                                        onChange={(val: any) => updateGroup(sIndex, gIndex, 'instructions', val)}
+                                                    />
                                                 </div>
-                                            );
-                                        })}
+
+                                                <h4 className="font-medium text-sm text-slate-700 mb-3 border-b pb-1">Questions</h4>
+                                                <div className="space-y-6 pl-4 border-l-2 border-slate-200">
+                                                    {group.questions.map((q, qIndex) => {
+                                                        const commonProps = {
+                                                            order: q.questionOrder || (qIndex + 1),
+                                                            questionText: q.questionText,
+                                                            correctAnswers: q.answer?.correctAnswers || [""],
+                                                            caseSensitive: q.answer?.caseSensitive || false,
+                                                            onUpdateField: (field: string, value: any) => updateQuestion(sIndex, gIndex, qIndex, field, value),
+                                                            onUpdateAnswer: (field: string, value: any) => updateAnswer(sIndex, gIndex, qIndex, field, value),
+                                                            onRemove: () => removeQuestion(sIndex, gIndex, qIndex)
+                                                        };
+
+                                                        return (
+                                                            <div key={qIndex} className="relative">
+                                                                <div className="flex items-center gap-2 mb-3 bg-white p-2 rounded-lg w-fit border border-slate-200 shadow-sm">
+                                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">Type:</span>
+                                                                    <select
+                                                                        value={q.questionType}
+                                                                        onChange={(e) => updateQuestion(sIndex, gIndex, qIndex, 'questionType', e.target.value)}
+                                                                        className="border-0 rounded px-3 py-1 text-sm font-medium text-slate-700 outline-none cursor-pointer hover:bg-slate-50 transition-colors"
+                                                                    >
+                                                                        <option value="multiple_choice">Multiple Choice</option>
+                                                                        <option value="fill_in_blank">Fill in Blank</option>
+                                                                        <option value="matching">Matching</option>
+                                                                        <option value="true_false_not_given">True / False / Not Given</option>
+                                                                        <option value="yes_no_not_given">Yes / No / Not Given</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                {['multiple_choice', 'true_false_not_given', 'yes_no_not_given'].includes(q.questionType) && (
+                                                                    <MultipleChoiceQuestion
+                                                                        {...commonProps}
+                                                                        questionType={q.questionType}
+                                                                        options={q.config?.options || (q.questionType === 'true_false_not_given' ? ["TRUE", "FALSE", "NOT GIVEN"] : q.questionType === 'yes_no_not_given' ? ["YES", "NO", "NOT GIVEN"] : ["", "", "", ""])}
+                                                                    />
+                                                                )}
+                                                                {q.questionType === 'fill_in_blank' && <FillInBlankQuestion {...commonProps} />}
+                                                                {q.questionType === 'matching' && <MatchingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
+                                                                {q.questionType === 'heading' && <HeadingMatchingQuestion {...commonProps} options={q.config?.options || ["", "", "", ""]} />}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                <button
+                                                    onClick={() => addQuestion(sIndex, gIndex)}
+                                                    className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-100 px-4 py-2.5 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
+                                                >
+                                                    <PlusCircle className="w-4 h-4" />
+                                                    Add Question to Group
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
 
                                     <button
-                                        onClick={() => addQuestion(sIndex)}
-                                        className="mt-6 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-3 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
+                                        onClick={() => addGroup(sIndex)}
+                                        className="mt-6 flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50 px-4 py-3 rounded-xl transition-colors border-2 border-slate-300 border-dashed w-full justify-center"
                                     >
-                                        <PlusCircle className="w-5 h-5" />
-                                        Add New Question
+                                        <PlusCircle className="w-4 h-4" />
+                                        Add New Question Group
                                     </button>
                                 </div>
                             </div>
