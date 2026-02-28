@@ -54,9 +54,13 @@ export const testsApi = {
             .get<{ data: Section[] }>(`/api/tests/${testId}/sections`)
             .then((r) => r.data.data),
 
-    getQuestions: (sectionId: string) =>
+    /**
+     * Fetch questions belonging to a specific question group.
+     * The backend models questions under groups, not directly under sections.
+     */
+    getQuestions: (groupId: string) =>
         testAxios
-            .get<{ data: Question[] }>(`/api/sections/${sectionId}/questions`)
+            .get<{ data: Question[] }>(`/api/groups/${groupId}/questions`)
             .then((r) => r.data.data),
 
     getWritingTasks: (testId: string) =>
@@ -79,5 +83,124 @@ export const testsApi = {
             .post<{ data: Test }>('/api/tests', dto)
             .then((r) => r.data.data),
 
+    updateTest: (
+        id: string,
+        dto: Partial<Pick<Test, 'title' | 'skill' | 'isMock'>>,
+    ) =>
+        testAxios
+            .put<{ data: Test }>(`/api/tests/${id}`, dto)
+            .then((r) => r.data.data),
+
     deleteTest: (id: string) => testAxios.delete(`/api/tests/${id}`),
+
+    // ─── Sections ─────────────────────────────────────────────────────────────
+
+    createSection: (
+        testId: string,
+        dto: {
+            sectionOrder: number;
+            passage?: string;
+            audioUrl?: string;
+            timeLimit?: number;
+        },
+    ) =>
+        testAxios
+            .post<{ data: Section }>(`/api/tests/${testId}/sections`, dto)
+            .then((r) => r.data.data),
+
+    updateSection: (
+        sectionId: string,
+        dto: {
+            sectionOrder?: number;
+            passage?: string;
+            audioUrl?: string;
+            timeLimit?: number;
+        },
+    ) =>
+        testAxios
+            .put<{ data: Section }>(`/api/sections/${sectionId}`, dto)
+            .then((r) => r.data.data),
+
+    deleteSection: (sectionId: string) =>
+        testAxios.delete(`/api/sections/${sectionId}`),
+
+    // ─── Questions ────────────────────────────────────────────────────────────
+
+    createQuestion: (
+        groupId: string,
+        dto: {
+            questionOrder: number;
+            questionType: string;
+            questionText?: string;
+            config: Record<string, unknown>;
+            explanation?: string;
+            answer: {
+                correctAnswers: string[];
+                caseSensitive: boolean;
+            };
+        },
+    ) =>
+        testAxios
+            .post<{ data: Question }>(`/api/groups/${groupId}/questions`, dto)
+            .then((r) => r.data.data),
+
+    updateQuestion: (
+        questionId: string,
+        dto: {
+            questionOrder?: number;
+            questionType?: string;
+            questionText?: string;
+            config?: Record<string, unknown>;
+            explanation?: string | null;
+            answer?: {
+                correctAnswers: string[];
+                caseSensitive: boolean;
+            };
+        },
+    ) =>
+        testAxios
+            .put<{ data: Question }>(`/api/questions/${questionId}`, dto)
+            .then((r) => r.data.data),
+
+    deleteQuestion: (questionId: string) =>
+        testAxios.delete(`/api/questions/${questionId}`),
+
+    // ─── Writing Tasks ────────────────────────────────────────────────────────
+
+    createWritingTask: (
+        testId: string,
+        dto: {
+            taskNumber: number;
+            prompt: string;
+            wordLimit: number;
+        },
+    ) =>
+        testAxios
+            .post<{ data: WritingTask }>(
+                `/api/tests/${testId}/writing-tasks`,
+                dto,
+            )
+            .then((r) => r.data.data),
+
+    deleteWritingTask: (taskId: string) =>
+        testAxios.delete(`/api/writing-tasks/${taskId}`),
+
+    // ─── Speaking Parts ───────────────────────────────────────────────────────
+
+    createSpeakingPart: (
+        testId: string,
+        dto: {
+            partNumber: number;
+            prompt?: string;
+        },
+    ) =>
+        testAxios
+            .post<{ data: SpeakingPart }>(
+                `/api/tests/${testId}/speaking-parts`,
+                dto,
+            )
+            .then((r) => r.data.data),
+
+    deleteSpeakingPart: (partId: string) =>
+        testAxios.delete(`/api/speaking-parts/${partId}`),
 };
