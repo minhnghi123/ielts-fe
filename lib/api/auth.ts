@@ -115,6 +115,18 @@ export const authApi = {
     return body;
   },
 
+  google: async (accessToken: string): Promise<AuthResponse> => {
+    const response = await apiClient.post("/api/auth/google", { access_token: accessToken });
+    const body: AuthResponse = response.data;
+
+    if (body?.data?.accessToken) {
+      setCookie("accessToken", body.data.accessToken, 1);
+      setCookie("user", JSON.stringify(body.data.user), 1);
+    }
+
+    return body;
+  },
+
   getProfile: async (): Promise<ProfileResponse> => {
     const response = await apiClient.get("/api/auth/profile");
     return response.data;

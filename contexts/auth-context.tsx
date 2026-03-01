@@ -14,6 +14,8 @@ export interface AuthUser {
     email: string;
     role: "learner" | "admin";
     profileId: string;
+    fullName?: string;
+    avatarUrl?: string;
 }
 
 interface AuthContextValue {

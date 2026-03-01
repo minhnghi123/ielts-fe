@@ -153,10 +153,20 @@ export default function EditTestPage() {
     };
 
     const removeSection = (sIndex: number) => {
-        if (!confirm("Are you sure you want to remove this entire section?")) return;
-        const newSections = testData.sections.filter((_, i) => i !== sIndex);
-        newSections.forEach((s, idx) => { s.sectionOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Section?", {
+            description: "Are you sure you want to remove this entire section?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = prev.sections.filter((_, i) => i !== sIndex);
+                        newSections.forEach((s, idx) => { s.sectionOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     const addGroup = (sIndex: number) => {
@@ -176,11 +186,21 @@ export default function EditTestPage() {
     };
 
     const removeGroup = (sIndex: number, gIndex: number) => {
-        if (!confirm("Remove this question group?")) return;
-        const newSections = [...testData.sections];
-        newSections[sIndex].groups = newSections[sIndex].groups.filter((_, i) => i !== gIndex);
-        newSections[sIndex].groups.forEach((g, idx) => { g.groupOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Group?", {
+            description: "Are you sure you want to remove this question group?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = [...prev.sections];
+                        newSections[sIndex].groups = newSections[sIndex].groups.filter((_, i) => i !== gIndex);
+                        newSections[sIndex].groups.forEach((g, idx) => { g.groupOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     const addQuestion = (sIndex: number, gIndex: number) => {
@@ -209,11 +229,21 @@ export default function EditTestPage() {
     };
 
     const removeQuestion = (sIndex: number, gIndex: number, qIndex: number) => {
-        if (!confirm("Remove this question?")) return;
-        const newSections = [...testData.sections];
-        newSections[sIndex].groups[gIndex].questions = newSections[sIndex].groups[gIndex].questions.filter((_, i) => i !== qIndex);
-        newSections[sIndex].groups[gIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Question?", {
+            description: "Are you sure you want to remove this question?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = [...prev.sections];
+                        newSections[sIndex].groups[gIndex].questions = newSections[sIndex].groups[gIndex].questions.filter((_, i) => i !== qIndex);
+                        newSections[sIndex].groups[gIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     const handleSave = async () => {

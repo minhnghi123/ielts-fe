@@ -96,10 +96,20 @@ export function AddTestPageSuspense() {
     };
 
     const removeSection = (sIndex: number) => {
-        const newSections = testData.sections.filter((_, i) => i !== sIndex);
-        // Reorder
-        newSections.forEach((s, idx) => { s.sectionOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Section?", {
+            description: "Are you sure you want to remove this entire section?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = prev.sections.filter((_, i) => i !== sIndex);
+                        newSections.forEach((s, idx) => { s.sectionOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     // Group Handlers
@@ -120,11 +130,21 @@ export function AddTestPageSuspense() {
     };
 
     const removeGroup = (sIndex: number, gIndex: number) => {
-        const newSections = [...testData.sections];
-        newSections[sIndex].groups = newSections[sIndex].groups.filter((_, i) => i !== gIndex);
-        // Reorder
-        newSections[sIndex].groups.forEach((g, idx) => { g.groupOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Group?", {
+            description: "Are you sure you want to remove this question group?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = [...prev.sections];
+                        newSections[sIndex].groups = newSections[sIndex].groups.filter((_, i) => i !== gIndex);
+                        newSections[sIndex].groups.forEach((g, idx) => { g.groupOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     // Question Handlers
@@ -157,11 +177,21 @@ export function AddTestPageSuspense() {
     };
 
     const removeQuestion = (sIndex: number, gIndex: number, qIndex: number) => {
-        const newSections = [...testData.sections];
-        newSections[sIndex].groups[gIndex].questions = newSections[sIndex].groups[gIndex].questions.filter((_, i) => i !== qIndex);
-        // Reorder
-        newSections[sIndex].groups[gIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
-        setTestData({ ...testData, sections: newSections });
+        toast("Remove Question?", {
+            description: "Are you sure you want to remove this question?",
+            action: {
+                label: "Remove",
+                onClick: () => {
+                    setTestData(prev => {
+                        const newSections = [...prev.sections];
+                        newSections[sIndex].groups[gIndex].questions = newSections[sIndex].groups[gIndex].questions.filter((_, i) => i !== qIndex);
+                        newSections[sIndex].groups[gIndex].questions.forEach((q, idx) => { q.questionOrder = idx + 1; });
+                        return { ...prev, sections: newSections };
+                    });
+                }
+            },
+            cancel: { label: "Cancel", onClick: () => { } }
+        });
     };
 
     const handleSave = async () => {

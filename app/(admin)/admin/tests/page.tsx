@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface Test {
     id: string;
@@ -87,14 +88,29 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
     }, [activeSkill, page]);
 
     const handleDelete = async (id: string, title: string) => {
-        if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-        setDeleting(id);
-        try {
-            await fetch(`${API_BASE}/tests/${id}`, { method: "DELETE" });
-            fetchTests(activeSkill, page);
-        } finally {
-            setDeleting(null);
-        }
+        toast(`Delete "${title}"?`, {
+            description: "This action cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    setDeleting(id);
+                    try {
+                        const res = await fetch(`${API_BASE}/tests/${id}`, { method: "DELETE" });
+                        if (!res.ok) throw new Error("Failed to delete test");
+                        toast.success("Test deleted successfully");
+                        fetchTests(activeSkill, page);
+                    } catch (error) {
+                        toast.error("Failed to delete test");
+                    } finally {
+                        setDeleting(null);
+                    }
+                }
+            },
+            cancel: {
+                label: "Cancel",
+                onClick: () => { }
+            }
+        });
     };
 
     const addLinkHref = activeSkill === 'all'

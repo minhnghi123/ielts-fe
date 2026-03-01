@@ -1,4 +1,5 @@
 import { LoginForm } from "./_components/login-form";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -39,11 +40,11 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="text-sm text-slate-500 flex justify-between items-center">
+          <div className="text-sm text-slate-500 flex justify-between items-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
             <span>© 2024 IELTS Master Platform</span>
             <div className="flex gap-4">
-              <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
-              <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
+              <Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors duration-200">Terms</Link>
             </div>
           </div>
         </div>

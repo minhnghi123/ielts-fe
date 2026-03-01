@@ -15,13 +15,7 @@ const SKILL_COLORS: Record<string, string> = {
   speaking: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
 };
 
-// Guest placeholder rows
-const PLACEHOLDER_ROWS = [
-  { name: "Mock Test #14", date: "Oct 24, 2023", skill: "listening", score: "8.5" },
-  { name: "Daily Exercise #112", date: "Oct 22, 2023", skill: "reading", score: "7.0" },
-  { name: "Speaking Drill", date: "Oct 21, 2023", skill: "speaking", score: "7.5" },
-  { name: "Full Mock Exam A", date: "Oct 18, 2023", skill: "writing", score: "7.5" },
-];
+// Optional: removed PLACEHOLDER_ROWS to prevent fake data being shown
 
 export function RecentActivity() {
   const { user, isLoggedIn, loading: authLoading } = useAuth();
@@ -103,19 +97,15 @@ export function RecentActivity() {
                   </tr>
                 )
               ) : (
-                /* Guest placeholder rows */
-                PLACEHOLDER_ROWS.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors opacity-60">
-                    <td className="px-6 py-4 font-semibold text-sm">{row.name}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground hidden sm:table-cell">{row.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`${SKILL_COLORS[row.skill]} px-3 py-1 rounded-full text-xs font-medium capitalize`}>
-                        {row.skill}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-primary">{row.score}</td>
-                  </tr>
-                ))
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                    <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">lock</span>
+                    <p className="mb-2">Activity history is available for registered users.</p>
+                    <Link href="/login" className="text-primary font-medium hover:underline">
+                      Sign in to track your progress
+                    </Link>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
