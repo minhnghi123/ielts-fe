@@ -23,7 +23,7 @@ export interface Section {
     passage?: string;
     audioUrl?: string;
     timeLimit?: number;
-    groups?: QuestionGroup[];
+    questionGroups?: QuestionGroup[];
 }
 
 export interface QuestionGroup {

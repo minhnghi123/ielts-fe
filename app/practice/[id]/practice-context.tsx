@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 
 interface PracticeContextType {
     timeLeft: number | null; // null means untimed
@@ -8,7 +8,6 @@ interface PracticeContextType {
     isTimerRunning: boolean;
     startTimer: (durationMinutes: number | "full" | "untimed", defaultDurationFull: number) => void;
     stopTimer: () => void;
-    onTimeUp: (() => void) | null;
     setOnTimeUp: (callback: () => void) => void;
     attemptId: string | null;
     setAttemptId: (id: string) => void;
@@ -20,8 +19,18 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
     const [durationMs, setDurationMs] = useState<number | null>(null);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
-    const [onTimeUp, setOnTimeUp] = useState<(() => void) | null>(null);
     const [attemptId, setAttemptId] = useState<string | null>(null);
+
+    // Use a ref to store the onTimeUp callback.
+    // This avoids two problems:
+    // 1. The React useState updater bug: if we stored a fn in useState and set it with
+    //    setOnTimeUp(fn), React would call fn() immediately treating it as an updater.
+    // 2. Stale closure in setInterval: reading from a ref always gives the latest value.
+    const onTimeUpRef = useRef<(() => void) | null>(null);
+
+    const setOnTimeUp = (callback: () => void) => {
+        onTimeUpRef.current = callback;
+    };
 
     const startTimer = (durationMinutes: number | "full" | "untimed", defaultDurationFull: number) => {
         if (durationMinutes === "untimed") {
@@ -43,27 +52,24 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        if (!isTimerRunning) return;
 
-        if (isTimerRunning && timeLeft !== null) {
-            interval = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev === null) return null;
-                    const newTime = prev - 1000;
-                    if (newTime <= 0) {
-                        setIsTimerRunning(false);
-                        if (onTimeUp) {
-                            onTimeUp(); // Trigger auto-submit
-                        }
-                        return 0;
-                    }
-                    return newTime;
-                });
-            }, 1000);
-        }
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev === null) return null;
+                const newTime = prev - 1000;
+                if (newTime <= 0) {
+                    setIsTimerRunning(false);
+                    // Read the latest callback from the ref — no stale closure issue
+                    onTimeUpRef.current?.();
+                    return 0;
+                }
+                return newTime;
+            });
+        }, 1000);
 
         return () => clearInterval(interval);
-    }, [isTimerRunning, timeLeft, onTimeUp]);
+    }, [isTimerRunning]); // Only re-run when isTimerRunning changes, not every second
 
     return (
         <PracticeContext.Provider
@@ -73,7 +79,6 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
                 isTimerRunning,
                 startTimer,
                 stopTimer,
-                onTimeUp,
                 setOnTimeUp,
                 attemptId,
                 setAttemptId,

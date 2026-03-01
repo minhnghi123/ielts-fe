@@ -12,7 +12,7 @@ export function WritingTestInterface({
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: () => void;
+    onFinish: (answers?: Record<string, string>) => void;
 }) {
     const [task1Response, setTask1Response] = useState("");
     const [task2Response, setTask2Response] = useState("");
@@ -38,7 +38,7 @@ export function WritingTestInterface({
                         </TabsList>
                     </Tabs>
                 </div>
-                <Button onClick={onFinish} className="px-8 font-bold shadow-md">
+                <Button onClick={() => onFinish()} className="px-8 font-bold shadow-md">
                     Submit Writing
                 </Button>
             </div>

@@ -8,11 +8,13 @@ import { Slider } from "@/components/ui/slider";
 export function ListeningTestInterface({
     testId,
     test,
+    onAnswerUpdate,
     onFinish,
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: () => void;
+    onAnswerUpdate?: (answers: Record<string, string>) => void;
+    onFinish: (answers: Record<string, string>) => void;
 }) {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [isPlaying, setIsPlaying] = useState(false);
@@ -215,7 +217,7 @@ export function ListeningTestInterface({
                     <div className="pt-10 pb-20">
                         <Button
                             className="w-full h-14 text-lg font-bold shadow-lg"
-                            onClick={onFinish}
+                            onClick={() => onFinish(answers)}
                         >
                             Submit Listening Answers
                         </Button>
