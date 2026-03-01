@@ -143,7 +143,7 @@ function AudioPlayerPanel({
   onTimeUpdate,
   formatTime,
 }: {
-  audioRef: React.RefObject<HTMLAudioElement>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   isPlaying: boolean;
   progress: number;
   currentTime: number;
@@ -181,7 +181,7 @@ function AudioPlayerPanel({
                 {test?.title || "Listening Test"}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                {test?.sections?.[0]?.title || "Audio Track"}
+                {"Audio Track"}
               </p>
             </div>
 
@@ -337,11 +337,10 @@ function QuestionItem({
             return (
               <label
                 key={i}
-                className={`flex items-start gap-3 p-3.5 rounded-lg cursor-pointer border transition-all ${
-                  isSelected
-                    ? "bg-blue-50/80 border-blue-300 text-blue-900 font-bold dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-100 shadow-sm"
-                    : "bg-background border-border hover:bg-muted hover:border-border text-foreground"
-                }`}
+                className={`flex items-start gap-3 p-3.5 rounded-lg cursor-pointer border transition-all ${isSelected
+                  ? "bg-blue-50/80 border-blue-300 text-blue-900 font-bold dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-100 shadow-sm"
+                  : "bg-background border-border hover:bg-muted hover:border-border text-foreground"
+                  }`}
               >
                 <input
                   type="radio"
