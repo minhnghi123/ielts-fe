@@ -125,3 +125,46 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── Quill-generated table styles ──────────────────────────────────────────── */
+/* Applied globally so tables in passages/instructions render correctly          */
+.ql-editor table,
+.prose table,
+[dangerouslySetInnerHTML] table,
+article table {
+  border-collapse: collapse !important;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+.ql-editor td,
+.ql-editor th,
+.prose td,
+.prose th,
+article td,
+article th {
+  border: 1px solid #cbd5e1 !important;
+  padding: 8px 12px !important;
+  text-align: left;
+  vertical-align: top;
+}
+.ql-editor th,
+.prose th,
+article th {
+  background: #f1f5f9 !important;
+  font-weight: 600 !important;
+}
+.dark .ql-editor th,
+.dark .prose th,
+.dark article th {
+  background: #1e293b !important;
+}
+.dark .ql-editor td,
+.dark .ql-editor th,
+.dark .prose td,
+.dark .prose th,
+.dark article td,
+.dark article th {
+  border-color: #334155 !important;
+}
+

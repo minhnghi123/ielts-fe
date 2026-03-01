@@ -52,8 +52,8 @@ export function ReadingTestInterface({ test, onAnswerUpdate, onFinish }: Props) 
                             key={sec.id || i}
                             onClick={() => setActiveSection(i)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeSection === i
-                                    ? "bg-primary text-primary-foreground shadow"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                ? "bg-primary text-primary-foreground shadow"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                                 }`}
                         >
                             Passage {i + 1}
@@ -320,8 +320,8 @@ function QuestionItem({
                                 <label
                                     key={i}
                                     className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-all ${isSelected
-                                            ? "bg-primary/10 border-primary text-primary font-medium"
-                                            : "border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-border"
+                                        ? "bg-primary/10 border-primary text-primary font-medium"
+                                        : "border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-border"
                                         }`}
                                 >
                                     <input
