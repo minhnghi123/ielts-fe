@@ -24,8 +24,12 @@ export function HomeNavbar() {
   const pathname = usePathname();
   const { user, isLoggedIn, loading, logout } = useAuth();
 
-  // Get initials from email for avatar fallback
-  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "?";
+  // Get initials from email or name for avatar fallback
+  const initials = user?.fullName
+    ? user.fullName.charAt(0).toUpperCase()
+    : user?.email
+      ? user.email.slice(0, 2).toUpperCase()
+      : "?";
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white dark:bg-[#151c2a] border-b border-border">
@@ -48,8 +52,8 @@ export function HomeNavbar() {
                   key={href}
                   href={href}
                   className={`text-sm font-medium transition-colors pb-1 ${isActive
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-primary"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-primary"
                     }`}
                 >
                   {label}
@@ -85,7 +89,7 @@ export function HomeNavbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="h-9 w-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
-                    <AvatarImage src={undefined} />
+                    <AvatarImage src={user?.avatarUrl} alt={user?.fullName || user?.email} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                       {initials}
                     </AvatarFallback>
@@ -93,11 +97,17 @@ export function HomeNavbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
                   <div className="px-3 py-2">
-                    <p className="text-sm font-semibold truncate">{user?.email}</p>
+                    <p className="text-sm font-semibold truncate">{user?.fullName || user?.email}</p>
                     <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+                  <DropdownMenuItem onClick={() => router.push("/profile")}>
+                    <span className="material-symbols-outlined text-[18px] mr-2">
+                      person
+                    </span>
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard")}>
                     <span className="material-symbols-outlined text-[18px] mr-2">
                       dashboard
                     </span>

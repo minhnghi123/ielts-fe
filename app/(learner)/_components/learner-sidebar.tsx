@@ -7,16 +7,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { authApi } from "@/lib/api/auth";
+import { useAuth } from "@/contexts/auth-context";
 
 export function LearnerSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const storedUser = authApi.getStoredUser();
-    setUser(storedUser);
-  }, []);
+  const { user } = useAuth();
 
   const handleLogout = () => {
     authApi.logout();
@@ -38,19 +34,19 @@ export function LearnerSidebar() {
           <div className="relative">
             <Avatar className="h-12 w-12 border-2 border-background">
               <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt={user?.email || "User"}
+                src={user?.avatarUrl}
+                alt={user?.fullName || user?.email || "User"}
               />
               <AvatarFallback>
-                {user?.email?.charAt(0).toUpperCase() || "U"}
+                {(user?.fullName || user?.email || "U").charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-background"></div>
           </div>
 
-          <div className="flex flex-col">
-            <h1 className="text-sm font-semibold text-foreground">
-              {user?.email || "Loading..."}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <h1 className="text-sm font-semibold text-foreground truncate">
+              {user?.fullName || user?.email || "Loading..."}
             </h1>
             <p className="text-xs text-muted-foreground capitalize">
               {user?.role || "Standard Plan"}

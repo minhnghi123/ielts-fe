@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
 
 const AUTH_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 const TEST_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
@@ -85,7 +86,9 @@ export default function AdminDashboardPage() {
       if (!res.ok) throw new Error("Failed to update profile");
 
       const updatedUser = await res.json();
-      setUser({ ...user, ...updatedUser }); // update context
+      const newUser = { ...user, ...updatedUser };
+      setUser(newUser); // update context
+      authApi.updateStoredUser(newUser); // persist in cookie
 
       toast.success("Profile updated successfully");
       setIsEditingProfile(false);
@@ -150,6 +153,15 @@ export default function AdminDashboardPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleUpdateProfile} className="space-y-4 pt-4">
+                  <div className="space-y-4 pb-4 flex flex-col items-center">
+                    <Label className="self-start">Profile Image</Label>
+                    <AvatarUpload
+                      size="lg"
+                      currentAvatarUrl={editForm.avatarUrl}
+                      fullName={editForm.fullName}
+                      onUpload={(url) => setEditForm(prev => ({ ...prev, avatarUrl: url }))}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
                     <Input
@@ -157,16 +169,6 @@ export default function AdminDashboardPage() {
                       value={editForm.fullName}
                       onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                       placeholder="John Doe"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="avatarUrl">Avatar URL</Label>
-                    <Input
-                      id="avatarUrl"
-                      type="url"
-                      value={editForm.avatarUrl}
-                      onChange={(e) => setEditForm({ ...editForm, avatarUrl: e.target.value })}
-                      placeholder="https://example.com/avatar.png"
                     />
                   </div>
                   <div className="flex justify-end pt-4">

@@ -6,16 +6,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { authApi } from "@/lib/api/auth";
+import { useAuth } from "@/contexts/auth-context";
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const storedUser = authApi.getStoredUser();
-    setUser(storedUser);
-  }, []);
+  const { user } = useAuth();
 
   const handleLogout = () => {
     authApi.logout();
@@ -49,19 +45,19 @@ export function AdminSidebar() {
           <div className="relative">
             <Avatar className="h-12 w-12 border-2 border-orange-500">
               <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt={user?.email || "Admin"}
+                src={user?.avatarUrl}
+                alt={user?.fullName || user?.email || "Admin"}
               />
-              <AvatarFallback className="bg-orange-100 text-orange-600">
-                {user?.email?.charAt(0).toUpperCase() || "A"}
+              <AvatarFallback className="bg-orange-100 text-orange-600 font-bold">
+                {(user?.fullName || user?.email || "A").charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-background"></div>
           </div>
 
-          <div className="flex flex-col">
-            <h1 className="text-sm font-semibold text-foreground">
-              {user?.email || "Loading..."}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <h1 className="text-sm font-semibold text-foreground truncate">
+              {user?.fullName || user?.email || "Loading..."}
             </h1>
             <p className="text-xs text-orange-600 font-semibold uppercase">
               Administrator

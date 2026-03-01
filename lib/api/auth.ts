@@ -142,6 +142,10 @@ export const authApi = {
     return raw ? JSON.parse(raw) : null;
   },
 
+  updateStoredUser: (user: any) => {
+    setCookie("user", JSON.stringify(user), 1);
+  },
+
   isAuthenticated: () => {
     return !!getCookie("accessToken");
   },
