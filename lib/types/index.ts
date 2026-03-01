@@ -85,6 +85,7 @@ export interface TestAttempt {
     submittedAt?: string;
     rawScore?: number;
     bandScore?: number;
+    test?: Test;
     questionAttempts?: QuestionAttempt[];
 }
 

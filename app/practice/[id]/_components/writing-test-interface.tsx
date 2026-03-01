@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Test } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 
 export function WritingTestInterface({
     testId,
+    test,
     onFinish,
 }: {
     testId: string;
+    test?: Test | null;
     onFinish: () => void;
 }) {
     const [task1Response, setTask1Response] = useState("");

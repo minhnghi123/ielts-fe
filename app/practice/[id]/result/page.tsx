@@ -6,30 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
-// --- Mock Data ---
-const mockResult = {
-    testTitle: "IELTS Academic Reading",
-    testDate: "22 Feb 2026",
-    timeTaken: "52:38",
-    bandScore: 7.5,
-    correctAnswers: 33,
-    totalQuestions: 40,
-    sections: [
-        { name: "Matching Headings", correct: 10, total: 12, icon: "swap_horiz" },
-        { name: "True / False / Not Given", correct: 13, total: 16, icon: "rule" },
-        { name: "Multiple Choice", correct: 10, total: 12, icon: "list" },
-    ],
-    questions: [
-        { id: 1, section: "MH", user: "iii", correct: "iii", isCorrect: true },
-        { id: 2, section: "MH", user: "i", correct: "i", isCorrect: true },
-        { id: 3, section: "MH", user: "vi", correct: "iv", isCorrect: false },
-        { id: 4, section: "TF", user: "TRUE", correct: "FALSE", isCorrect: false },
-        { id: 5, section: "TF", user: "FALSE", correct: "FALSE", isCorrect: true },
-        { id: 6, section: "TF", user: "NOT GIVEN", correct: "NOT GIVEN", isCorrect: true },
-        { id: 7, section: "MC", user: "B", correct: "B", isCorrect: true },
-        { id: 8, section: "MC", user: "A", correct: "C", isCorrect: false },
-    ],
-};
+import { useEffect, useState, use } from "react";
+import { useSearchParams } from "next/navigation";
+import { testsApi } from "@/lib/api/tests";
+import type { TestAttempt } from "@/lib/types";
 
 function getBandColor(score: number) {
     if (score >= 8) return "text-emerald-600";
@@ -46,9 +26,56 @@ function getBandLabel(score: number) {
     return "Limited";
 }
 
-export default function TestResultPage({ params }: { params: { id: string } }) {
-    const result = mockResult;
-    const accuracy = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+export default function TestResultPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const searchParams = useSearchParams();
+    const attemptId = searchParams.get("attemptId");
+
+    const [attempt, setAttempt] = useState<TestAttempt | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!attemptId) {
+            setIsLoading(false);
+            return;
+        }
+        testsApi.getAttemptById(attemptId)
+            .then(data => {
+                setAttempt(data);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to load attempt", err);
+                setIsLoading(false);
+            });
+    }, [attemptId]);
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading calculation...</div>;
+    }
+
+    if (!attempt) {
+        return <div className="min-h-screen flex items-center justify-center">Attempt not found.</div>;
+    }
+
+    const correctAnswersCount = attempt.questionAttempts?.filter((q) => q.isCorrect).length || 0;
+    const totalQuestionsCount = attempt.questionAttempts?.length || 40; // Fallback
+    const accuracy = Math.round((correctAnswersCount / totalQuestionsCount) * 100) || 0;
+
+    // Time calculation (basic)
+    let timeTaken = "N/A";
+    if (attempt.startedAt && attempt.submittedAt) {
+        const start = new Date(attempt.startedAt).getTime();
+        const end = new Date(attempt.submittedAt).getTime();
+        const diffMs = end - start;
+        const totalSecs = Math.floor(diffMs / 1000);
+        const m = Math.floor(totalSecs / 60);
+        const s = totalSecs % 60;
+        timeTaken = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    const testTitle = "IELTS Practice Test"; // In a real app, populate from test entity if joined
+    const testDate = new Date(attempt.startedAt).toLocaleDateString();
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-y-auto">
@@ -63,8 +90,8 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
                         <span className="material-symbols-outlined">emoji_events</span>
                         <span className="font-medium">Test Completed!</span>
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-black">{result.testTitle}</h1>
-                    <p className="text-blue-200 text-sm">{result.testDate} — {result.timeTaken} taken</p>
+                    <h1 className="text-3xl md:text-4xl font-black">{testTitle}</h1>
+                    <p className="text-blue-200 text-sm">{testDate} — {timeTaken} taken</p>
                 </div>
             </div>
 
@@ -76,21 +103,21 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
                     <Card className="relative overflow-hidden border-none shadow-xl bg-white dark:bg-slate-900 md:col-span-1 flex flex-col items-center justify-center py-10">
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-blue-400" />
                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mb-2">Overall Band Score</p>
-                        <p className={`text-8xl font-black ${getBandColor(result.bandScore)}`}>
-                            {result.bandScore}
+                        <p className={`text-8xl font-black ${getBandColor(attempt.bandScore || 0)}`}>
+                            {attempt.bandScore || "N/A"}
                         </p>
                         <Badge className="mt-4 px-4 py-1 text-sm bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-100">
-                            {getBandLabel(result.bandScore)}
+                            {attempt.bandScore ? getBandLabel(attempt.bandScore) : "Pending"}
                         </Badge>
                     </Card>
 
                     {/* Stats Grid */}
                     <div className="md:col-span-2 grid grid-cols-2 gap-4">
                         {[
-                            { label: "Correct Answers", value: `${result.correctAnswers}/${result.totalQuestions}`, icon: "check_circle", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
+                            { label: "Correct Answers", value: `${correctAnswersCount}/${totalQuestionsCount}`, icon: "check_circle", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
                             { label: "Accuracy", value: `${accuracy}%`, icon: "my_location", color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20" },
-                            { label: "Time Taken", value: result.timeTaken, icon: "timer", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20" },
-                            { label: "Wrong Answers", value: `${result.totalQuestions - result.correctAnswers}`, icon: "cancel", color: "text-red-500 bg-red-50 dark:bg-red-900/20" },
+                            { label: "Time Taken", value: timeTaken, icon: "timer", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20" },
+                            { label: "Wrong Answers", value: `${totalQuestionsCount - correctAnswersCount}`, icon: "cancel", color: "text-red-500 bg-red-50 dark:bg-red-900/20" },
                         ].map((stat) => (
                             <Card key={stat.label} className="bg-white dark:bg-slate-900 border shadow-sm">
                                 <CardContent className="p-5 flex items-center gap-4">
@@ -107,26 +134,31 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
                     </div>
                 </div>
 
-                {/* Section Breakdown */}
-                <Card className="bg-white dark:bg-slate-900 shadow-sm">
+                {/* Section Breakdown (Hidden unless detailed stats implemented) */}
+                <Card className="bg-white dark:bg-slate-900 shadow-sm hidden">
                     <CardContent className="p-6 space-y-6">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <span className="material-symbols-outlined text-primary">bar_chart</span>
                             Section Breakdown
                         </h2>
                         <div className="space-y-6">
-                            {result.sections.map((sec) => {
-                                const pct = Math.round((sec.correct / sec.total) * 100);
+                            {attempt.test?.sections?.map((sec: any) => {
+                                // Basic calculation if we don't have detailed section tracking
+                                // In a full app, we'd group questionAttempts by section
+                                const total = sec.questionGroups?.reduce((acc: number, g: any) => acc + (g.questions?.length || 0), 0) || 0;
+                                // Just a placeholder for now since we don't have the exact mapping here
+                                const correct = 0;
+                                const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
                                 const isGood = pct >= 70;
                                 return (
-                                    <div key={sec.name} className="space-y-2">
+                                    <div key={sec.id || sec.title} className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-muted-foreground text-[20px]">{sec.icon}</span>
-                                                <span className="font-medium">{sec.name}</span>
+                                                <span className="material-symbols-outlined text-muted-foreground text-[20px]">assignment</span>
+                                                <span className="font-medium">{sec.title || "Section"}</span>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <span className="text-sm text-muted-foreground">{sec.correct}/{sec.total}</span>
+                                                <span className="text-sm text-muted-foreground">{correct}/{total}</span>
                                                 <span className={`text-sm font-bold ${isGood ? "text-emerald-600" : "text-orange-500"}`}>{pct}%</span>
                                             </div>
                                         </div>
@@ -179,16 +211,16 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {result.questions.map((q) => (
+                                    {attempt.questionAttempts?.map((q, idx) => (
                                         <tr key={q.id} className={`${q.isCorrect ? "" : "bg-red-50/50 dark:bg-red-900/10"}`}>
-                                            <td className="p-3 font-mono font-bold text-muted-foreground">{q.id}</td>
+                                            <td className="p-3 font-mono font-bold text-muted-foreground">{idx + 1}</td>
                                             <td className="p-3">
-                                                <Badge variant="outline" className="text-xs">{q.section}</Badge>
+                                                <Badge variant="outline" className="text-xs">Q</Badge>
                                             </td>
                                             <td className={`p-3 font-medium ${q.isCorrect ? "text-emerald-600" : "text-red-500 line-through"}`}>
-                                                {q.user}
+                                                {q.answer || "(blank)"}
                                             </td>
-                                            <td className="p-3 font-medium text-foreground">{q.correct}</td>
+                                            <td className="p-3 font-medium text-foreground">See details</td>
                                             <td className="p-3 text-center">
                                                 {q.isCorrect ? (
                                                     <span className="material-symbols-outlined text-emerald-500 text-[20px]">check_circle</span>
@@ -212,7 +244,7 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
                             Back to Dashboard
                         </Button>
                     </Link>
-                    <Link href={`/practice/${params.id}`}>
+                    <Link href={`/practice/${id}`}>
                         <Button size="lg" className="h-12 px-8 w-full sm:w-auto">
                             <span className="material-symbols-outlined mr-2 text-[20px]">replay</span>
                             Retake Test

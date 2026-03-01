@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import type { Test } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -6,9 +7,11 @@ import { Slider } from "@/components/ui/slider";
 
 export function ListeningTestInterface({
     testId,
+    test,
     onFinish,
 }: {
     testId: string;
+    test?: Test | null;
     onFinish: () => void;
 }) {
     const [answers, setAnswers] = useState<Record<string, string>>({});

@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
+import type { Test } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function SpeakingTestInterface({
     testId,
+    test,
     onFinish,
 }: {
     testId: string;
+    test?: Test | null;
     onFinish: () => void;
 }) {
     const [part, setPart] = useState<1 | 2 | 3>(1);

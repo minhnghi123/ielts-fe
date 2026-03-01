@@ -19,7 +19,7 @@ export function AdminSidebar() {
   };
 
   const routes = [
-    { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
+    { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard", exact: true },
     { href: "/admin/tests", label: "Test Management", icon: "assignment", exact: false },
     { href: "/admin/tests/import", label: "Import Test", icon: "upload_file", exact: false },
     { href: "/admin/users", label: "User Management", icon: "group", exact: false },

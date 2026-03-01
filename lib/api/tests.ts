@@ -6,6 +6,8 @@ import type {
     Question,
     WritingTask,
     SpeakingPart,
+    TestAttempt,
+    QuestionAttempt,
 } from '../types';
 
 const BASE_URL =
@@ -203,4 +205,24 @@ export const testsApi = {
 
     deleteSpeakingPart: (partId: string) =>
         testAxios.delete(`/api/speaking-parts/${partId}`),
+
+    // ─── Test Attempts ────────────────────────────────────────────────────────
+
+    startAttempt: (testId: string, learnerId: string) =>
+        testAxios
+            .post<{ data: TestAttempt }>(`/api/tests/${testId}/attempts`, { learnerId })
+            .then((r) => r.data.data),
+
+    getAttemptById: (attemptId: string) =>
+        testAxios
+            .get<{ data: TestAttempt }>(`/api/attempts/${attemptId}`)
+            .then((r) => r.data.data),
+
+    submitAttempt: (
+        attemptId: string,
+        dto: { answers: { questionId: string; answer?: string }[] }
+    ) =>
+        testAxios
+            .post<{ data: TestAttempt }>(`/api/attempts/${attemptId}/submit`, dto)
+            .then((r) => r.data.data),
 };
