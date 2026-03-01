@@ -32,19 +32,30 @@ export const PassagePanel = memo(function PassagePanel({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 md:px-12 py-10 scroll-smooth custom-scrollbar">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 md:px-10 py-8 scroll-smooth custom-scrollbar">
         {content ? (
           <article
-            className="prose prose-slate dark:prose-invert max-w-none 
-              w-full break-words
-              font-serif text-[1.125rem] leading-[1.85]
+            className="
+              max-w-none w-full
+              [font-family:var(--font-roboto),Arial,sans-serif]
+              text-[1rem] leading-[1.9] font-normal
               text-foreground
-              prose-headings:font-sans prose-headings:font-bold prose-headings:text-foreground
-              prose-p:mb-5 prose-p:text-foreground
-              prose-strong:font-semibold prose-strong:text-foreground
-              prose-li:text-foreground
-              /* BẮT BUỘC NGẮT DÒNG VÀ GIỚI HẠN CHIỀU RỘNG CHO HTML NHÚNG */
-              [&_*]:!whitespace-normal [&_*]:!break-words [&_*]:max-w-full [&_table]:w-full [&_table]:overflow-x-auto"
+              [word-break:normal] [overflow-wrap:anywhere] [hyphens:none]
+              [&_p]:mb-4 [&_p]:text-foreground [&_p]:leading-[1.9]
+              [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:[font-family:var(--font-roboto),Arial,sans-serif]
+              [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-5 [&_h2]:mb-2.5 [&_h2]:[font-family:var(--font-roboto),Arial,sans-serif]
+              [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:[font-family:var(--font-roboto),Arial,sans-serif]
+              [&_strong]:font-semibold [&_strong]:text-foreground
+              [&_em]:italic
+              [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1
+              [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1
+              [&_li]:text-foreground [&_li]:leading-[1.8]
+              [&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-4
+              [&_table]:w-full [&_table]:border-collapse [&_table]:my-5 [&_table]:text-[0.9375rem]
+              [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2.5 [&_td]:text-foreground [&_td]:align-top [&_td]:leading-[1.7]
+              [&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-foreground [&_th]:font-semibold [&_th]:bg-muted/50 [&_th]:text-left
+              [&_tr:nth-child(even)_td]:bg-muted/20
+            "
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         ) : (

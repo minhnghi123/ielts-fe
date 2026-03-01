@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lexend, Noto_Sans } from "next/font/google";
+import { Lexend, Noto_Sans, Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "sonner";
@@ -17,6 +17,13 @@ const notoSans = Noto_Sans({
   display: "swap",
 });
 
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "IELTS Master Platform",
   description: "Comprehensive IELTS preparation tools",
@@ -28,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lexend.variable} ${notoSans.variable}`}>
+    <html
+      lang="en"
+      className={`${lexend.variable} ${notoSans.variable} ${roboto.variable}`}
+    >
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"

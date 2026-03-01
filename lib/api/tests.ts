@@ -126,6 +126,33 @@ export const testsApi = {
     deleteSection: (sectionId: string) =>
         testAxios.delete(`/api/sections/${sectionId}`),
 
+    // ─── Question Groups ───────────────────────────────────────────────────────
+
+    createGroup: (
+        sectionId: string,
+        dto: { groupOrder: number; instructions?: string },
+    ) =>
+        testAxios
+            .post<{ data: { id: string; groupOrder: number; instructions: string } }>(
+                `/api/sections/${sectionId}/groups`,
+                dto,
+            )
+            .then((r) => r.data.data),
+
+    updateGroup: (
+        groupId: string,
+        dto: { groupOrder?: number; instructions?: string },
+    ) =>
+        testAxios
+            .put<{ data: { id: string; groupOrder: number; instructions: string } }>(
+                `/api/groups/${groupId}`,
+                dto,
+            )
+            .then((r) => r.data.data),
+
+    deleteGroup: (groupId: string) =>
+        testAxios.delete(`/api/groups/${groupId}`),
+
     // ─── Questions ────────────────────────────────────────────────────────────
 
     createQuestion: (
