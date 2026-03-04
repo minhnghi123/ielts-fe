@@ -11,6 +11,8 @@ interface PracticeContextType {
     setOnTimeUp: (callback: () => void) => void;
     attemptId: string | null;
     setAttemptId: (id: string) => void;
+    testTitle: string | null;
+    setTestTitle: (title: string) => void;
 }
 
 const PracticeContext = createContext<PracticeContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
     const [durationMs, setDurationMs] = useState<number | null>(null);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [attemptId, setAttemptId] = useState<string | null>(null);
+    const [testTitle, setTestTitle] = useState<string | null>(null);
 
     // Use a ref to store the onTimeUp callback.
     // This avoids two problems:
@@ -82,6 +85,8 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
                 setOnTimeUp,
                 attemptId,
                 setAttemptId,
+                testTitle,
+                setTestTitle,
             }}
         >
             {children}

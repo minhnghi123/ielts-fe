@@ -252,4 +252,9 @@ export const testsApi = {
         testAxios
             .post<{ data: TestAttempt }>(`/api/attempts/${attemptId}/submit`, dto)
             .then((r) => r.data.data),
+
+    getAttemptsByLearnerId: (learnerId: string) =>
+        testAxios
+            .get<{ data: TestAttempt[] }>(`/api/attempts?learnerId=${learnerId}`)
+            .then((r) => r.data.data),
 };

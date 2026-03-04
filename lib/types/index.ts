@@ -96,6 +96,7 @@ export interface QuestionAttempt {
     answer?: string;
     isCorrect?: boolean;
     answeredAt?: string;
+    question?: Question;
 }
 
 export interface WritingSubmission {

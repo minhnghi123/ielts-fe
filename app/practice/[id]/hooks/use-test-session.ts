@@ -21,7 +21,7 @@ export interface UseTestSessionReturn {
 
 export function useTestSession(testId: string): UseTestSessionReturn {
     const router = useRouter();
-    const { startTimer, stopTimer, setOnTimeUp, attemptId, setAttemptId } = usePractice();
+    const { startTimer, stopTimer, setOnTimeUp, attemptId, setAttemptId, setTestTitle } = usePractice();
 
     const [test, setTest] = useState<Test | null>(null);
     const [testState, setTestState] = useState<TestState>('loading');
@@ -29,6 +29,10 @@ export function useTestSession(testId: string): UseTestSessionReturn {
 
     // Stores the latest answers without triggering re-renders — safe to read in async callbacks
     const answersRef = useRef<Record<string, string>>({});
+
+    // Wall-clock timestamp when the user clicks "Start" — used to compute accurate elapsed
+    // time that is completely independent of server/DB timezone handling
+    const testStartTimeRef = useRef<number | null>(null);
 
     // ── Fetch test data ─────────────────────────────────────────────────────────
     useEffect(() => {
@@ -39,6 +43,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
             .then((data) => {
                 if (cancelled) return;
                 setTest(data);
+                setTestTitle(data.title || '');
                 setTestState('instructions');
             })
             .catch((err) => {
@@ -66,8 +71,9 @@ export function useTestSession(testId: string): UseTestSessionReturn {
 
         setIsStarting(true);
         try {
-            // Create backend attempt
-            const attempt = await testsApi.startAttempt(testId, user.id);
+            // Create backend attempt — use profileId (learner_profile.id) which matches the FK constraint
+            const learnerId = (user as any).profileId || user.id;
+            const attempt = await testsApi.startAttempt(testId, learnerId);
             setAttemptId(attempt.id);
 
             // Determine default full duration from skill
@@ -78,6 +84,9 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 speaking: 15,
             };
             const defaultFull = skillDurations[test?.skill ?? 'reading'] ?? 60;
+
+            // Capture browser wall-clock start time (UTC epoch, no timezone ambiguity)
+            testStartTimeRef.current = Date.now();
 
             // Start timer
             startTimer(chosenDuration as any, defaultFull);
@@ -111,14 +120,41 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         stopTimer();
 
         const answers = finalAnswers ?? answersRef.current;
-        const answersArray = Object.entries(answers).map(([questionId, answer]) => ({
-            questionId,
-            answer,
-        }));
+
+        // Collect every question ID from the test structure so unanswered questions
+        // are also sent with an empty string — the backend uses this to mark them
+        // as skipped and compute accurate correct / wrong / skipped counts.
+        const allQuestionIds: string[] = [];
+        if (test?.sections) {
+            for (const sec of test.sections) {
+                for (const group of sec.questionGroups ?? []) {
+                    for (const q of group.questions ?? []) {
+                        allQuestionIds.push(q.id);
+                    }
+                }
+            }
+        }
+
+        const answersArray = allQuestionIds.length > 0
+            ? allQuestionIds.map(questionId => ({
+                questionId,
+                answer: answers[questionId] ?? '',
+            }))
+            : Object.entries(answers).map(([questionId, answer]) => ({
+                questionId,
+                answer,
+            }));
+
+        // Compute elapsed seconds from the browser wall-clock — completely
+        // timezone-agnostic, avoids any DB timestamp parsing issues.
+        const elapsedSeconds = testStartTimeRef.current !== null
+            ? Math.floor((Date.now() - testStartTimeRef.current) / 1000)
+            : null;
 
         try {
             await testsApi.submitAttempt(idToSubmit, { answers: answersArray });
-            router.push(`/practice/${testId}/result?attemptId=${idToSubmit}`);
+            const elapsedParam = elapsedSeconds !== null ? `&elapsed=${elapsedSeconds}` : '';
+            router.push(`/practice/${testId}/result?attemptId=${idToSubmit}${elapsedParam}`);
         } catch (err) {
             console.error('[useTestSession] Failed to submit attempt:', err);
             alert('Error submitting answers. Please try again.');

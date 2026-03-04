@@ -1,8 +1,9 @@
 "use client";
 
-import { PlusCircle, Trash2, GripVertical } from "lucide-react";
+import { PlusCircle, Trash2, GripVertical, Upload, Music, X, Loader2 } from "lucide-react";
 import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
 import GroupCard from "./GroupCard";
+import { useRef, useState } from "react";
 
 interface QuestionData {
   questionOrder: number;
@@ -51,6 +52,136 @@ interface SectionCardProps {
   onRemoveQuestion: (gIndex: number, qIndex: number) => void;
 }
 
+function AudioUploader({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  const handleFile = async (file: File) => {
+    setError(null);
+    setUploading(true);
+    setFileName(file.name);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/audio", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      onChange(data.url);
+    } catch (err: any) {
+      setError(err.message || "Upload failed");
+      setFileName(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-slate-700">
+        Audio File
+      </label>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={`relative flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-all
+          ${uploading ? "border-blue-300 bg-blue-50/40 cursor-not-allowed" : "border-slate-300 hover:border-blue-400 hover:bg-blue-50/30"}`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+            e.target.value = "";
+          }}
+        />
+
+        {uploading ? (
+          <>
+            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+            <p className="text-sm font-medium text-blue-600">Uploading {fileName}…</p>
+            <p className="text-xs text-slate-400">Please wait, this may take a moment</p>
+          </>
+        ) : value ? (
+          <>
+            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <Music className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-slate-800 truncate max-w-xs">
+                {fileName || "Audio uploaded"}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">Click to replace</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
+              <Upload className="h-6 w-6 text-slate-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-slate-600">
+                Drag & drop audio file here, or <span className="text-blue-600 font-semibold">browse</span>
+              </p>
+              <p className="text-xs text-slate-400 mt-1">MP3, WAV, OGG, M4A — up to 50 MB</p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-500 flex items-center gap-1.5">
+          <X className="h-3.5 w-3.5" /> {error}
+        </p>
+      )}
+
+      {/* Manual URL fallback */}
+      {value && (
+        <div className="flex items-center gap-2 mt-1">
+          <input
+            type="text"
+            value={value}
+            readOnly
+            className="flex-1 border rounded-lg p-2 text-xs text-slate-500 bg-slate-50 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => { onChange(""); setFileName(null); }}
+            className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+            title="Remove audio"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Audio preview */}
+      {value && (
+        <audio controls src={value} className="w-full mt-2 rounded-lg" />
+      )}
+    </div>
+  );
+}
+
 export default function SectionCard({
   section,
   sIndex,
@@ -84,20 +215,12 @@ export default function SectionCard({
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Audio URL (Listening only) */}
+        {/* Audio Upload (Listening only) */}
         {skill === "listening" && (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Audio URL
-            </label>
-            <input
-              type="text"
-              value={section.audioUrl || ""}
-              onChange={(e) => onUpdateSection("audioUrl", e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="https://..."
-            />
-          </div>
+          <AudioUploader
+            value={section.audioUrl || ""}
+            onChange={(url) => onUpdateSection("audioUrl", url)}
+          />
         )}
 
         {/* Reading Passage (Reading only) */}

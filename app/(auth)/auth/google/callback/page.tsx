@@ -30,7 +30,7 @@ export default function AuthGoogleCallbackPage() {
                     setUser(user);
 
                     if (user.role === "admin") {
-                        router.push("/admin");
+                        router.push("/admin/dashboard");
                     } else {
                         router.push("/");
                     }

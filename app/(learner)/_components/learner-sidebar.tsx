@@ -24,6 +24,7 @@ export function LearnerSidebar() {
     { href: "/practice", label: "Practice Tests", icon: "book_2" },
     { href: "/analysis", label: "Results Analysis", icon: "bar_chart" },
     { href: "/schedule", label: "Schedule", icon: "calendar_month" },
+    { href: "/profile", label: "My Profile", icon: "person" },
   ];
 
   return (

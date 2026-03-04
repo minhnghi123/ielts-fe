@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useMemo, useCallback } from "react";
 import type { Section, Question, QuestionGroup } from "@/lib/types";
-import { ChevronRight } from "lucide-react";
-import { SplitTestLayout } from "./split-test-layout";
 import { TabbedPassagePanel } from "./passage-panel";
-import { QuestionsPanel } from "./questions-panel";
+import { usePractice } from "../practice-context";
+import { Timer, CheckSquare } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +13,147 @@ interface Props {
   test: { sections?: Section[] } & Record<string, any>;
   onAnswerUpdate?: (answers: Record<string, string>) => void;
   onFinish: (answers: Record<string, string>) => void;
+}
+
+const ROMAN_NUMERALS = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX"];
+
+// ─── Timer display helper ─────────────────────────────────────────────────────
+
+function formatTime(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+// ─── Navigation Sidebar ────────────────────────────────────────────────────────
+
+interface NavSidebarProps {
+  sections: Section[];
+  answers: Record<string, string>;
+  activeSection: number;
+  onQuestionClick: (questionId: string, sectionIndex: number) => void;
+  onFinish: () => void;
+}
+
+function NavigationSidebar({
+  sections,
+  answers,
+  activeSection,
+  onQuestionClick,
+  onFinish,
+}: NavSidebarProps) {
+  const { timeLeft } = usePractice();
+
+  const isUrgent = timeLeft !== null && timeLeft < 300_000;
+  const isWarning = timeLeft !== null && timeLeft < 600_000 && timeLeft >= 300_000;
+
+  // Build a flat list of all question IDs for counting
+  const totalQ = sections.reduce(
+    (a, s) => a + (s.questionGroups?.reduce((b, g) => b + (g.questions?.length ?? 0), 0) ?? 0),
+    0,
+  );
+  const answeredQ = Object.values(answers).filter((v) => v?.trim()).length;
+
+  // Build question number offset for each section
+  let globalOffset = 0;
+  const sectionOffsets = sections.map((s) => {
+    const off = globalOffset;
+    globalOffset += s.questionGroups?.reduce((a, g) => a + (g.questions?.length ?? 0), 0) ?? 0;
+    return off;
+  });
+
+  return (
+    <aside className="h-full w-[180px] flex-shrink-0 border-l border-border bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
+      {/* Timer */}
+      <div className={`flex-shrink-0 px-3 pt-3 pb-2.5 border-b border-border/60 ${isUrgent ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+          Thời gian làm bài
+        </p>
+        <div className={`flex items-center gap-1.5 ${isUrgent ? "text-red-600 dark:text-red-400" : isWarning ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
+          <Timer className={`w-3.5 h-3.5 ${isUrgent ? "animate-bounce" : ""}`} />
+          <span className={`text-lg font-mono font-extrabold tabular-nums ${isUrgent ? "animate-pulse" : ""}`}>
+            {timeLeft !== null ? formatTime(timeLeft) : "∞"}
+          </span>
+        </div>
+        {isUrgent && (
+          <p className="text-[10px] text-red-500 font-semibold mt-0.5">Sắp hết giờ!</p>
+        )}
+      </div>
+
+      {/* Submit Button */}
+      <div className="flex-shrink-0 px-3 py-2.5 border-b border-border/60">
+        <button
+          onClick={onFinish}
+          className="w-full py-2 rounded-lg bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white text-sm font-extrabold tracking-wide transition-colors shadow-sm"
+        >
+          NỘP BÀI
+        </button>
+        <p className="text-[10px] text-center text-muted-foreground mt-1.5 font-medium">
+          {answeredQ}/{totalQ} đã trả lời
+        </p>
+      </div>
+
+      {/* Question Grid by Passage */}
+      <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
+        {sections.map((section, sIdx) => {
+          const questions = section.questionGroups?.flatMap((g) => g.questions ?? []) ?? [];
+          if (questions.length === 0) return null;
+          const offset = sectionOffsets[sIdx];
+
+          return (
+            <div key={section.id || sIdx} className="px-2.5 mb-3">
+              <button
+                className={`w-full text-left text-[10px] font-bold uppercase tracking-wider mb-1.5 px-1 py-0.5 rounded transition-colors ${
+                  activeSection === sIdx
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => {
+                  const firstQ = questions[0];
+                  if (firstQ) onQuestionClick(firstQ.id, sIdx);
+                }}
+              >
+                Passage {sIdx + 1}
+              </button>
+              <div className="grid grid-cols-5 gap-1">
+                {questions.map((q, qi) => {
+                  const displayNum = offset + qi + 1;
+                  const isAnswered = !!answers[q.id]?.trim();
+                  return (
+                    <button
+                      key={q.id}
+                      title={`Question ${displayNum}`}
+                      onClick={() => onQuestionClick(q.id, sIdx)}
+                      className={`h-7 w-full rounded text-[11px] font-bold border transition-all duration-100 hover:scale-105 active:scale-95 ${
+                        isAnswered
+                          ? "bg-emerald-500 text-white border-emerald-600"
+                          : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-primary"
+                      }`}
+                    >
+                      {displayNum}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex-shrink-0 px-3 py-2 border-t border-border/60 bg-muted/20 flex gap-3">
+        <div className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />
+          <span className="text-[9px] text-muted-foreground font-medium">Đã làm</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded-sm bg-background border border-border inline-block" />
+          <span className="text-[9px] text-muted-foreground font-medium">Chưa làm</span>
+        </div>
+      </div>
+    </aside>
+  );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -27,7 +166,6 @@ export function ReadingTestInterface({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [activeSection, setActiveSection] = useState(0);
 
-  // Memoize sections to prevent unnecessary re-renders
   const sections = useMemo(() => test?.sections ?? [], [test?.sections]);
 
   const handleAnswerChange = (qId: string, value: string) => {
@@ -38,21 +176,6 @@ export function ReadingTestInterface({
     });
   };
 
-  // Count total answered questions
-  const totalQuestions = sections.reduce(
-    (acc, sec) =>
-      acc +
-      (sec.questionGroups?.reduce(
-        (ga, g) => ga + (g.questions?.length ?? 0),
-        0,
-      ) ?? 0),
-    0,
-  );
-  const answeredCount = Object.keys(answers).filter((key) =>
-    answers[key]?.trim(),
-  ).length;
-
-  // Prepare passages for tabbed panel - memoized to prevent re-renders
   const passageTabs = useMemo(
     () =>
       sections.map((sec, idx) => ({
@@ -63,15 +186,9 @@ export function ReadingTestInterface({
     [sections],
   );
 
-  // Get all questions for current section
   const currentSection = sections[activeSection];
-  const currentQuestions = useMemo(() => {
-    return (
-      currentSection?.questionGroups?.flatMap((g) => g.questions ?? []) ?? []
-    );
-  }, [currentSection]);
 
-  // Compute global question number offset for the active section (sum of all questions in prior sections)
+  // Compute global question number offset for the active section
   const sectionOffset = useMemo(() => {
     let offset = 0;
     for (let i = 0; i < activeSection; i++) {
@@ -84,6 +201,27 @@ export function ReadingTestInterface({
     return offset;
   }, [sections, activeSection]);
 
+  const scrollToQuestion = useCallback((questionId: string) => {
+    const element = document.getElementById(`q-container-${questionId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.classList.add("ring-2", "ring-primary", "ring-offset-1");
+      setTimeout(() => element.classList.remove("ring-2", "ring-primary", "ring-offset-1"), 1500);
+    }
+  }, []);
+
+  const handleNavQuestionClick = useCallback(
+    (questionId: string, sectionIndex: number) => {
+      if (sectionIndex !== activeSection) {
+        setActiveSection(sectionIndex);
+        setTimeout(() => scrollToQuestion(questionId), 100);
+      } else {
+        scrollToQuestion(questionId);
+      }
+    },
+    [activeSection, scrollToQuestion],
+  );
+
   if (sections.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center text-muted-foreground h-full">
@@ -93,67 +231,74 @@ export function ReadingTestInterface({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-background">
-      <SplitTestLayout
-        leftPanel={
-          <TabbedPassagePanel
-            passages={passageTabs}
-            activeIndex={activeSection}
-            onTabChange={setActiveSection}
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
-          />
-        }
-        rightPanel={
-          <QuestionsPanel
-            questions={currentQuestions}
-            answeredQuestions={answers}
-            actionButtons={
-              <>
-                {activeSection < sections.length - 1 && (
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-11 font-bold shadow-sm"
-                    onClick={() => setActiveSection(activeSection + 1)}
-                  >
-                    Next Passage <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                )}
-                {activeSection === sections.length - 1 && (
-                  <Button
-                    className="flex-1 h-11 text-base font-bold shadow-md"
-                    onClick={() => onFinish(answers)}
-                  >
-                    Submit Test
-                  </Button>
-                )}
-              </>
-            }
-          >
-            {/* Render Question Groups */}
-            {currentSection?.questionGroups?.length === 0 ? (
-              <div className="text-center py-20 text-muted-foreground text-sm font-medium">
-                No questions in this section.
-              </div>
-            ) : (
-              currentSection?.questionGroups?.map((group, gi) => {
-                const groupOffset = (currentSection.questionGroups ?? [])
-                  .slice(0, gi)
-                  .reduce((s, g) => s + (g.questions?.length ?? 0), 0);
-                return (
-                  <QuestionGroupBlock
-                    key={group.id || gi}
-                    group={group}
-                    groupIndex={gi}
-                    answers={answers}
-                    onAnswerChange={handleAnswerChange}
-                    displayNumberStart={sectionOffset + groupOffset}
-                  />
-                );
-              })
-            )}
-          </QuestionsPanel>
-        }
+    <div className="h-full flex overflow-hidden bg-background">
+      {/* ── Left: Passage Panel ── */}
+      <div className="w-[50%] h-full border-r border-border flex-shrink-0">
+        <TabbedPassagePanel
+          passages={passageTabs}
+          activeIndex={activeSection}
+          onTabChange={setActiveSection}
+        />
+      </div>
+
+      {/* ── Middle: Questions ── */}
+      <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
+        {/* Questions header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-border bg-white dark:bg-slate-900 shadow-sm">
+          <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">
+            Câu hỏi
+          </span>
+          {activeSection < sections.length - 1 ? (
+            <button
+              onClick={() => setActiveSection(activeSection + 1)}
+              className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              Passage {activeSection + 2} →
+            </button>
+          ) : (
+            <button
+              onClick={() => onFinish(answers)}
+              className="flex items-center gap-1 text-xs font-semibold text-rose-500 hover:underline"
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              Nộp bài
+            </button>
+          )}
+        </div>
+
+        {/* Scrollable question list */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
+          {currentSection?.questionGroups?.length === 0 ? (
+            <div className="text-center py-20 text-muted-foreground text-sm">
+              No questions in this section.
+            </div>
+          ) : (
+            currentSection?.questionGroups?.map((group, gi) => {
+              const groupOffset = (currentSection.questionGroups ?? [])
+                .slice(0, gi)
+                .reduce((s, g) => s + (g.questions?.length ?? 0), 0);
+              return (
+                <QuestionGroupBlock
+                  key={group.id || gi}
+                  group={group}
+                  groupIndex={gi}
+                  answers={answers}
+                  onAnswerChange={handleAnswerChange}
+                  displayNumberStart={sectionOffset + groupOffset}
+                />
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* ── Right: Navigation Sidebar ── */}
+      <NavigationSidebar
+        sections={sections}
+        answers={answers}
+        activeSection={activeSection}
+        onQuestionClick={handleNavQuestionClick}
+        onFinish={() => onFinish(answers)}
       />
     </div>
   );
@@ -188,37 +333,33 @@ function QuestionGroupBlock({
   const answeredInGroup = questions.filter((q) => answers[q.id]?.trim()).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {/* Group header */}
-      <div className="rounded-xl border border-border bg-muted/40 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/60 bg-background/60">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
-              {rangeLabel}
-            </span>
-          </div>
-          <span className="text-[11px] font-semibold text-muted-foreground">
-            {answeredInGroup}/{questions.length} answered
+      <div className="rounded-lg border border-border bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
+        <div className="flex items-center justify-between px-3.5 py-2 border-b border-border/60">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-primary/80">
+            {rangeLabel}
+          </span>
+          <span className="text-[10px] text-muted-foreground font-medium">
+            {answeredInGroup}/{questions.length}
           </span>
         </div>
 
         {/* Instructions */}
-        <div className="px-4 py-3">
+        <div className="px-3.5 py-2.5">
           {group.instructions ? (
             <div
-              className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed prose-p:my-1 prose-strong:font-bold [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2.5 [&_td]:py-2 [&_th]:border [&_th]:border-border [&_th]:px-2.5 [&_th]:py-2 [&_th]:bg-muted/50 [&_th]:font-semibold"
+              className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed prose-p:my-1 prose-strong:font-bold text-[0.8125rem] [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1.5 [&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1.5 [&_th]:bg-muted/50 [&_th]:font-semibold"
               dangerouslySetInnerHTML={{ __html: group.instructions }}
             />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Answer the following questions based on the passage.
-            </p>
+            <p className="text-xs text-muted-foreground">Answer based on the passage.</p>
           )}
         </div>
       </div>
 
       {/* Questions */}
-      <div className="space-y-3 pl-1">
+      <div className="space-y-2">
         {questions.map((q, localIdx) => (
           <QuestionItem
             key={q.id}
@@ -234,8 +375,6 @@ function QuestionGroupBlock({
 }
 
 // ─── Single Question Item ─────────────────────────────────────────────────────
-
-const ROMAN_NUMERALS = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX"];
 
 function QuestionItem({
   question,
@@ -272,138 +411,145 @@ function QuestionItem({
 
   const headingOptions = isMatchingHeading ? options : [];
 
+  const hasText = !!questionText;
+  const isInline = !hasText && !isMcq && !isDropdown && !isMatchingHeading;
+
   return (
     <div
       id={`q-container-${id}`}
-      className="group bg-background border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
+      className="bg-white dark:bg-slate-900 border border-border rounded-lg px-4 py-3 shadow-sm hover:border-primary/30 transition-all duration-200"
     >
-      {/* Inline fill-in-blank: no text, no select */}
-      {!questionText && !isMcq && !isDropdown && !isMatchingHeading ? (
+      {isInline ? (
+        /* Inline fill-in-blank */
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted border border-border text-sm font-bold text-foreground select-none shadow-sm">
+          <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-extrabold select-none">
             {shownOrder}
-          </div>
+          </span>
           <input
             type="text"
             value={answer}
-            placeholder="Type your answer…"
+            placeholder="Your answer…"
             onChange={(e) => onAnswerChange(id, e.target.value)}
-            className="flex-1 h-10 rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:font-medium placeholder:text-muted-foreground"
+            className="flex-1 h-9 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
           />
         </div>
       ) : (
         <>
-          {/* Header: number badge + question text */}
-          <div className="flex items-start gap-4 mb-4">
-            <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted border border-border text-sm font-bold text-foreground select-none shadow-sm">
+          {/* Header row */}
+          <div className="flex items-start gap-3 mb-2.5">
+            <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-extrabold select-none mt-0.5">
               {shownOrder}
-            </div>
-            <div className="flex-1 mt-1 text-foreground">
-              {questionText ? (
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none font-medium leading-[1.7] [&>p]:m-0"
-                  dangerouslySetInnerHTML={{ __html: questionText }}
-                />
-              ) : null}
-            </div>
+            </span>
+            {hasText && (
+              <div
+                className="flex-1 text-[0.8125rem] font-medium leading-relaxed text-foreground [&>p]:m-0"
+                dangerouslySetInnerHTML={{ __html: questionText! }}
+              />
+            )}
           </div>
 
-          {/* Input Controls */}
-          {isMcq ? (
-            <div className="space-y-2 mt-3 ml-12">
-              {options.map((opt, i) => {
-                const optVal = typeof opt === "object" ? String((opt as any).value ?? opt) : opt;
-                const isSelected = answer === optVal;
-                const optLabel = String.fromCharCode(65 + i);
-                return (
-                  <label
-                    key={i}
-                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-all ${
-                      isSelected
-                        ? "bg-primary/10 border-primary/40 shadow-sm"
-                        : "bg-background border-border hover:bg-muted/60"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`q-${id}`}
-                      value={optVal}
-                      checked={isSelected}
-                      onChange={(e) => onAnswerChange(id, e.target.value)}
-                      className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0"
-                    />
-                    <span className="text-sm leading-relaxed">
-                      <span className={`font-bold mr-1.5 ${isSelected ? "text-primary" : "text-muted-foreground"}`}>{optLabel}.</span>
-                      <span className={isSelected ? "font-semibold text-foreground" : "text-foreground"}>{optVal}</span>
+          {/* Controls */}
+          <div className="ml-10">
+            {isMcq ? (
+              <div className="space-y-1.5">
+                {options.map((opt, i) => {
+                  const optVal =
+                    typeof opt === "object"
+                      ? String((opt as any).value ?? opt)
+                      : opt;
+                  const isSelected = answer === optVal;
+                  const optLabel = String.fromCharCode(65 + i);
+                  return (
+                    <label
+                      key={i}
+                      className={`flex items-start gap-2.5 px-3 py-2 rounded-md cursor-pointer border transition-all text-[0.8125rem] ${
+                        isSelected
+                          ? "bg-primary/10 border-primary/40"
+                          : "bg-background border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`q-${id}`}
+                        value={optVal}
+                        checked={isSelected}
+                        onChange={(e) => onAnswerChange(id, e.target.value)}
+                        className="mt-0.5 w-3.5 h-3.5 accent-primary flex-shrink-0"
+                      />
+                      <span>
+                        <span className={`font-bold mr-1 ${isSelected ? "text-primary" : "text-muted-foreground"}`}>
+                          {optLabel}.
+                        </span>
+                        <span className={isSelected ? "font-semibold text-foreground" : "text-foreground"}>
+                          {optVal}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : isDropdown ? (
+              <div className="space-y-1.5">
+                <select
+                  value={answer}
+                  onChange={(e) => onAnswerChange(id, e.target.value)}
+                  className="w-full max-w-[260px] h-9 rounded-md border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
+                >
+                  <option value="" disabled>— Select —</option>
+                  {dropdownOptions.map((opt, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    return (
+                      <option key={i} value={isTrueFalse ? opt : letter}>
+                        {isTrueFalse ? opt : `${letter}. ${opt}`}
+                      </option>
+                    );
+                  })}
+                </select>
+                {answer && !isTrueFalse && dropdownOptions.length > 0 && (
+                  <p className="text-[11px] text-primary/80 font-semibold flex items-center gap-1">
+                    <span className="inline-flex items-center justify-center w-4.5 h-4.5 rounded bg-primary/10 text-primary font-bold text-[10px] px-1">
+                      {answer}
                     </span>
-                  </label>
-                );
-              })}
-            </div>
-          ) : isDropdown ? (
-            <div className="mt-3 ml-12 space-y-2">
-              <select
-                value={answer}
-                onChange={(e) => onAnswerChange(id, e.target.value)}
-                className="w-full max-w-sm h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm cursor-pointer transition-shadow"
-              >
-                <option value="" disabled>
-                  — Select —
-                </option>
-                {dropdownOptions.map((opt, i) => {
-                  const letter = String.fromCharCode(65 + i);
-                  const isTF = isTrueFalse;
-                  return (
-                    <option key={i} value={isTF ? opt : letter}>
-                      {isTF ? opt : `${letter}. ${opt}`}
-                    </option>
-                  );
-                })}
-              </select>
-              {answer && !isTrueFalse && dropdownOptions.length > 0 && (
-                <p className="text-xs font-semibold text-primary/80 flex items-center gap-1.5">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-primary/10 text-primary font-bold text-[10px]">{answer}</span>
-                  {dropdownOptions[answer.charCodeAt(0) - 65] ?? ""}
-                </p>
-              )}
-            </div>
-          ) : isMatchingHeading ? (
-            <div className="mt-3 ml-12 space-y-2">
-              <select
-                value={answer}
-                onChange={(e) => onAnswerChange(id, e.target.value)}
-                className="w-full max-w-sm h-11 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm cursor-pointer transition-shadow"
-              >
-                <option value="" disabled>
-                  — Select a heading —
-                </option>
-                {headingOptions.map((opt, i) => {
-                  const numeral = ROMAN_NUMERALS[i] ?? String(i + 1);
-                  return (
-                    <option key={numeral} value={numeral}>
-                      {numeral}. {opt}
-                    </option>
-                  );
-                })}
-              </select>
-              {answer && headingOptions.length > 0 && (
-                <p className="text-xs font-semibold text-primary/80 flex items-center gap-1.5">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-primary/10 text-primary font-bold text-[10px]">{answer}</span>
-                  {headingOptions[ROMAN_NUMERALS.indexOf(answer)] ?? ""}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="mt-3 ml-12">
+                    {dropdownOptions[answer.charCodeAt(0) - 65] ?? ""}
+                  </p>
+                )}
+              </div>
+            ) : isMatchingHeading ? (
+              <div className="space-y-1.5">
+                <select
+                  value={answer}
+                  onChange={(e) => onAnswerChange(id, e.target.value)}
+                  className="w-full max-w-[280px] h-9 rounded-md border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
+                >
+                  <option value="" disabled>— Select a heading —</option>
+                  {headingOptions.map((opt, i) => {
+                    const numeral = ROMAN_NUMERALS[i] ?? String(i + 1);
+                    return (
+                      <option key={numeral} value={numeral}>
+                        {numeral}. {opt}
+                      </option>
+                    );
+                  })}
+                </select>
+                {answer && headingOptions.length > 0 && (
+                  <p className="text-[11px] text-primary/80 font-semibold flex items-center gap-1">
+                    <span className="inline-flex items-center justify-center bg-primary/10 text-primary font-bold text-[10px] px-1.5 py-0.5 rounded">
+                      {answer}
+                    </span>
+                    {headingOptions[ROMAN_NUMERALS.indexOf(answer)] ?? ""}
+                  </p>
+                )}
+              </div>
+            ) : (
               <input
                 type="text"
                 value={answer}
-                placeholder="Type your answer…"
+                placeholder="Your answer…"
                 onChange={(e) => onAnswerChange(id, e.target.value)}
-                className="w-full h-11 rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:font-medium placeholder:text-muted-foreground"
+                className="w-full h-9 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
               />
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
