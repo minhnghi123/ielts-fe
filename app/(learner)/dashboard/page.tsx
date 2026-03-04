@@ -25,15 +25,15 @@ function skillIcon(skill: string) {
 
 function skillColors(skill: string) {
   if (skill === "listening") return { bg: "bg-blue-100 dark:bg-blue-900/20", text: "text-blue-600 dark:text-blue-400" };
-  if (skill === "reading")   return { bg: "bg-emerald-100 dark:bg-emerald-900/20", text: "text-emerald-600 dark:text-emerald-400" };
-  if (skill === "writing")   return { bg: "bg-orange-100 dark:bg-orange-900/20", text: "text-orange-600 dark:text-orange-400" };
+  if (skill === "reading") return { bg: "bg-emerald-100 dark:bg-emerald-900/20", text: "text-emerald-600 dark:text-emerald-400" };
+  if (skill === "writing") return { bg: "bg-orange-100 dark:bg-orange-900/20", text: "text-orange-600 dark:text-orange-400" };
   return { bg: "bg-purple-100 dark:bg-purple-900/20", text: "text-purple-600 dark:text-purple-400" };
 }
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60_000);
-  if (m < 1)  return "just now";
+  if (m < 1) return "just now";
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
@@ -59,7 +59,7 @@ export default function DashboardPage() {
       // Fetch available test counts for each skill in parallel
       ...skills.map(skill =>
         testsApi.getTests({ skill, limit: 1 })
-          .then(res => ({ skill, count: res.total ?? res.tests?.length ?? 0 }))
+          .then(res => ({ skill, count: res.total ?? res.data?.length ?? 0 }))
           .catch(() => ({ skill, count: 0 }))
       ),
     ])
