@@ -23,6 +23,15 @@ export default function MultipleChoiceQuestion({
     onRemove
 }: MultipleChoiceQuestionProps) {
 
+    const isTFNG =
+        questionType === 'true_false_not_given' ||
+        questionType === 'yes_no_not_given';
+
+    const tfngOptions =
+        questionType === 'yes_no_not_given'
+            ? ['YES', 'NO', 'NOT GIVEN']
+            : ['TRUE', 'FALSE', 'NOT GIVEN'];
+
     // MCQ specific handler for changing options array
     const handleOptionChange = (index: number, val: string) => {
         const newOptions = [...(options || [])];
@@ -39,6 +48,7 @@ export default function MultipleChoiceQuestion({
         onUpdateField("config", { options: newOptions });
     };
 
+    // MCQ: toggle letter (A/B/C) as correct answer
     const handleCorrectAnswerToggle = (letter: string) => {
         if (correctAnswers.includes(letter)) {
             onUpdateAnswer('correctAnswers', correctAnswers.filter(a => a !== letter));
@@ -46,6 +56,15 @@ export default function MultipleChoiceQuestion({
             onUpdateAnswer('correctAnswers', [...correctAnswers, letter]);
         }
     };
+
+    // TFNG/YNGNG: select the actual text value as the single correct answer
+    const handleTFNGSelect = (value: string) => {
+        onUpdateAnswer('correctAnswers', [value]);
+    };
+
+    // Normalise stored answers for display — handles both uppercase and lowercase
+    const tfngSelected = (opt: string) =>
+        correctAnswers.some(a => a.toUpperCase() === opt.toUpperCase());
 
     return (
         <div className="border border-slate-200 rounded-lg p-5 bg-white relative group shadow-sm">
@@ -82,49 +101,85 @@ export default function MultipleChoiceQuestion({
                     />
                 </div>
 
-                {/* Multiple Choice Options Configuration */}
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Answer Options</label>
-                    <p className="text-xs text-slate-500 mb-3">You can select one or more correct answers.</p>
+                {isTFNG ? (
+                    /* ── True / False / Not Given — pick the one correct answer ── */
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Correct Answer
+                        </label>
+                        <p className="text-xs text-slate-500">
+                            Click the correct answer for this statement.
+                        </p>
+                        <div className="flex gap-3 pt-1">
+                            {tfngOptions.map((opt) => {
+                                const isSelected = tfngSelected(opt);
+                                return (
+                                    <button
+                                        key={opt}
+                                        type="button"
+                                        onClick={() => handleTFNGSelect(opt)}
+                                        className={`flex-1 py-2.5 px-3 rounded-lg border-2 text-sm font-semibold transition-all ${
+                                            isSelected
+                                                ? 'border-green-500 bg-green-50 text-green-700'
+                                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        {isSelected && <span className="mr-1.5">✓</span>}
+                                        {opt}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {correctAnswers.length === 0 && (
+                            <p className="text-xs text-amber-600 font-medium pt-1">
+                                ⚠ No correct answer selected yet.
+                            </p>
+                        )}
+                    </div>
+                ) : (
+                    /* ── Multiple Choice — editable options, letter-based correct toggle ── */
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-3">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Answer Options</label>
+                        <p className="text-xs text-slate-500 mb-3">You can select one or more correct answers.</p>
 
-                    {(options || []).map((opt, i) => {
-                        const letter = String.fromCharCode(65 + i);
-                        const isCorrect = correctAnswers.includes(letter);
-                        return (
-                            <div key={i} className={`flex items-center gap-3 p-2 rounded border ${isCorrect ? 'border-green-200 bg-green-50/50' : 'border-transparent'}`}>
-                                <span className="text-sm font-medium text-slate-500 w-6">
-                                    {letter}.
-                                </span>
-                                <input
-                                    value={opt}
-                                    onChange={(e) => handleOptionChange(i, e.target.value)}
-                                    className="flex-1 border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                    placeholder={`Option ${letter}`}
-                                />
-                                {/* Set Correct Answer Checkbox */}
-                                <label className="flex items-center gap-2 cursor-pointer ml-2">
+                        {(options || []).map((opt, i) => {
+                            const letter = String.fromCharCode(65 + i);
+                            const isCorrect = correctAnswers.includes(letter);
+                            return (
+                                <div key={i} className={`flex items-center gap-3 p-2 rounded border ${isCorrect ? 'border-green-200 bg-green-50/50' : 'border-transparent'}`}>
+                                    <span className="text-sm font-medium text-slate-500 w-6">
+                                        {letter}.
+                                    </span>
                                     <input
-                                        type="checkbox"
-                                        className="w-4 h-4 text-green-600 focus:ring-green-500 rounded border-slate-300"
-                                        checked={isCorrect}
-                                        onChange={() => handleCorrectAnswerToggle(letter)}
+                                        value={opt}
+                                        onChange={(e) => handleOptionChange(i, e.target.value)}
+                                        className="flex-1 border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                        placeholder={`Option ${letter}`}
                                     />
-                                    <span className={`text-xs ${isCorrect ? 'text-green-700 font-semibold' : 'text-slate-500'}`}>Correct</span>
-                                </label>
+                                    <label className="flex items-center gap-2 cursor-pointer ml-2">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 text-green-600 focus:ring-green-500 rounded border-slate-300"
+                                            checked={isCorrect}
+                                            onChange={() => handleCorrectAnswerToggle(letter)}
+                                        />
+                                        <span className={`text-xs ${isCorrect ? 'text-green-700 font-semibold' : 'text-slate-500'}`}>Correct</span>
+                                    </label>
 
-                                <button onClick={() => removeOption(i)} className="text-slate-400 hover:text-red-500 p-1 ml-2">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        );
-                    })}
-                    <button
-                        onClick={addOption}
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded transition-colors mt-2"
-                    >
-                        + Add Option
-                    </button>
-                </div>
+                                    <button onClick={() => removeOption(i)} className="text-slate-400 hover:text-red-500 p-1 ml-2">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                        <button
+                            onClick={addOption}
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded transition-colors mt-2"
+                        >
+                            + Add Option
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

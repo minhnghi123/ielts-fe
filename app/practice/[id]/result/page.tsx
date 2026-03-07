@@ -331,7 +331,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             .catch(err => {
                 console.error("Failed to load result data:", err);
                 setError("Failed to load results. Please try again.");
-                setIsLoading(false);
+            setIsLoading(false);
             });
     }, [attemptId, testId]);
 
@@ -435,7 +435,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                 {isListening ? `Recording ${i + 1}` : `Passage ${i + 1}`}
                             </Badge>
                         ))}
-                    </div>
+                </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -476,40 +476,40 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             icon: FileText,
                             color: "text-slate-600",
                             bg: "bg-slate-100 dark:bg-slate-800",
-                        },
-                        {
-                            label: "Accuracy",
+                            },
+                            {
+                                label: "Accuracy",
                             value: totalQ > 0 ? `${accuracy.toFixed(1)}%` : "—",
                             sub: "correct/total",
                             icon: Table2,
-                            color: "text-blue-600",
-                            bg: "bg-blue-50 dark:bg-blue-900/20",
-                        },
-                        {
-                            label: "Time Taken",
-                            value: timeTaken,
+                                color: "text-blue-600",
+                                bg: "bg-blue-50 dark:bg-blue-900/20",
+                            },
+                            {
+                                label: "Time Taken",
+                                value: timeTaken,
                             sub: "",
-                            icon: Clock,
-                            color: "text-amber-600",
-                            bg: "bg-amber-50 dark:bg-amber-900/20",
-                        },
+                                icon: Clock,
+                                color: "text-amber-600",
+                                bg: "bg-amber-50 dark:bg-amber-900/20",
+                            },
                     ].map(s => (
                         <Card key={s.label} className="bg-white dark:bg-slate-900 shadow-sm border">
                             <CardContent className="p-4 flex items-center gap-3">
                                 <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>
                                     <s.icon className={`h-5 w-5 ${s.color}`} />
-                                </div>
-                                <div>
+                                    </div>
+                                    <div>
                                     <p className="text-[11px] text-muted-foreground">{s.label}</p>
                                     <p className="text-xl font-black tabular-nums leading-tight">
                                         {s.value}
                                         {s.sub && <span className="text-sm font-semibold text-muted-foreground ml-1">{s.sub}</span>}
                                     </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
 
                 {/* ── 3 Stat Cards ───────────────────────────────────────── */}
                 <div className="grid grid-cols-3 gap-3">
@@ -618,7 +618,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                         {label}
                                     </button>
                                 ))}
-                            </div>
+                        </div>
                         )}
 
                         <AnalysisTable qas={activeQAs} skill={skill} />
@@ -627,7 +627,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
                 {/* ── Answer Review ───────────────────────────────────────── */}
                 <Card className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
-                    <CardContent className="p-0">
+                        <CardContent className="p-0">
                         {/* Header */}
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
@@ -687,8 +687,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                 <AnswerList qas={activeQAs} />
                             </div>
                         )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
                 {/* ── Footer Actions ──────────────────────────────────────── */}
                 <div className="flex flex-wrap justify-center gap-3 pt-2 pb-10">
