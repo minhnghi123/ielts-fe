@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import {
     CheckCircle2, XCircle, Clock, SkipForward,
     RotateCcw, ChevronRight, AlertCircle, ListChecks,
-    FileText, Table2, Headphones, BookOpen,
+    FileText, Table2, Headphones, BookOpen, Sparkles, RefreshCw,
 } from "lucide-react";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt, Test, Section, QuestionAttempt } from "@/lib/types";
 
@@ -301,11 +302,104 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+// ─── AI Feedback Panel ────────────────────────────────────────────────────────
+
+function AiFeedbackPanel({
+    feedback,
+    loading,
+    onRetry,
+}: {
+    feedback: string | null;
+    loading: boolean;
+    onRetry: () => void;
+}) {
+    // Render simple markdown: ## headings, **bold**, - bullets
+    function renderMd(text: string) {
+        return text.split('\n').map((line, i) => {
+            if (/^## /.test(line)) {
+                return <h3 key={i} className="font-bold text-sm mt-4 mb-1 text-foreground">{line.slice(3)}</h3>;
+            }
+            if (/^\*\*.*\*\*$/.test(line.trim())) {
+                return <p key={i} className="font-semibold text-sm text-foreground mt-2">{line.replace(/\*\*/g, '')}</p>;
+            }
+            if (/^- /.test(line)) {
+                const content = line.slice(2).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                return (
+                    <li
+                        key={i}
+                        className="text-sm text-foreground/90 ml-3 list-disc"
+                        dangerouslySetInnerHTML={{ __html: content }}
+                    />
+                );
+            }
+            if (line.trim() === '') return <br key={i} />;
+            const content = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            return <p key={i} className="text-sm text-foreground/90" dangerouslySetInnerHTML={{ __html: content }} />;
+        });
+    }
+
+    return (
+        <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-800/40 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+                <div className="px-5 pt-4 pb-3 border-b border-violet-200/60 dark:border-violet-800/30 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+                            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+                        </div>
+                        <h2 className="font-bold text-sm text-violet-900 dark:text-violet-200">AI Coaching Feedback</h2>
+                        <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-none">
+                            Powered by Groq
+                        </Badge>
+                    </div>
+                    {!loading && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs gap-1 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
+                            onClick={onRetry}
+                        >
+                            <RefreshCw className="h-3 w-3" /> Regenerate
+                        </Button>
+                    )}
+                </div>
+
+                <div className="px-5 py-4">
+                    {loading ? (
+                        <div className="space-y-2.5">
+                            <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400 text-sm font-medium mb-3">
+                                <div className="h-4 w-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />
+                                AI is analysing your performance…
+                            </div>
+                            {[80, 60, 70, 40].map((w, i) => (
+                                <div key={i} className={`h-3 bg-violet-100 dark:bg-violet-900/20 rounded animate-pulse`} style={{ width: `${w}%` }} />
+                            ))}
+                        </div>
+                    ) : feedback ? (
+                        <div className="prose prose-sm max-w-none text-foreground space-y-0.5">
+                            {renderMd(feedback)}
+                        </div>
+                    ) : (
+                        <div className="text-center py-4">
+                            <p className="text-sm text-muted-foreground mb-3">AI feedback could not be generated.</p>
+                            <Button size="sm" variant="outline" onClick={onRetry} className="gap-1.5">
+                                <RefreshCw className="h-3.5 w-3.5" /> Try Again
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function TestResultPage({ params }: { params: Promise<{ id: string }> }) {
     const { id: testId } = use(params);
     const searchParams = useSearchParams();
     const attemptId = searchParams.get("attemptId");
     const elapsedParam = searchParams.get("elapsed"); // seconds, set by frontend timer
+    const { user } = useAuth();
 
     const [attempt, setAttempt] = useState<TestAttempt | null>(null);
     const [fullTest, setFullTest] = useState<Test | null>(null);
@@ -313,6 +407,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState(0);   // 0 = overall, 1+ = section
     const [showAnswers, setShowAnswers] = useState(false);
+
+    // AI feedback state
+    const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+    const [aiFeedbackLoading, setAiFeedbackLoading] = useState(false);
+    const aiTriggeredRef = useRef(false); // prevent double-trigger in StrictMode
 
     useEffect(() => {
         if (!attemptId) { setIsLoading(false); return; }
@@ -334,6 +433,95 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             setIsLoading(false);
             });
     }, [attemptId, testId]);
+
+    // ── AI analysis trigger ───────────────────────────────────────────────────
+
+    const triggerAiAnalysis = useCallback(async (
+        attemptData: TestAttempt,
+        testData: Test | null,
+        enriched: QAEnriched[],
+    ) => {
+        if (!attemptId) return;
+        setAiFeedbackLoading(true);
+        setAiFeedback(null);
+
+        const skill: string = (attemptData.test as any)?.skill ?? testData?.skill ?? "reading";
+        const testTitle = attemptData.test?.title ?? testData?.title ?? "IELTS Test";
+        const correctQ = enriched.filter(q => q.isCorrect === true).length;
+        const wrongQ   = enriched.filter(q => q.isCorrect !== true && !!q.answer?.trim()).length;
+        const skippedQ = enriched.filter(q => !q.answer?.trim()).length;
+
+        // Build question-type accuracy map
+        const qTypeStats: Record<string, { correct: number; total: number }> = {};
+        enriched.forEach(qa => {
+            const t = qa.questionType || "fill_in_blank";
+            if (!qTypeStats[t]) qTypeStats[t] = { correct: 0, total: 0 };
+            qTypeStats[t].total++;
+            if (qa.isCorrect) qTypeStats[t].correct++;
+        });
+
+        // Wrong answers with details (for prompt)
+        const wrongAnswers = enriched
+            .filter(qa => qa.isCorrect !== true && !!qa.answer?.trim())
+            .slice(0, 10)
+            .map(qa => ({
+                questionNumber: qa.globalOrder || 0,
+                questionType: qa.questionType,
+                yourAnswer: qa.answer ?? "",
+                correctAnswer: qa.correctAnswers[0] ?? "—",
+            }));
+
+        const wrongQuestionIds = enriched
+            .filter(qa => qa.isCorrect !== true && !!qa.answer?.trim())
+            .map(qa => qa.questionId);
+
+        const learnerId = (user as any)?.profileId || user?.id || "";
+
+        try {
+            const res = await fetch("/api/ai/analyze-result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    attemptId,
+                    learnerId,
+                    skill,
+                    testTitle,
+                    totalQ: enriched.length,
+                    correctQ,
+                    wrongQ,
+                    skippedQ,
+                    bandScore: Number(attemptData.bandScore ?? 0),
+                    wrongAnswers,
+                    wrongQuestionIds,
+                    questionTypeStats: qTypeStats,
+                }),
+            });
+            const data = await res.json();
+            setAiFeedback(data.aiFeedback ?? null);
+        } catch (err) {
+            console.error("AI analysis failed:", err);
+            setAiFeedback(null);
+        } finally {
+            setAiFeedbackLoading(false);
+        }
+    }, [attemptId, user]);
+
+    // Auto-trigger analysis when data is ready; re-use stored feedback if present
+    useEffect(() => {
+        if (!attempt || isLoading || aiTriggeredRef.current) return;
+        aiTriggeredRef.current = true;
+
+        const storedFeedback = (attempt as any).aiFeedback as string | null;
+        if (storedFeedback) {
+            // Already analysed previously — just show stored result instantly
+            setAiFeedback(storedFeedback);
+            return;
+        }
+
+        // New attempt — run analysis
+        const enriched = buildEnrichedQAs(attempt, fullTest);
+        triggerAiAnalysis(attempt, fullTest, enriched);
+    }, [attempt, fullTest, isLoading, triggerAiAnalysis]);
 
     // ── Loading / Error ──────────────────────────────────────────────────────
 
@@ -690,6 +878,18 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         </CardContent>
                     </Card>
 
+                {/* ── AI Coaching Feedback ───────────────────────────────── */}
+                <AiFeedbackPanel
+                    feedback={aiFeedback}
+                    loading={aiFeedbackLoading}
+                    onRetry={() => {
+                        if (!attempt) return;
+                        aiTriggeredRef.current = false;
+                        const enriched = buildEnrichedQAs(attempt, fullTest);
+                        triggerAiAnalysis(attempt, fullTest, enriched);
+                    }}
+                />
+
                 {/* ── Footer Actions ──────────────────────────────────────── */}
                 <div className="flex flex-wrap justify-center gap-3 pt-2 pb-10">
                     <Link href="/tests">
@@ -711,6 +911,12 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         <Button variant="outline" className="gap-2 font-semibold">
                             <Table2 className="h-4 w-4" />
                             View History
+                        </Button>
+                    </Link>
+                    <Link href="/ai-advisor">
+                        <Button variant="outline" className="gap-2 font-semibold border-violet-200 text-violet-700 hover:bg-violet-50">
+                            <Sparkles className="h-4 w-4" />
+                            AI Coach
                         </Button>
                     </Link>
                 </div>

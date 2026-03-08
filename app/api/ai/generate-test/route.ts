@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
 const SYSTEM_PROMPT = `You are an expert IELTS test creator. Generate a complete, realistic IELTS test in valid JSON.
 
@@ -13,19 +13,19 @@ CRITICAL: Return ONLY the raw JSON object — no markdown, no code fences, no ex
   "sections": [
     {
       "sectionOrder": 1,
-      "passage": "Full academic passage text (500-900 words for reading; transcript summary for listening)",
+      "passage": "Full academic passage text (500-900 words for reading; transcript for listening)",
       "audioUrl": "",
       "groups": [
         {
           "groupOrder": 1,
-          "instructions": "IELTS-style group instruction (e.g. Questions 1–5. Do the following statements agree with the information given in Reading Passage 1?)",
+          "instructions": "IELTS-style group instruction e.g. Questions 1–5. Do the following statements agree with the information given in Reading Passage 1?",
           "questions": [
             {
               "questionOrder": 1,
               "questionType": "...",
               "questionText": "...",
-              "config": { ... },
-              "explanation": "Brief explanation of the correct answer",
+              "config": {},
+              "explanation": "Brief explanation of why this is the correct answer",
               "answer": {
                 "correctAnswers": ["ANSWER"],
                 "caseSensitive": false
@@ -44,9 +44,6 @@ true_false_not_given
   config: {}
   questionText: A statement to verify against the passage
   correctAnswers: ["TRUE"] | ["FALSE"] | ["NOT GIVEN"]
-  — TRUE  = statement agrees with passage
-  — FALSE = statement contradicts passage
-  — NOT GIVEN = neither confirmed nor contradicted
 
 yes_no_not_given
   config: {}
@@ -56,21 +53,20 @@ yes_no_not_given
 fill_in_blank
   config: {}
   questionText: "Complete the summary: The _____ was discovered in..."
-  correctAnswers: ["WORD OR PHRASE"]  ← uppercase, max 3 words
-  — Use (WORD) for optional words: "(ELECTRIC) CARS"
-  — Each question = ONE blank only
+  correctAnswers: ["WORD OR PHRASE"] — uppercase, max 3 words
+  Use (WORD) for optional words: "(ELECTRIC) CARS". Each question = ONE blank only.
 
 multiple_choice
-  config: { "options": ["A. full text of option A", "B. full text of option B", "C. full text of option C", "D. full text of option D"] }
+  config: { "options": ["A. full text of option A", "B. full text", "C. full text", "D. full text"] }
   questionText: "Question stem"
   correctAnswers: ["A"] | ["B"] | ["C"] | ["D"]
 
 matching_heading
   config: { "options": ["Full heading text 1", "Full heading text 2", ...] }
-  — Always include 2 more headings than questions (distractors)
+  Always include 2 extra headings as distractors.
   questionText: "Paragraph A" | "Section 2" etc.
   correctAnswers: ["I"] | ["II"] | ["III"] | ["IV"] | ["V"] | ["VI"] | ["VII"] | ["VIII"]
-  — Roman numeral = 1-based index into config.options
+  Roman numeral = 1-based index into config.options.
 
 matching
   config: { "options": ["A. option text", "B. option text", "C. option text", ...] }
@@ -88,20 +84,20 @@ matching_features
   correctAnswers: ["A"] | ["B"] | ["C"] etc.
 
 ──────────────── IELTS CONVENTIONS ────────────────
-- Reading: 3 sections, ~13 questions each (40 total). Academic Register. Passages: factual/argumentative.
-- Listening: 4 sections, ~10 questions each (40 total). Passage field = brief audio script / transcript.
-- questionOrder is GLOBAL and strictly sequential (1, 2, 3 … N across all sections).
+- Reading: 3 sections, ~13 questions each (40 total). Academic register. Factual/argumentative passages.
+- Listening: 4 sections, ~10 questions each (40 total). passage field = audio transcript.
+- questionOrder is GLOBAL and strictly sequential (1, 2, 3 … N across ALL sections).
 - Each section may have MULTIPLE groups with DIFFERENT question types.
 - Instructions must reference the correct question numbers (e.g. "Questions 14–19").
 - Explanations should briefly reference where in the passage the answer is found.
-- Vary question types across groups. Do NOT use the same type for all groups.
-- Correct answers must be verifiable from the passage text you write.`;
+- Vary question types across groups. Do NOT use the same type for all groups in one section.
+- All correct answers must be directly verifiable from the passage text you write.`;
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey === 'your_openai_api_key_here') {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
     return NextResponse.json(
-      { error: 'OPENAI_API_KEY is not configured. Add it to .env.local.' },
+      { error: 'GROQ_API_KEY is not configured in .env.local.' },
       { status: 500 },
     );
   }
@@ -131,18 +127,19 @@ export async function POST(req: NextRequest) {
     `Difficulty level: ${difficulty}.`,
     `Number of sections: ${sections}.`,
     `Total questions: approximately ${totalQuestions} (sequential questionOrder across all sections).`,
-    `${qtypeHints}`,
+    qtypeHints,
     additionalInstructions ? `Additional instructions: ${additionalInstructions}` : '',
     `Set "isMock": ${isMock}.`,
-    `Do NOT include a "createdBy" field — it will be added by the server.`,
+    'Do NOT include a "createdBy" field — it will be added by the server.',
+    'Return ONLY the JSON object. No markdown, no code fences.',
   ]
     .filter(Boolean)
     .join('\n');
 
-  const openai = new OpenAI({ apiKey });
+  const groq = new Groq({ apiKey });
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+  const completion = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },
@@ -156,7 +153,8 @@ export async function POST(req: NextRequest) {
 
   let testData: Record<string, unknown>;
   try {
-    testData = JSON.parse(raw);
+    const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+    testData = JSON.parse(cleaned);
   } catch {
     return NextResponse.json(
       { error: 'AI returned invalid JSON. Please try again.', raw },

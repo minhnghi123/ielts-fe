@@ -257,4 +257,8 @@ export const testsApi = {
         testAxios
             .get<{ data: TestAttempt[] }>(`/api/attempts?learnerId=${learnerId}`)
             .then((r) => r.data.data),
+
+    /** Persist AI-generated feedback text back to the test_attempt row. */
+    saveAiFeedback: (attemptId: string, aiFeedback: string) =>
+        testAxios.put(`/api/attempts/${attemptId}/ai-feedback`, { aiFeedback }),
 };

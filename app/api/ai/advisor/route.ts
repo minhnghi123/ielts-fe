@@ -1,74 +1,111 @@
 import { NextRequest } from 'next/server';
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
-const SYSTEM_PROMPT = `You are an expert IELTS coach integrated into a learning platform. Your role is to:
-1. Analyse the learner's actual test performance data that will be provided to you.
-2. Identify strengths and specific weaknesses based on their scores.
-3. Provide a clear, actionable study roadmap with weekly priorities.
-4. Suggest specific strategies for each skill they need to improve.
-5. Motivate and encourage learners with a supportive, professional tone.
+// ─── types ────────────────────────────────────────────────────────────────────
 
-Always base your advice on the actual data provided. Be specific — reference their exact scores.
-Keep responses concise but thorough. Use bullet points and clear headings where helpful.
-If the learner has no test data yet, encourage them to take their first test and explain what to expect.`;
+interface QuestionTypeStats { correct: number; total: number; }
 
-function buildUserContext(profile: {
-  userName?: string;
-  attempts: Array<{
-    testTitle?: string;
-    skill?: string;
-    bandScore?: number | null;
-    rawScore?: number | null;
-    startedAt?: string;
-    submittedAt?: string;
-  }>;
-}): string {
-  const { userName, attempts } = profile;
-  const completed = attempts.filter(a => !!a.submittedAt);
-
-  if (completed.length === 0) {
-    return `Learner: ${userName ?? "Student"}\nTest history: No completed tests yet.`;
-  }
-
-  // Per-skill summary
-  const skills = ["listening", "reading", "writing", "speaking"];
-  const skillSummaries = skills.map(skill => {
-    const skillAttempts = completed.filter(a => a.skill === skill && (a.bandScore ?? 0) > 0);
-    if (!skillAttempts.length) return `  ${skill}: not yet attempted`;
-    const avg = skillAttempts.reduce((s, a) => s + (a.bandScore ?? 0), 0) / skillAttempts.length;
-    const best = Math.max(...skillAttempts.map(a => a.bandScore ?? 0));
-    const latest = skillAttempts[skillAttempts.length - 1];
-    return `  ${skill}: avg=${avg.toFixed(1)}, best=${best.toFixed(1)}, tests=${skillAttempts.length}, latest=${latest.bandScore?.toFixed(1) ?? "—"}`;
-  }).join("\n");
-
-  // Recent attempts (last 6)
-  const recent = completed.slice(-6).reverse().map(a =>
-    `  - ${a.testTitle ?? "Practice Test"} (${a.skill}): Band ${a.bandScore?.toFixed(1) ?? "—"}, Raw score ${a.rawScore ?? "—"}`
-  ).join("\n");
-
-  const overallGraded = completed.filter(a => (a.bandScore ?? 0) > 0);
-  const overallAvg = overallGraded.length
-    ? (overallGraded.reduce((s, a) => s + (a.bandScore ?? 0), 0) / overallGraded.length).toFixed(1)
-    : "N/A";
-
-  return [
-    `Learner: ${userName ?? "Student"}`,
-    `Total completed tests: ${completed.length}`,
-    `Overall average band: ${overallAvg}`,
-    ``,
-    `Per-skill performance:`,
-    skillSummaries,
-    ``,
-    `Recent test history:`,
-    recent,
-  ].join("\n");
+interface SkillDetail {
+  attempts: number;
+  avgBand: number | null;
+  bestBand: number | null;
+  latestBand: number | null;
+  trend: 'improving' | 'declining' | 'stable' | 'insufficient_data';
+  rawScores: number[];
 }
 
+interface LearnerProfile {
+  userName: string;
+  totalCompleted: number;
+  overallAvgBand: number | null;
+  skills: Record<string, SkillDetail>;
+  questionTypeAccuracy: Record<string, QuestionTypeStats>;
+  recentAttempts: Array<{
+    testTitle: string;
+    skill: string;
+    bandScore: number | null;
+    rawScore: number | null;
+    date: string;
+  }>;
+}
+
+// ─── context builder ──────────────────────────────────────────────────────────
+
+function buildContext(profile: LearnerProfile): string {
+  const lines: string[] = [
+    '=== LEARNER PROFILE ===',
+    `Name: ${profile.userName}`,
+    `Completed tests: ${profile.totalCompleted}`,
+    `Overall average band: ${profile.overallAvgBand?.toFixed(1) ?? 'N/A'}`,
+    '',
+    '=== SKILL BREAKDOWN ===',
+  ];
+
+  for (const skill of ['listening', 'reading', 'writing', 'speaking']) {
+    const s = profile.skills[skill];
+    if (!s) { lines.push(`${skill.toUpperCase()}: Not yet attempted`); continue; }
+    lines.push(
+      `${skill.toUpperCase()}: ` +
+      `${s.attempts} test(s) | avg=${s.avgBand?.toFixed(1) ?? '—'} | ` +
+      `best=${s.bestBand?.toFixed(1) ?? '—'} | latest=${s.latestBand?.toFixed(1) ?? '—'} | trend=${s.trend}`,
+    );
+  }
+
+  if (Object.keys(profile.questionTypeAccuracy).length > 0) {
+    lines.push('', '=== QUESTION TYPE ACCURACY (from recent attempts) ===');
+    const sorted = Object.entries(profile.questionTypeAccuracy)
+      .map(([type, stats]) => ({
+        type,
+        accuracy: stats.total > 0 ? (stats.correct / stats.total) * 100 : 0,
+        correct: stats.correct,
+        total: stats.total,
+      }))
+      .sort((a, b) => a.accuracy - b.accuracy); // weakest first
+
+    for (const { type, accuracy, correct, total } of sorted) {
+      const flag = accuracy < 50 ? ' ← WEAK AREA' : accuracy < 70 ? ' ← needs work' : '';
+      lines.push(`  ${type}: ${correct}/${total} correct (${accuracy.toFixed(0)}%)${flag}`);
+    }
+  }
+
+  if (profile.recentAttempts.length > 0) {
+    lines.push('', '=== RECENT TEST HISTORY ===');
+    for (const a of profile.recentAttempts) {
+      lines.push(
+        `  [${a.date}] ${a.testTitle} (${a.skill}) — Band ${a.bandScore?.toFixed(1) ?? '—'}, Raw ${a.rawScore ?? '—'}`,
+      );
+    }
+  }
+
+  lines.push('', '=== END LEARNER PROFILE ===');
+  return lines.join('\n');
+}
+
+// ─── system prompt ────────────────────────────────────────────────────────────
+
+const SYSTEM_PROMPT = `You are an expert IELTS coach embedded in a learning platform. You have access to the learner's complete test history and performance analytics from the database. Use this data to give deeply personalised, specific advice.
+
+Your core responsibilities:
+1. Analyse actual scores to identify SPECIFIC weaknesses by skill and question type.
+2. Provide a prioritised study roadmap with realistic weekly targets and timelines.
+3. Recommend concrete strategies for each weak question type (e.g. how to improve fill_in_blank accuracy from 45% to 70%).
+4. Set motivating but realistic band score improvement goals.
+5. Give actionable daily/weekly practice suggestions based on their current level.
+6. If the learner has no test data yet, warmly guide them on how to get started.
+
+Rules:
+- NEVER give generic advice — always reference the learner's actual numbers and scores.
+- Be concise but thorough. Use ## headings, - bullet points, and **bold** for key points.
+- Prioritise the weakest areas first.
+- Tone: professional, encouraging, data-driven.`;
+
+// ─── route handler ────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey === 'your_openai_api_key_here') {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
     return new Response(
-      JSON.stringify({ error: 'OPENAI_API_KEY is not configured.' }),
+      JSON.stringify({ error: 'GROQ_API_KEY is not configured in .env.local.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
@@ -76,22 +113,28 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { messages = [], profile } = body as {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-    profile: Parameters<typeof buildUserContext>[0];
+    profile: LearnerProfile;
   };
 
-  const userContext = buildUserContext(profile);
-  const systemWithContext = `${SYSTEM_PROMPT}\n\n--- LEARNER DATA ---\n${userContext}\n--- END LEARNER DATA ---`;
+  const learnerContext = buildContext(profile);
 
-  const openai = new OpenAI({ apiKey });
+  const groq = new Groq({ apiKey });
 
-  const stream = await openai.chat.completions.create({
-    model: 'gpt-4o',
+  const stream = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
     stream: true,
-    temperature: 0.7,
-    max_tokens: 1200,
+    temperature: 0.75,
+    max_tokens: 1500,
     messages: [
-      { role: 'system', content: systemWithContext },
-      ...messages,
+      {
+        role: 'system',
+        content: `${SYSTEM_PROMPT}\n\n${learnerContext}`,
+      },
+      // Map assistant → assistant (Groq uses same role names as OpenAI)
+      ...messages.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
     ],
   });
 
@@ -110,6 +153,7 @@ export async function POST(req: NextRequest) {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Transfer-Encoding': 'chunked',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }

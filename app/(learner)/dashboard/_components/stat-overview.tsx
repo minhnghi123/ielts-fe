@@ -17,6 +17,11 @@ export function StatOverview({ attempts, loading }: Props) {
       ? gradedAttempts.reduce((s, a) => s + Number(a.bandScore ?? 0), 0) / gradedAttempts.length
       : 0;
 
+  const highestBand =
+    gradedAttempts.length > 0
+      ? Math.max(...gradedAttempts.map(a => Number(a.bandScore ?? 0)))
+      : 0;
+
   // "Overall Readiness" — derived from graded tests:
   //   0 tests → "—"  |  avgBand 0–5 → "Developing"  |  5–7 → "Good"  |  7+ → "High"
   const readiness =
@@ -50,10 +55,18 @@ export function StatOverview({ attempts, loading }: Props) {
       iconColor: "text-orange-600 dark:text-orange-400",
       iconBg: "bg-orange-50 dark:bg-orange-900/20",
     },
+    {
+      title: "Highest Band Score",
+      value: loading ? "…" : highestBand > 0 ? highestBand.toFixed(1) : "—",
+      trend: highestBand > 0 ? `Personal best` : "No graded tests",
+      icon: "emoji_events",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
         <Card key={index} className="shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-5">
