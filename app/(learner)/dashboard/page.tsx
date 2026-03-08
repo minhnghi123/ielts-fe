@@ -23,6 +23,81 @@ function skillIcon(skill: string) {
   return <FileText className="h-4 w-4" />;
 }
 
+function avgBandForSkill(attempts: TestAttempt[], skill: string): number | null {
+  const graded = attempts.filter(
+    a => !!a.submittedAt && (a.test as any)?.skill === skill && Number(a.bandScore ?? 0) > 0,
+  );
+  if (!graded.length) return null;
+  return graded.reduce((s, a) => s + Number(a.bandScore ?? 0), 0) / graded.length;
+}
+
+function bandColor(band: number | null): string {
+  if (!band) return "bg-slate-300";
+  if (band >= 7.5) return "bg-emerald-500";
+  if (band >= 6) return "bg-blue-500";
+  if (band >= 4.5) return "bg-amber-500";
+  return "bg-rose-500";
+}
+
+// ─── Skill Progress Panel ──────────────────────────────────────────────────────
+
+const SKILLS_META = [
+  { id: "listening", label: "Listening", icon: "headphones", accent: "#3b82f6" },
+  { id: "reading",   label: "Reading",   icon: "menu_book",  accent: "#8b5cf6" },
+  { id: "writing",   label: "Writing",   icon: "edit_note",  accent: "#f97316" },
+  { id: "speaking",  label: "Speaking",  icon: "mic",        accent: "#ec4899" },
+];
+
+function SkillProgressPanel({ attempts, loading }: { attempts: TestAttempt[]; loading: boolean }) {
+  return (
+    <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-6">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl font-bold">Skill Progress</h2>
+        <Link href="/analysis" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
+          Full Analysis <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {SKILLS_META.map(({ id, label, icon }) => {
+          const band = avgBandForSkill(attempts, id);
+          const pct = band ? Math.round((band / 9) * 100) : 0;
+          const count = attempts.filter(a => (a.test as any)?.skill === id && !!a.submittedAt).length;
+          return (
+            <div key={id} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-muted-foreground">{icon}</span>
+                  <span className="text-sm font-semibold">{label}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {loading ? (
+                    <div className="h-4 w-8 bg-slate-200 rounded animate-pulse" />
+                  ) : band ? (
+                    <span className="text-sm font-black tabular-nums">{band.toFixed(1)}</span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </div>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                {!loading && (
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${bandColor(band)}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {loading ? "…" : count === 0 ? "Not attempted yet" : `${count} test${count !== 1 ? "s" : ""} completed`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function skillColors(skill: string) {
   if (skill === "listening") return { bg: "bg-blue-100 dark:bg-blue-900/20", text: "text-blue-600 dark:text-blue-400" };
   if (skill === "reading") return { bg: "bg-emerald-100 dark:bg-emerald-900/20", text: "text-emerald-600 dark:text-emerald-400" };
@@ -83,6 +158,8 @@ export default function DashboardPage() {
       <WelcomeHeader userName={user?.fullName || user?.email || ""} />
 
       <StatOverview attempts={attempts} loading={loading} />
+
+      <SkillProgressPanel attempts={attempts} loading={loading} />
 
       <div className="flex flex-col gap-6">
         <h2 className="text-xl font-bold">Select Test Module</h2>
@@ -169,20 +246,54 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── Daily Tip ───────────────────────────────────────────────────── */}
+        {/* ── AI Advisor + Daily Tip ──────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold">Daily Tip</h2>
-          <div className="bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-6 rounded-2xl">
-            <div className="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-500">
-              <span className="material-symbols-outlined">lightbulb</span>
-              <span className="font-bold uppercase tracking-wider text-xs">Reading Tip</span>
+          {/* AI Advisor CTA */}
+          <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+              <span className="font-bold uppercase tracking-wider text-xs opacity-80">AI Study Coach</span>
             </div>
-            <h3 className="text-lg font-bold text-amber-900 dark:text-amber-100 mb-2">Synonyms are key!</h3>
-            <p className="text-amber-800 dark:text-amber-200/80 text-sm leading-relaxed">
-              In the Reading test, the text will rarely use the exact words from the question.
-              Look for synonyms and paraphrasing to find the correct answer.
+            <h3 className="text-base font-bold mb-1">Get your personalised plan</h3>
+            <p className="text-sm opacity-80 leading-relaxed mb-4">
+              Our AI analyses your test results and builds a custom roadmap to reach your target band score.
             </p>
+            <Link
+              href="/ai-advisor"
+              className="inline-flex items-center gap-2 bg-white text-purple-700 text-sm font-bold px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              Chat with AI Coach
+            </Link>
           </div>
+
+          {/* Daily Tip — driven by weakest skill */}
+          {(() => {
+            const weakest = SKILLS_META.map(s => ({
+              ...s,
+              band: avgBandForSkill(attempts, s.id),
+            })).filter(s => s.band !== null).sort((a, b) => (a.band ?? 9) - (b.band ?? 9))[0];
+            const tips: Record<string, { title: string; body: string }> = {
+              listening: { title: "Focus on keywords", body: "Before the recording plays, read each question carefully and underline key words. Predict the type of answer (number, name, adjective) you need." },
+              reading:   { title: "Synonyms are key!", body: "The passage will rarely use the exact words from the question. Train yourself to spot synonyms and paraphrasing — that's where the answer hides." },
+              writing:   { title: "Structure every essay", body: "Always plan for 5 minutes before writing. A clear Introduction → Body 1 → Body 2 → Conclusion structure can lift your Task Achievement score by a full band." },
+              speaking:  { title: "Extend your answers", body: "Avoid one-word replies. Use the PEEL method: Point → Example → Explanation → Link back. This naturally increases your fluency and coherence scores." },
+            };
+            const skill = weakest?.id ?? "reading";
+            const tip = tips[skill];
+            return (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-2xl">
+                <div className="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-500">
+                  <span className="material-symbols-outlined text-[18px]">lightbulb</span>
+                  <span className="font-bold uppercase tracking-wider text-xs capitalize">
+                    {skill} Tip
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-amber-900 dark:text-amber-100 mb-1.5">{tip.title}</h3>
+                <p className="text-amber-800 dark:text-amber-200/80 text-sm leading-relaxed">{tip.body}</p>
+              </div>
+            );
+          })()}
         </div>
 
       </div>
