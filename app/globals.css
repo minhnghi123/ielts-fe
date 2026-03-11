@@ -163,3 +163,32 @@
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* ─── Passage Highlight Styles ─── */
+.passage-highlight {
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.passage-highlight:hover {
+  opacity: 0.7;
+}
+
+.passage-highlight-yellow {
+  background-color: rgba(250, 204, 21, 0.45);
+}
+
+.dark .passage-highlight-yellow {
+  background-color: rgba(250, 204, 21, 0.28);
+}
+
+/* ─── Passage Article Typography Refinements ─── */
+.passage-article ::selection {
+  background-color: rgba(99, 102, 241, 0.25);
+}
+
+.passage-article p + p {
+  text-indent: 0;
+}
