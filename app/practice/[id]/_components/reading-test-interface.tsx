@@ -11,6 +11,7 @@ import { Timer, CheckSquare } from "lucide-react";
 interface Props {
   testId: string;
   test: { sections?: Section[] } & Record<string, any>;
+  initialAnswers?: Record<string, string>;
   onAnswerUpdate?: (answers: Record<string, string>) => void;
   onFinish: (answers: Record<string, string>) => void;
 }
@@ -160,10 +161,11 @@ function NavigationSidebar({
 
 export function ReadingTestInterface({
   test,
+  initialAnswers,
   onAnswerUpdate,
   onFinish,
 }: Props) {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers ?? {});
   const [activeSection, setActiveSection] = useState(0);
 
   const sections = useMemo(() => test?.sections ?? [], [test?.sections]);

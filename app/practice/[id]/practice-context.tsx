@@ -13,6 +13,9 @@ interface PracticeContextType {
     setAttemptId: (id: string) => void;
     testTitle: string | null;
     setTestTitle: (title: string) => void;
+    // Exit-and-save: registered by useTestSession, triggered by the layout's exit button
+    setOnExitAndSave: (callback: () => Promise<void>) => void;
+    triggerExitAndSave: () => Promise<boolean>; // returns true if a test was in progress
 }
 
 const PracticeContext = createContext<PracticeContextType | undefined>(undefined);
@@ -24,15 +27,22 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
     const [attemptId, setAttemptId] = useState<string | null>(null);
     const [testTitle, setTestTitle] = useState<string | null>(null);
 
-    // Use a ref to store the onTimeUp callback.
-    // This avoids two problems:
-    // 1. The React useState updater bug: if we stored a fn in useState and set it with
-    //    setOnTimeUp(fn), React would call fn() immediately treating it as an updater.
-    // 2. Stale closure in setInterval: reading from a ref always gives the latest value.
+    // Use refs for callbacks to avoid stale-closure issues and the React-useState-updater bug.
     const onTimeUpRef = useRef<(() => void) | null>(null);
+    const onExitAndSaveRef = useRef<(() => Promise<void>) | null>(null);
 
     const setOnTimeUp = (callback: () => void) => {
         onTimeUpRef.current = callback;
+    };
+
+    const setOnExitAndSave = (callback: () => Promise<void>) => {
+        onExitAndSaveRef.current = callback;
+    };
+
+    const triggerExitAndSave = async (): Promise<boolean> => {
+        if (!onExitAndSaveRef.current) return false;
+        await onExitAndSaveRef.current();
+        return true;
     };
 
     const startTimer = (durationMinutes: number | "full" | "untimed", defaultDurationFull: number) => {
@@ -87,6 +97,8 @@ export function PracticeProvider({ children }: { children: ReactNode }) {
                 setAttemptId,
                 testTitle,
                 setTestTitle,
+                setOnExitAndSave,
+                triggerExitAndSave,
             }}
         >
             {children}
