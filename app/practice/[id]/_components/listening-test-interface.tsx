@@ -3,9 +3,20 @@ import type { Test, Question, QuestionGroup } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
+import { AlertTriangle } from "lucide-react";
 import { SplitTestLayout } from "./split-test-layout";
 import { QuestionsPanel } from "./questions-panel";
 import { QuestionMinimap } from "./question-minimap";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ListeningTestInterface({
   testId,
@@ -19,6 +30,7 @@ export function ListeningTestInterface({
   onFinish: (answers: Record<string, string>) => void;
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -71,7 +83,12 @@ export function ListeningTestInterface({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const totalQ = allQuestions.length;
+  const answeredQ = Object.values(answers).filter((v) => v?.trim()).length;
+  const unanswered = totalQ - answeredQ;
+
   return (
+    <>
     <SplitTestLayout
       leftPanel={
         <AudioPlayerPanel
@@ -103,7 +120,7 @@ export function ListeningTestInterface({
             actionButtons={
               <Button
                 className="w-full h-12 text-base font-bold shadow-lg"
-                onClick={() => onFinish(answers)}
+                onClick={() => setConfirmOpen(true)}
               >
                 Submit Listening Answers
               </Button>
@@ -127,6 +144,45 @@ export function ListeningTestInterface({
         </>
       }
     />
+
+    <AlertDialog open={confirmOpen} onOpenChange={(o) => { if (!o) setConfirmOpen(false); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            Submit test?
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 text-sm text-foreground">
+              <div className="flex justify-between rounded-lg bg-muted px-4 py-3">
+                <span className="text-muted-foreground">Answered</span>
+                <span className="font-bold text-emerald-600">{answeredQ} / {totalQ}</span>
+              </div>
+              {unanswered > 0 && (
+                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    <strong>{unanswered}</strong> question{unanswered !== 1 ? "s" : ""} unanswered.
+                    Blank answers will be marked incorrect.
+                  </span>
+                </div>
+              )}
+              <p className="text-muted-foreground">Once submitted, you cannot change your answers.</p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setConfirmOpen(false)}>Keep Testing</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => { setConfirmOpen(false); onFinish(answers); }}
+            className="bg-rose-500 hover:bg-rose-600 text-white"
+          >
+            Submit Now
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 

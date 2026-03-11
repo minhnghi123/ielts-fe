@@ -13,7 +13,7 @@ import {
   Headphones, BookOpen, PenLine, Mic,
   Sparkles, ArrowRight, TrendingUp, Target,
   CheckCircle2, XCircle, Clock, ChevronRight,
-  BarChart3,
+  BarChart3, PlayCircle, AlertTriangle,
 } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -136,11 +136,30 @@ function SkillBandCard({
 
 // ─── Attempt Row ──────────────────────────────────────────────────────────────
 
+// ─── In-progress session check (client-side localStorage) ────────────────────
+
+function getLocalSession(testId: string): { hasSession: boolean; remainingMs: number } {
+  try {
+    const raw = localStorage.getItem(`ielts_session_${testId}`);
+    if (!raw) return { hasSession: false, remainingMs: 0 };
+    const session = JSON.parse(raw) as { startedAt: number; durationMs: number };
+    const remainingMs = Math.max(0, session.durationMs - (Date.now() - session.startedAt));
+    return { hasSession: true, remainingMs };
+  } catch {
+    return { hasSession: false, remainingMs: 0 };
+  }
+}
+
 function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   const skill = (attempt.test as any)?.skill ?? "reading";
   const band  = Number(attempt.bandScore ?? 0);
   const testId = attempt.testId ?? (attempt.test as any)?.id;
   const hasAiFeedback = !!(attempt as any).aiFeedback;
+  const isSubmitted = !!attempt.submittedAt;
+
+  // Check localStorage for in-progress attempts
+  const session = !isSubmitted && testId ? getLocalSession(testId) : null;
+  const hasTimeLeft = session ? session.remainingMs > 0 : false;
 
   const skillColors: Record<string, string> = {
     listening: "bg-blue-100 text-blue-600",
@@ -169,13 +188,21 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
         )}
       </td>
       <td className="px-4 py-3 text-center">
-        {attempt.submittedAt ? (
+        {isSubmitted ? (
           <span className="inline-flex items-center gap-1 text-emerald-600 text-[11px] font-bold">
             <CheckCircle2 className="h-3 w-3" /> Done
           </span>
-        ) : (
+        ) : hasTimeLeft ? (
           <span className="inline-flex items-center gap-1 text-amber-500 text-[11px] font-bold">
-            <Clock className="h-3 w-3" /> Progress
+            <Clock className="h-3 w-3" /> In Progress
+          </span>
+        ) : session?.hasSession ? (
+          <span className="inline-flex items-center gap-1 text-rose-500 text-[11px] font-bold">
+            <AlertTriangle className="h-3 w-3" /> Time's Up
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-slate-400 text-[11px] font-medium">
+            <XCircle className="h-3 w-3" /> Incomplete
           </span>
         )}
       </td>
@@ -192,16 +219,26 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
         )}
       </td>
       <td className="px-4 py-3 text-right">
-        {attempt.submittedAt && testId ? (
+        {isSubmitted && testId ? (
           <Link href={`/practice/${testId}/result?attemptId=${attempt.id}`}>
             <Button variant="ghost" size="sm" className="h-7 text-xs px-2.5 gap-1">
               Review <ChevronRight className="h-3 w-3" />
             </Button>
           </Link>
-        ) : testId ? (
+        ) : testId && (hasTimeLeft || session?.hasSession) ? (
+          // Resume link — the practice page handles both resume and auto-submit-if-expired
           <Link href={`/practice/${testId}`}>
-            <Button variant="outline" size="sm" className="h-7 text-xs px-2.5">
-              Continue
+            <Button
+              variant="outline"
+              size="sm"
+              className={`h-7 text-xs px-2.5 gap-1 ${
+                session?.hasSession && !hasTimeLeft
+                  ? "border-rose-300 text-rose-600 hover:bg-rose-50"
+                  : "border-amber-300 text-amber-700 hover:bg-amber-50"
+              }`}
+            >
+              <PlayCircle className="h-3 w-3" />
+              {session?.hasSession && !hasTimeLeft ? "Submit Results" : "Resume"}
             </Button>
           </Link>
         ) : null}
@@ -289,12 +326,13 @@ export default function AnalysisPage() {
   const completed = useMemo(() => attempts.filter(a => !!a.submittedAt), [attempts]);
   const overall = avgBand(completed);
 
-  const filtered = useMemo(() =>
-    skillFilter === "all"
-      ? completed
-      : completed.filter(a => (a.test as any)?.skill === skillFilter),
-    [completed, skillFilter],
-  );
+  // Table shows ALL attempts (submitted + in-progress), sorted newest first
+  const filtered = useMemo(() => {
+    const pool = skillFilter === "all"
+      ? attempts
+      : attempts.filter(a => (a.test as any)?.skill === skillFilter);
+    return [...pool].sort((a, b) => (toUtcMs(b.startedAt) ?? 0) - (toUtcMs(a.startedAt) ?? 0));
+  }, [attempts, skillFilter]);
 
   // Trend: compare latest 3 attempts vs previous 3
   function trend(skill?: string): "up" | "down" | "flat" | null {
@@ -411,7 +449,7 @@ export default function AnalysisPage() {
               <div className="text-center py-16">
                 <XCircle className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground font-medium">
-                  {skillFilter === "all" ? "No completed tests yet." : `No ${skillFilter} tests completed yet.`}
+                  {skillFilter === "all" ? "No tests yet." : `No ${skillFilter} tests yet.`}
                 </p>
                 <Link href="/tests">
                   <Button size="sm" className="mt-4">Browse Tests</Button>
@@ -444,8 +482,11 @@ export default function AnalysisPage() {
 
         {!loading && filtered.length > 0 && (
           <p className="text-xs text-muted-foreground mt-2 text-right">
-            Showing {filtered.length} completed test{filtered.length !== 1 ? "s" : ""}
-            {skillFilter !== "all" ? ` for ${skillFilter}` : ""}
+            {filtered.filter(a => !!a.submittedAt).length} completed
+            {filtered.filter(a => !a.submittedAt).length > 0
+              ? ` · ${filtered.filter(a => !a.submittedAt).length} in progress`
+              : ""}
+            {skillFilter !== "all" ? ` — ${skillFilter}` : ""}
           </p>
         )}
       </div>

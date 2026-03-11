@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, GraduationCap, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { PracticeProvider, usePractice } from "./[id]/practice-context";
 import {
     AlertDialog,
@@ -20,9 +20,12 @@ import {
 function PracticeHeader() {
     const { testTitle, attemptId, triggerExitAndSave } = usePractice();
     const router = useRouter();
+    const pathname = usePathname();
     const [isExiting, setIsExiting] = useState(false);
 
-    const testInProgress = !!attemptId;
+    // On the result page there is nothing left to save — exit immediately
+    const isResultPage = pathname?.endsWith("/result") ?? false;
+    const testInProgress = !!attemptId && !isResultPage;
 
     const handleExit = async () => {
         if (testInProgress) {
@@ -53,42 +56,56 @@ function PracticeHeader() {
             </div>
 
             {/* Right: Exit */}
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 px-3 text-xs font-semibold"
-                    >
-                        <X className="h-3.5 w-3.5" />
-                        Thoát
-                    </Button>
-                </AlertDialogTrigger>
-
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {testInProgress ? "Exit and save test?" : "Exit test?"}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {testInProgress
-                                ? "Your answers will be automatically submitted and you will be redirected to your results."
-                                : "Are you sure you want to leave? You can return and start the test any time."}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Continue Test</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleExit}
-                            disabled={isExiting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+            {isResultPage ? (
+                /* On the result page: exit immediately, no confirmation needed */
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 px-3 text-xs font-semibold"
+                    onClick={handleExit}
+                >
+                    <X className="h-3.5 w-3.5" />
+                    Thoát
+                </Button>
+            ) : (
+                /* During an active test: show confirmation dialog */
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 px-3 text-xs font-semibold"
                         >
-                            {isExiting && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {testInProgress ? "Submit & Exit" : "Exit"}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                            <X className="h-3.5 w-3.5" />
+                            Thoát
+                        </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {testInProgress ? "Exit and save test?" : "Exit test?"}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {testInProgress
+                                    ? "Your answers will be automatically submitted and you will be redirected to your results."
+                                    : "Are you sure you want to leave? You can return and start the test any time."}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Continue Test</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleExit}
+                                disabled={isExiting}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+                            >
+                                {isExiting && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {testInProgress ? "Submit & Exit" : "Exit"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )}
         </header>
     );
 }
