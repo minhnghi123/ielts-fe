@@ -26,13 +26,13 @@ const AUTH_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/
 
 function skillIcon(skill: string) {
     if (skill === "listening") return <Headphones className="h-3.5 w-3.5" />;
-    if (skill === "reading")   return <BookOpen className="h-3.5 w-3.5" />;
+    if (skill === "reading") return <BookOpen className="h-3.5 w-3.5" />;
     return <FileText className="h-3.5 w-3.5" />;
 }
 
 function skillBadgeClass(skill: string) {
     if (skill === "listening") return "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200";
-    if (skill === "reading")   return "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200";
+    if (skill === "reading") return "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200";
     return "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200";
 }
 
@@ -41,7 +41,7 @@ function bandColor(band: number) {
     if (band >= 7) return "text-blue-600 dark:text-blue-400";
     if (band >= 6) return "text-amber-500";
     if (band >= 5) return "text-orange-500";
-    if (band > 0)  return "text-red-500";
+    if (band > 0) return "text-red-500";
     return "text-muted-foreground";
 }
 
@@ -55,7 +55,7 @@ function toUtcMs(d: string | undefined | null): number | null {
 
 function formatDuration(startedAt: string, submittedAt?: string): string {
     const start = toUtcMs(startedAt);
-    const end   = toUtcMs(submittedAt);
+    const end = toUtcMs(submittedAt);
     if (!start || !end || end <= start) return "—";
     const sec = Math.floor((end - start) / 1000);
     const m = Math.floor(sec / 60);
@@ -144,14 +144,14 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                 {attempts.map(a => {
                                     const skill = (a.test as any)?.skill ?? "—";
                                     const title = a.test?.title ?? "Practice Test";
-                                    const band  = Number(a.bandScore ?? 0);
+                                    const band = Number(a.bandScore ?? 0);
                                     const startMs = toUtcMs(a.startedAt);
-                                    const date  = startMs
+                                    const date = startMs
                                         ? new Date(startMs).toLocaleDateString("en-US", {
                                             day: "numeric", month: "short", year: "numeric",
-                                          })
+                                        })
                                         : "—";
-                                    const dur   = formatDuration(a.startedAt, a.submittedAt);
+                                    const dur = formatDuration(a.startedAt, a.submittedAt);
                                     const testId = a.testId;
 
                                     return (
@@ -324,11 +324,10 @@ export default function UserProfilePage() {
                         <button
                             key={tab.key}
                             onClick={() => setActiveSection(tab.key)}
-                            className={`px-5 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${
-                                activeSection === tab.key
+                            className={`px-5 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${activeSection === tab.key
                                     ? "border-primary text-primary"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
-                            }`}
+                                }`}
                         >
                             {tab.label}
                         </button>
