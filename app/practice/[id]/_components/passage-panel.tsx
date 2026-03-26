@@ -129,12 +129,16 @@ interface PassagePanelProps {
   passageNumber: number;
   content: string;
   className?: string;
+  labelPrefix?: string;
+  panelTitle?: string;
 }
 
 export const PassagePanel = memo(function PassagePanel({
   passageNumber,
   content,
   className = "",
+  labelPrefix = "Passage",
+  panelTitle = "Reading Text",
 }: PassagePanelProps) {
   const sanitizedContent = useMemo(() => sanitizePassage(content), [content]);
   const articleRef = useRef<HTMLDivElement | null>(null);
@@ -164,10 +168,10 @@ export const PassagePanel = memo(function PassagePanel({
       {/* Header */}
       <div className="px-6 py-3 bg-muted/50 border-b border-border flex-shrink-0 flex items-center gap-3">
         <Badge variant="secondary" className="text-xs font-bold">
-          Passage {passageNumber}
+          {labelPrefix} {passageNumber}
         </Badge>
         <span className="text-sm font-bold text-foreground uppercase tracking-wider">
-          Reading Text
+          {panelTitle}
         </span>
 
         {/* Highlight mode toggle */}
@@ -212,6 +216,8 @@ interface TabbedPassagePanelProps {
   onTabChange: (index: number) => void;
   answeredCount?: number;
   totalQuestions?: number;
+  labelPrefix?: string;
+  panelTitle?: string;
 }
 
 export const TabbedPassagePanel = memo(function TabbedPassagePanel({
@@ -220,6 +226,8 @@ export const TabbedPassagePanel = memo(function TabbedPassagePanel({
   onTabChange,
   answeredCount,
   totalQuestions,
+  labelPrefix = "Passage",
+  panelTitle = "Reading Text",
 }: TabbedPassagePanelProps) {
   return (
     <div className="flex flex-col h-full">
@@ -258,7 +266,12 @@ export const TabbedPassagePanel = memo(function TabbedPassagePanel({
               activeIndex !== idx ? "hidden" : "flex"
             }`}
           >
-            <PassagePanel passageNumber={idx + 1} content={passage.content} />
+            <PassagePanel 
+              passageNumber={idx + 1} 
+              content={passage.content} 
+              labelPrefix={labelPrefix}
+              panelTitle={panelTitle}
+            />
           </div>
         ))}
       </div>
