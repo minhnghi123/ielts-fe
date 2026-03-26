@@ -6,6 +6,7 @@ import MatchingQuestion from "@/app/(admin)/_components/questions/MatchingQuesti
 import HeadingMatchingQuestion from "@/app/(admin)/_components/questions/HeadingMatchingQuestion";
 import SentenceEndingQuestion from "@/app/(admin)/_components/questions/SentenceEndingQuestion";
 import MatchingFeaturesQuestion from "@/app/(admin)/_components/questions/MatchingFeaturesQuestion";
+import ImageUploader from "./ImageUploader";
 
 // Canonical list of question types shown in the dropdown
 export const QUESTION_TYPES = [
@@ -17,7 +18,12 @@ export const QUESTION_TYPES = [
   { value: "matching_heading", label: "Matching Headings" },
   { value: "sentence_ending", label: "Sentence Endings" },
   { value: "matching_features", label: "Matching Features" },
+  { value: "diagram_labelling", label: "Diagram Labelling" },
+  { value: "map_labelling", label: "Map Labelling" },
 ] as const;
+
+/** Question types that require an image to be attached */
+const IMAGE_QUESTION_TYPES = ["diagram_labelling", "map_labelling"];
 
 interface QuestionData {
   questionOrder: number;
@@ -123,6 +129,24 @@ export default function QuestionItem({
           {...commonProps}
           options={q.config?.options || ["", "", ""]}
         />
+      )}
+
+      {/* Image-based question types: show FillInBlank for answers + image uploader */}
+      {IMAGE_QUESTION_TYPES.includes(q.questionType) && (
+        <div className="space-y-4">
+          <FillInBlankQuestion {...commonProps} />
+          <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              {q.questionType === "diagram_labelling" ? "Diagram Image" : "Map Image"}
+            </p>
+            <ImageUploader
+              value={q.config?.imageUrl || ""}
+              onChange={(url) =>
+                onUpdateField("config", { ...q.config, imageUrl: url })
+              }
+            />
+          </div>
+        </div>
       )}
     </div>
   );

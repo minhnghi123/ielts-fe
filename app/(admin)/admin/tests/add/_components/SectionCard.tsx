@@ -3,6 +3,7 @@
 import { PlusCircle, Trash2, GripVertical } from "lucide-react";
 import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
 import GroupCard from "./GroupCard";
+import AudioUploader from "./AudioUploader";
 
 interface QuestionData {
   questionOrder: number;
@@ -84,18 +85,15 @@ export default function SectionCard({
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Audio URL (Listening only) */}
+        {/* Audio Upload (Listening only) */}
         {skill === "listening" && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Audio URL
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Section Audio
             </label>
-            <input
-              type="text"
+            <AudioUploader
               value={section.audioUrl || ""}
-              onChange={(e) => onUpdateSection("audioUrl", e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="https://..."
+              onChange={(url) => onUpdateSection("audioUrl", url)}
             />
           </div>
         )}

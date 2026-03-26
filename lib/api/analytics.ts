@@ -73,4 +73,11 @@ export const analyticsApi = {
         analyticsAxios
             .get<{ data: LearnerMistake[] }>(`/api/analytics/mistakes/${learnerId}`)
             .then((r) => r.data.data),
+
+    syncLearner: (learnerId: string) =>
+        analyticsAxios
+            .post<{ data: { bandProfiles: number; snapshots: number; mistakes: number } }>(
+                `/api/analytics/sync/${learnerId}`,
+            )
+            .then((r) => r.data.data),
 };

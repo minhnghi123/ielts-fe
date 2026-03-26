@@ -60,7 +60,18 @@ export const attemptsApi = {
     getAttemptsByLearner: (learnerId: string) =>
         submissionAxios
             .get<{ data: TestAttempt[] }>(`/api/learners/${learnerId}/attempts`)
-            .then((r) => r.data.data),
+            .then((r) => r.data.data)
+            .catch(async (error) => {
+                // Compatibility fallback: some deployments expose learner attempts
+                // through test-service query route instead of submission-service.
+                if (error?.response?.status === 404) {
+                    const fallback = await submissionAxios.get<{ data: TestAttempt[] }>(
+                        `/api/attempts?learnerId=${learnerId}`,
+                    );
+                    return fallback.data.data;
+                }
+                throw error;
+            }),
 
     submitWriting: (learnerId: string, writingTaskId: string, content: string) =>
         submissionAxios

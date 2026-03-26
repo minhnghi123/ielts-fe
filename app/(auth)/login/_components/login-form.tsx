@@ -50,7 +50,7 @@ export function LoginFormContent() {
 
         // Role-based redirect (full navigation so middleware also picks up cookies)
         if (user.role === "admin") {
-          router.push("/admin");
+          router.push("/admin/dashboard");
         } else {
           router.push("/");
         }

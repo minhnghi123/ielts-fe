@@ -177,6 +177,42 @@ export interface DashboardSummary {
     averageBand?: number;
     practiceHours?: number;
     examReadiness?: number;
+    questionTypeMastery?: Array<{
+        questionType: string;
+        correct: number;
+        total: number;
+        accuracy: number;
+        masteryLevel: "beginner" | "developing" | "proficient" | "advanced";
+    }>;
+    adaptiveStudyPlan?: Array<{
+        title: string;
+        focusArea: string;
+        priority: "high" | "medium" | "low";
+        dueInDays: number;
+        recommendation: string;
+    }>;
+    rubricBreakdown?: {
+        writing: null | {
+            submissionId: string;
+            submittedAt: string;
+            overallBand: number | null;
+            criteria: Array<{
+                criterion: string;
+                band: number;
+                feedback: string | null;
+            }>;
+        };
+        speaking: null | {
+            submissionId: string;
+            submittedAt: string;
+            overallBand: number | null;
+            criteria: Array<{
+                criterion: string;
+                band: number;
+                feedback: string | null;
+            }>;
+        };
+    };
 }
 
 // ─── API Response Wrapper ─────────────────────────────────────────────────────

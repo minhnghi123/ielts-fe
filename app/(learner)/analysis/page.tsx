@@ -5,7 +5,8 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
-import type { TestAttempt } from "@/lib/types";
+import { analyticsApi } from "@/lib/api/analytics";
+import type { DashboardSummary, TestAttempt } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,9 @@ import {
   Headphones, BookOpen, PenLine, Mic,
   Sparkles, ArrowRight, TrendingUp, Target,
   CheckCircle2, XCircle, Clock, ChevronRight,
-  BarChart3, PlayCircle, AlertTriangle,
+  BarChart3, PlayCircle, AlertTriangle, RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -312,16 +314,47 @@ type SkillFilter = "all" | "listening" | "reading" | "writing" | "speaking";
 export default function AnalysisPage() {
   const { user } = useAuth();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
 
+  const learnerId = (user as any)?.profileId || user?.id;
+
+  function loadData(id: string) {
+    return Promise.allSettled([
+      testsApi.getAttemptsByLearnerId(id),
+      analyticsApi.getDashboardSummary(id),
+    ]).then(([attemptsResult, summaryResult]) => {
+      if (attemptsResult.status === "fulfilled") setAttempts(attemptsResult.value);
+      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value);
+    });
+  }
+
   useEffect(() => {
-    const learnerId = (user as any)?.profileId || user?.id;
     if (!learnerId) return;
-    testsApi.getAttemptsByLearnerId(learnerId)
-      .then(data => { setAttempts(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [user]);
+    setLoading(true);
+    loadData(learnerId).finally(() => setLoading(false));
+  }, [learnerId]);
+
+  async function handleSync() {
+    if (!learnerId || syncing) return;
+    setSyncing(true);
+    try {
+      const result = await analyticsApi.syncLearner(learnerId);
+      toast.success(
+        `Analytics synced — ${result.bandProfiles} band profiles, ${result.snapshots} snapshots, ${result.mistakes} mistakes rebuilt`,
+      );
+      // Reload page data after sync
+      setLoading(true);
+      await loadData(learnerId);
+    } catch {
+      toast.error("Sync failed — please try again.");
+    } finally {
+      setSyncing(false);
+      setLoading(false);
+    }
+  }
 
   const completed = useMemo(() => attempts.filter(a => !!a.submittedAt), [attempts]);
   const overall = avgBand(completed);
@@ -360,12 +393,25 @@ export default function AnalysisPage() {
             Your IELTS progress across all tests — powered by real data.
           </p>
         </div>
-        <Link href="/ai-advisor">
-          <Button className="gap-2 bg-violet-600 hover:bg-violet-700 text-white">
-            <Sparkles className="h-4 w-4" />
-            AI Study Coach
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSync}
+            disabled={syncing}
+            className="gap-2"
+            title="Rebuild analytics from all your submitted attempts"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing…" : "Sync Data"}
           </Button>
-        </Link>
+          <Link href="/ai-advisor">
+            <Button className="gap-2 bg-violet-600 hover:bg-violet-700 text-white">
+              <Sparkles className="h-4 w-4" />
+              AI Study Coach
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Overall Banner ───────────────────────────────────────────────────── */}
@@ -410,6 +456,122 @@ export default function AnalysisPage() {
           })}
         </div>
       </div>
+
+      {/* ── Adaptive Study Plan ──────────────────────────────────────────────── */}
+      {!loading && summary?.adaptiveStudyPlan && summary.adaptiveStudyPlan.length > 0 && (
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            Adaptive Study Plan
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {summary.adaptiveStudyPlan.slice(0, 4).map((task, idx) => (
+              <Card key={`${task.title}-${idx}`} className="shadow-sm">
+                <CardContent className="p-4 flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-sm">{task.title}</p>
+                    <Badge
+                      className={
+                        task.priority === "high"
+                          ? "bg-rose-100 text-rose-700 border-0"
+                          : task.priority === "medium"
+                            ? "bg-amber-100 text-amber-700 border-0"
+                            : "bg-emerald-100 text-emerald-700 border-0"
+                      }
+                    >
+                      {task.priority}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    Focus: {task.focusArea} · Due in {task.dueInDays} day{task.dueInDays !== 1 ? "s" : ""}
+                  </p>
+                  <p className="text-sm text-foreground/80">{task.recommendation}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Question-type Mastery ────────────────────────────────────────────── */}
+      {!loading && summary?.questionTypeMastery && summary.questionTypeMastery.length > 0 && (
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Question-type Mastery
+          </h2>
+          <Card className="shadow-sm">
+            <CardContent className="p-4 space-y-3">
+              {summary.questionTypeMastery.slice(0, 8).map((item) => (
+                <div key={item.questionType} className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">{item.questionType}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-slate-100 text-slate-700 border-0 text-[10px]">
+                        {item.masteryLevel}
+                      </Badge>
+                      <span className="text-xs font-semibold tabular-nums">{item.accuracy.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        item.accuracy >= 85
+                          ? "bg-emerald-500"
+                          : item.accuracy >= 70
+                            ? "bg-blue-500"
+                            : item.accuracy >= 50
+                              ? "bg-amber-500"
+                              : "bg-rose-500"
+                      }`}
+                      style={{ width: `${item.accuracy}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {item.correct}/{item.total} correct
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Writing/Speaking Rubric Transparency ─────────────────────────────── */}
+      {!loading && (summary?.rubricBreakdown?.writing || summary?.rubricBreakdown?.speaking) && (
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Writing & Speaking Rubric Breakdown
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {(["writing", "speaking"] as const).map((mode) => {
+              const data = summary?.rubricBreakdown?.[mode];
+              if (!data) return null;
+              return (
+                <Card key={mode} className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-bold capitalize">{mode}</p>
+                      <Badge className="bg-primary/10 text-primary border-0">
+                        Overall {data.overallBand?.toFixed(1) ?? "—"}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      {data.criteria.map((c) => (
+                        <div key={c.criterion} className="flex items-center justify-between text-sm">
+                          <span className="capitalize text-muted-foreground">{c.criterion}</span>
+                          <span className="font-semibold tabular-nums">{c.band.toFixed(1)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Latest AI Feedback ───────────────────────────────────────────────── */}
       {!loading && <LatestAiFeedbackCard attempts={attempts} />}

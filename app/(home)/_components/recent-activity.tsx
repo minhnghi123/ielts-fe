@@ -31,6 +31,7 @@ export function RecentActivity() {
         .catch(() => setAttempts([]))
         .finally(() => setLoading(false));
     }
+    // console.log(attempts.length  );
   }, [isLoggedIn, user?.profileId]);
 
   if (authLoading) return null;
@@ -70,7 +71,7 @@ export function RecentActivity() {
                     <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-6 py-4 font-semibold text-sm">
                         <Link href={`/practice/${a.testId}/result?attemptId=${a.id}`} className="hover:text-primary">
-                          Test #{a.testId.slice(0, 8)}
+                          {a.test?.title}
                         </Link>
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground hidden sm:table-cell">
@@ -78,14 +79,16 @@ export function RecentActivity() {
                       </td>
                       <td className="px-6 py-4">
                         <Badge className="bg-primary/10 text-primary border-0 text-xs">
-                          Practice
+                          {a.test?.skill}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 font-bold text-primary">
-                        {a.bandScore ? a.bandScore.toFixed(1) : a.rawScore ?? "—"}
+                        {/* {a.bandScore ? a.bandScore.toFixed(1) : a.rawScore ?? "—"} */}
+                        {a.bandScore}
                       </td>
                     </tr>
                   ))
+                  
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
