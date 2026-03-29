@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
 import { analyticsApi } from "@/lib/api/analytics";
-import type { DashboardSummary, TestAttempt } from "@/lib/types";
+import type { DashboardSummary, TestAttempt, LearnerProgressSnapshot } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,108 @@ const SKILLS = [
   { id: "speaking",  label: "Speaking",  Icon: Mic,        accent: "purple" },
 ];
 
+// ─── Exam Readiness Gauge ────────────────────────────────────────────────────
+
+function ExamReadinessGauge({ pct }: { pct: number }) {
+  const r = 52;
+  const circumference = 2 * Math.PI * r;
+  const dash = circumference * (pct / 100);
+  const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
+  const label = pct >= 75 ? "Exam Ready" : pct >= 50 ? "On Track" : pct >= 25 ? "Building Up" : "Just Starting";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg width="128" height="128" viewBox="0 0 128 128">
+        <circle cx="64" cy="64" r={r} fill="none" stroke="#e5e7eb" strokeWidth="10" />
+        <circle
+          cx="64" cy="64" r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circumference - dash}`}
+          strokeDashoffset={circumference / 4}
+          style={{ transition: "stroke-dasharray 1.2s ease" }}
+        />
+        <text x="64" y="60" textAnchor="middle" fontSize="22" fontWeight="800" fill="currentColor">
+          {pct}%
+        </text>
+        <text x="64" y="78" textAnchor="middle" fontSize="10" fill="#6b7280">
+          readiness
+        </text>
+      </svg>
+      <Badge style={{ backgroundColor: `${color}22`, color, borderColor: `${color}44` }} className="border text-xs">
+        {label}
+      </Badge>
+    </div>
+  );
+}
+
+// ─── Progress History Chart ───────────────────────────────────────────────────
+
+function ProgressHistoryChart({ snapshots }: { snapshots: LearnerProgressSnapshot[] }) {
+  if (!snapshots?.length) {
+    return (
+      <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
+        No progress history yet — complete a test to start tracking.
+      </div>
+    );
+  }
+
+  const bands = snapshots.map(s => Number(s.overallBand));
+  const minB = Math.max(0, Math.floor(Math.min(...bands)) - 0.5);
+  const maxB = Math.min(9, Math.ceil(Math.max(...bands)) + 0.5);
+  const range = maxB - minB || 1;
+  const W = 100, H = 60;
+
+  const pts = snapshots.map((s, i) => {
+    const x = snapshots.length > 1 ? (i / (snapshots.length - 1)) * W : W / 2;
+    const y = H - ((Number(s.overallBand) - minB) / range) * H;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const polyline = pts.join(" ");
+
+  // gradient area
+  const areaPath = `M${pts[0]} ${pts.join(" L")} L${(snapshots.length > 1 ? W : W / 2).toFixed(1)},${H} L0,${H} Z`;
+
+  return (
+    <div className="space-y-2">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-24" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#bandGrad)" />
+        <polyline
+          points={polyline}
+          fill="none"
+          stroke="#6366f1"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        {snapshots.map((s, i) => {
+          const x = snapshots.length > 1 ? (i / (snapshots.length - 1)) * W : W / 2;
+          const y = H - ((Number(s.overallBand) - minB) / range) * H;
+          return (
+            <circle key={i} cx={x} cy={y} r="2.5" fill="#6366f1">
+              <title>{`${formatDate(s.snapshotAt)}: ${Number(s.overallBand).toFixed(1)}`}</title>
+            </circle>
+          );
+        })}
+      </svg>
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{formatDate(snapshots[0].snapshotAt)}</span>
+        {snapshots.length > 1 && (
+          <span>{formatDate(snapshots[snapshots.length - 1].snapshotAt)}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Mini Skill Card ──────────────────────────────────────────────────────────
 
 function SkillBandCard({
@@ -138,8 +240,6 @@ function SkillBandCard({
 
 // ─── Attempt Row ──────────────────────────────────────────────────────────────
 
-// ─── In-progress session check (client-side localStorage) ────────────────────
-
 function getLocalSession(testId: string): { hasSession: boolean; remainingMs: number } {
   try {
     const raw = localStorage.getItem(`ielts_session_${testId}`);
@@ -159,7 +259,6 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   const hasAiFeedback = !!(attempt as any).aiFeedback;
   const isSubmitted = !!attempt.submittedAt;
 
-  // Check localStorage for in-progress attempts
   const session = !isSubmitted && testId ? getLocalSession(testId) : null;
   const hasTimeLeft = session ? session.remainingMs > 0 : false;
 
@@ -208,9 +307,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-xs text-muted-foreground">
-        {formatDate(attempt.startedAt)}
-      </td>
+      <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(attempt.startedAt)}</td>
       <td className="px-4 py-3 text-center">
         {hasAiFeedback ? (
           <span className="inline-flex items-center gap-0.5 text-violet-600 text-[11px] font-bold">
@@ -228,7 +325,6 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
             </Button>
           </Link>
         ) : testId && (hasTimeLeft || session?.hasSession) ? (
-          // Resume link — the practice page handles both resume and auto-submit-if-expired
           <Link href={`/practice/${testId}`}>
             <Button
               variant="outline"
@@ -252,7 +348,6 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
 // ─── Latest AI Feedback Card ──────────────────────────────────────────────────
 
 function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
-  // Find the most recent attempt that has ai_feedback
   const withFeedback = attempts
     .filter(a => !!(a as any).aiFeedback && !!a.submittedAt)
     .sort((a, b) => {
@@ -290,15 +385,11 @@ function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
             </Link>
           )}
         </div>
-        {/* Truncated preview of the feedback */}
         <div className="text-sm text-foreground/80 leading-relaxed line-clamp-6 prose prose-sm max-w-none">
           <ReactMarkdown>{feedback.slice(0, 600) + (feedback.length > 600 ? "…" : "")}</ReactMarkdown>
         </div>
         <Link href="/ai-advisor">
-          <Button
-            size="sm"
-            className="mt-3 gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs"
-          >
+          <Button size="sm" className="mt-3 gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs">
             <Sparkles className="h-3.5 w-3.5" /> Chat with AI Coach
           </Button>
         </Link>
@@ -345,7 +436,6 @@ export default function AnalysisPage() {
       toast.success(
         `Analytics synced — ${result.bandProfiles} band profiles, ${result.snapshots} snapshots, ${result.mistakes} mistakes rebuilt`,
       );
-      // Reload page data after sync
       setLoading(true);
       await loadData(learnerId);
     } catch {
@@ -359,7 +449,6 @@ export default function AnalysisPage() {
   const completed = useMemo(() => attempts.filter(a => !!a.submittedAt), [attempts]);
   const overall = avgBand(completed);
 
-  // Table shows ALL attempts (submitted + in-progress), sorted newest first
   const filtered = useMemo(() => {
     const pool = skillFilter === "all"
       ? attempts
@@ -367,7 +456,6 @@ export default function AnalysisPage() {
     return [...pool].sort((a, b) => (toUtcMs(b.startedAt) ?? 0) - (toUtcMs(a.startedAt) ?? 0));
   }, [attempts, skillFilter]);
 
-  // Trend: compare latest 3 attempts vs previous 3
   function trend(skill?: string): "up" | "down" | "flat" | null {
     const graded = (skill
       ? completed.filter(a => (a.test as any)?.skill === skill)
@@ -414,22 +502,59 @@ export default function AnalysisPage() {
         </div>
       </div>
 
-      {/* ── Overall Banner ───────────────────────────────────────────────────── */}
+      {/* ── Overall Banner + Exam Readiness ─────────────────────────────────── */}
       {!loading && overall !== null && (
-        <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-6 text-white flex items-center justify-between gap-4 shadow-lg">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">
-              Overall Average Band Score
-            </p>
-            <p className="text-5xl font-black leading-none tabular-nums">{overall.toFixed(1)}</p>
-            <p className="text-sm opacity-80 mt-1">{bandLabel(overall)} · {completed.length} tests completed</p>
+        <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">
+                Overall Average Band Score
+              </p>
+              <p className="text-5xl font-black leading-none tabular-nums">{overall.toFixed(1)}</p>
+              <p className="text-sm opacity-80 mt-1">{bandLabel(overall)} · {completed.length} tests completed</p>
+              <div className="flex items-center gap-2 mt-3">
+                {trend() === "up" && <Badge className="bg-white/20 text-white border-none text-xs">↑ Improving</Badge>}
+                {trend() === "down" && <Badge className="bg-white/20 text-white border-none text-xs">↓ Declining</Badge>}
+                {trend() === "flat" && <Badge className="bg-white/20 text-white border-none text-xs">→ Stable</Badge>}
+              </div>
+            </div>
+            {summary?.examReadiness != null && (
+              <ExamReadinessGauge pct={summary.examReadiness} />
+            )}
           </div>
-          <div className="hidden sm:flex flex-col items-center gap-2">
-            <BarChart3 className="h-14 w-14 opacity-30" />
-            {trend() === "up" && <Badge className="bg-white/20 text-white border-none text-xs">↑ Improving</Badge>}
-            {trend() === "down" && <Badge className="bg-white/20 text-white border-none text-xs">↓ Declining</Badge>}
-            {trend() === "flat" && <Badge className="bg-white/20 text-white border-none text-xs">→ Stable</Badge>}
-          </div>
+        </div>
+      )}
+
+      {/* ── Progress History Chart ────────────────────────────────────────────── */}
+      {!loading && summary?.progressHistory && summary.progressHistory.length > 0 && (
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Progress Over Time
+          </h2>
+          <Card className="shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-sm font-semibold">Overall Band History</p>
+                  <p className="text-xs text-muted-foreground">
+                    {summary.progressHistory.length} data point{summary.progressHistory.length !== 1 ? "s" : ""} tracked
+                  </p>
+                </div>
+                {summary.progressHistory.length >= 2 && (() => {
+                  const first = Number(summary.progressHistory[0].overallBand);
+                  const last = Number(summary.progressHistory[summary.progressHistory.length - 1].overallBand);
+                  const delta = last - first;
+                  return (
+                    <Badge className={`text-xs border-0 ${delta > 0 ? "bg-emerald-100 text-emerald-700" : delta < 0 ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700"}`}>
+                      {delta > 0 ? "+" : ""}{delta.toFixed(1)} since start
+                    </Badge>
+                  );
+                })()}
+              </div>
+              <ProgressHistoryChart snapshots={summary.progressHistory} />
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -516,13 +641,10 @@ export default function AnalysisPage() {
                   <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        item.accuracy >= 85
-                          ? "bg-emerald-500"
-                          : item.accuracy >= 70
-                            ? "bg-blue-500"
-                            : item.accuracy >= 50
-                              ? "bg-amber-500"
-                              : "bg-rose-500"
+                        item.accuracy >= 85 ? "bg-emerald-500"
+                          : item.accuracy >= 70 ? "bg-blue-500"
+                          : item.accuracy >= 50 ? "bg-amber-500"
+                          : "bg-rose-500"
                       }`}
                       style={{ width: `${item.accuracy}%` }}
                     />
@@ -537,7 +659,7 @@ export default function AnalysisPage() {
         </div>
       )}
 
-      {/* ── Writing/Speaking Rubric Transparency ─────────────────────────────── */}
+      {/* ── Writing/Speaking Rubric Breakdown ─────────────────────────────────── */}
       {!loading && (summary?.rubricBreakdown?.writing || summary?.rubricBreakdown?.speaking) && (
         <div>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -565,6 +687,11 @@ export default function AnalysisPage() {
                         </div>
                       ))}
                     </div>
+                    {data.submittedAt && (
+                      <p className="text-[10px] text-muted-foreground mt-3">
+                        Last submission: {formatDate(data.submittedAt)}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -583,7 +710,6 @@ export default function AnalysisPage() {
             <TrendingUp className="h-5 w-5 text-primary" />
             Test History
           </h2>
-          {/* Skill filter tabs */}
           <div className="flex flex-wrap gap-1">
             {(["all", "listening", "reading", "writing", "speaking"] as SkillFilter[]).map(f => (
               <button

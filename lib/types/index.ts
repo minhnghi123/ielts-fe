@@ -172,7 +172,6 @@ export interface DashboardSummary {
     progressHistory: LearnerProgressSnapshot[];
     totalMistakes: number;
     mistakesByType: Record<string, number>;
-    // Computed convenience fields
     totalAttempts?: number;
     averageBand?: number;
     practiceHours?: number;
@@ -182,12 +181,12 @@ export interface DashboardSummary {
         correct: number;
         total: number;
         accuracy: number;
-        masteryLevel: "beginner" | "developing" | "proficient" | "advanced";
+        masteryLevel: 'beginner' | 'developing' | 'proficient' | 'advanced';
     }>;
     adaptiveStudyPlan?: Array<{
         title: string;
         focusArea: string;
-        priority: "high" | "medium" | "low";
+        priority: 'high' | 'medium' | 'low';
         dueInDays: number;
         recommendation: string;
     }>;
@@ -196,23 +195,34 @@ export interface DashboardSummary {
             submissionId: string;
             submittedAt: string;
             overallBand: number | null;
-            criteria: Array<{
-                criterion: string;
-                band: number;
-                feedback: string | null;
-            }>;
+            criteria: Array<{ criterion: string; band: number; feedback: string | null }>;
         };
         speaking: null | {
             submissionId: string;
             submittedAt: string;
             overallBand: number | null;
-            criteria: Array<{
-                criterion: string;
-                band: number;
-                feedback: string | null;
-            }>;
+            criteria: Array<{ criterion: string; band: number; feedback: string | null }>;
         };
     };
+}
+
+// ─── Admin Analytics ──────────────────────────────────────────────────────────
+
+export interface AdminGlobalStats {
+    totalLearners: number;
+    totalAttempts: number;
+    completedAttempts: number;
+    averageBand: number;
+    attemptsPerDay: Array<{ date: string; count: number }>;
+    bandDistribution: Array<{ range: string; count: number; color: string }>;
+    skillBreakdown: Array<{ skill: string; avgBand: number; totalAttempts: number }>;
+    topLearners: Array<{ learnerId: string; email: string; avgBand: number; totalAttempts: number }>;
+    recentActivity: Array<{
+        email: string;
+        testTitle: string;
+        bandScore: number | null;
+        submittedAt: string;
+    }>;
 }
 
 // ─── API Response Wrapper ─────────────────────────────────────────────────────

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
-import type { TestAttempt } from "@/lib/types";
+import { analyticsApi } from "@/lib/api/analytics";
+import type { TestAttempt, DashboardSummary } from "@/lib/types";
 import { WelcomeHeader } from "./_components/welcome-header";
 import { StatOverview } from "./_components/stat-overview";
 import { ModuleGrid } from "./_components/module-grid";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Headphones, BookOpen, FileText, PenLine,
   CheckCircle2, XCircle, Clock, ArrowRight,
+  Target, Zap, TrendingUp,
 } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -23,20 +25,20 @@ function skillIcon(skill: string) {
   return <FileText className="h-4 w-4" />;
 }
 
-function avgBandForSkill(attempts: TestAttempt[], skill: string): number | null {
-  const graded = attempts.filter(
-    a => !!a.submittedAt && (a.test as any)?.skill === skill && Number(a.bandScore ?? 0) > 0,
-  );
-  if (!graded.length) return null;
-  return graded.reduce((s, a) => s + Number(a.bandScore ?? 0), 0) / graded.length;
-}
-
-function bandColor(band: number | null): string {
+function bandColor(band: number | null | undefined): string {
   if (!band) return "bg-slate-300";
   if (band >= 7.5) return "bg-emerald-500";
   if (band >= 6) return "bg-blue-500";
   if (band >= 4.5) return "bg-amber-500";
   return "bg-rose-500";
+}
+
+function bandTextColor(band: number | null | undefined): string {
+  if (!band) return "text-slate-400";
+  if (band >= 7.5) return "text-emerald-600";
+  if (band >= 6) return "text-blue-600";
+  if (band >= 4.5) return "text-amber-500";
+  return "text-rose-500";
 }
 
 // ─── Skill Progress Panel ──────────────────────────────────────────────────────
@@ -48,7 +50,15 @@ const SKILLS_META = [
   { id: "speaking",  label: "Speaking",  icon: "mic",        accent: "#ec4899" },
 ];
 
-function SkillProgressPanel({ attempts, loading }: { attempts: TestAttempt[]; loading: boolean }) {
+function SkillProgressPanel({
+  summary,
+  attempts,
+  loading,
+}: {
+  summary: DashboardSummary | null;
+  attempts: TestAttempt[];
+  loading: boolean;
+}) {
   return (
     <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
@@ -59,7 +69,9 @@ function SkillProgressPanel({ attempts, loading }: { attempts: TestAttempt[]; lo
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {SKILLS_META.map(({ id, label, icon }) => {
-          const band = avgBandForSkill(attempts, id);
+          // Prefer analytics band profiles (server-computed) over client avg
+          const profileBand = summary?.bandProfiles?.find(p => p.skill === id)?.currentBand;
+          const band = profileBand ?? null;
           const pct = band ? Math.round((band / 9) * 100) : 0;
           const count = attempts.filter(a => (a.test as any)?.skill === id && !!a.submittedAt).length;
           return (
@@ -73,7 +85,7 @@ function SkillProgressPanel({ attempts, loading }: { attempts: TestAttempt[]; lo
                   {loading ? (
                     <div className="h-4 w-8 bg-slate-200 rounded animate-pulse" />
                   ) : band ? (
-                    <span className="text-sm font-black tabular-nums">{band.toFixed(1)}</span>
+                    <span className={`text-sm font-black tabular-nums ${bandTextColor(band)}`}>{band.toFixed(1)}</span>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
                   )}
@@ -94,6 +106,100 @@ function SkillProgressPanel({ attempts, loading }: { attempts: TestAttempt[]; lo
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// ─── Exam Readiness Widget ──────────────────────────────────────────────────────
+
+function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number | undefined; loading: boolean }) {
+  const pct = examReadiness ?? 0;
+  const r = 36;
+  const circumference = 2 * Math.PI * r;
+  const dash = circumference * (pct / 100);
+  const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
+
+  return (
+    <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-6 flex flex-col items-center gap-3 text-center">
+      <div className="flex items-center gap-2 w-full justify-between mb-1">
+        <h2 className="text-base font-bold">Exam Readiness</h2>
+        <Link href="/analysis" className="text-xs text-primary font-medium flex items-center gap-1 hover:underline">
+          Details <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+      {loading ? (
+        <div className="h-24 w-24 rounded-full bg-slate-100 animate-pulse mx-auto" />
+      ) : (
+        <div className="relative">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r={r} fill="none" stroke="#e5e7eb" strokeWidth="8" />
+            <circle
+              cx="48" cy="48" r={r}
+              fill="none"
+              stroke={color}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={circumference / 4}
+              style={{ transition: "stroke-dasharray 1s ease" }}
+            />
+            <text x="48" y="52" textAnchor="middle" fontSize="18" fontWeight="800" fill="currentColor" className="text-foreground">
+              {pct}%
+            </text>
+          </svg>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        {pct >= 75 ? "You're well prepared! Keep it up." :
+         pct >= 50 ? "Good progress — a few more tests will get you there." :
+         pct >= 25 ? "Keep practicing — you're building momentum." :
+         "Start taking tests to track your readiness."}
+      </p>
+    </div>
+  );
+}
+
+// ─── Study Priority Card ──────────────────────────────────────────────────────
+
+function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | null; loading: boolean }) {
+  const topTask = summary?.adaptiveStudyPlan?.[0];
+  if (!loading && !topTask) return null;
+
+  return (
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/40 rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Target className="h-4 w-4 text-blue-600" />
+        <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+          Top Study Priority
+        </span>
+      </div>
+      {loading ? (
+        <div className="space-y-2">
+          <div className="h-4 bg-blue-100 rounded animate-pulse w-3/4" />
+          <div className="h-3 bg-blue-100 rounded animate-pulse w-full" />
+        </div>
+      ) : topTask ? (
+        <>
+          <h3 className="font-bold text-blue-900 dark:text-blue-100 capitalize text-sm mb-1">
+            {topTask.title}
+          </h3>
+          <p className="text-xs text-blue-800 dark:text-blue-200/80 leading-relaxed mb-3">
+            {topTask.recommendation}
+          </p>
+          <div className="flex items-center justify-between">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              topTask.priority === "high"
+                ? "bg-rose-100 text-rose-700"
+                : topTask.priority === "medium"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-green-100 text-green-700"
+            }`}>
+              {topTask.priority} priority
+            </span>
+            <span className="text-[10px] text-blue-600 font-medium">Due in {topTask.dueInDays}d</span>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -120,6 +226,7 @@ function timeAgo(dateStr: string): string {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [testCounts, setTestCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
@@ -129,28 +236,46 @@ export default function DashboardPage() {
 
     const skills = ["listening", "reading", "writing", "speaking"];
 
-    Promise.all([
+    Promise.allSettled([
       testsApi.getAttemptsByLearnerId(learnerId),
-      // Fetch available test counts for each skill in parallel
+      analyticsApi.getDashboardSummary(learnerId),
       ...skills.map(skill =>
         testsApi.getTests({ skill, limit: 1 })
           .then(res => ({ skill, count: res.total ?? res.data?.length ?? 0 }))
           .catch(() => ({ skill, count: 0 }))
       ),
-    ])
-      .then(([attemptsData, ...skillResults]) => {
-        setAttempts(attemptsData as TestAttempt[]);
-        const counts: Record<string, number> = {};
-        (skillResults as { skill: string; count: number }[]).forEach(r => {
-          counts[r.skill] = r.count;
-        });
-        setTestCounts(counts);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    ]).then(([attemptsResult, summaryResult, ...skillResults]) => {
+      if (attemptsResult.status === "fulfilled") setAttempts(attemptsResult.value as TestAttempt[]);
+      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value as DashboardSummary);
+      const counts: Record<string, number> = {};
+      (skillResults as PromiseSettledResult<{ skill: string; count: number }>[]).forEach(r => {
+        if (r.status === "fulfilled") counts[r.value.skill] = r.value.count;
+      });
+      setTestCounts(counts);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [user]);
 
   const recentAttempts = attempts.slice(0, 4);
+
+  // Daily tip: driven by weakest band profile from analytics
+  const weakestSkill = (() => {
+    if (summary?.bandProfiles?.length) {
+      const sorted = summary.bandProfiles
+        .filter(p => p.skill !== "overall" && p.currentBand != null)
+        .sort((a, b) => Number(a.currentBand ?? 9) - Number(b.currentBand ?? 9));
+      return sorted[0]?.skill ?? "reading";
+    }
+    return "reading";
+  })();
+
+  const tips: Record<string, { title: string; body: string }> = {
+    listening: { title: "Focus on keywords", body: "Before the recording plays, read each question carefully and underline key words. Predict the type of answer (number, name, adjective) you need." },
+    reading:   { title: "Synonyms are key!", body: "The passage will rarely use the exact words from the question. Train yourself to spot synonyms and paraphrasing — that's where the answer hides." },
+    writing:   { title: "Structure every essay", body: "Always plan for 5 minutes before writing. A clear Introduction → Body 1 → Body 2 → Conclusion structure can lift your Task Achievement score by a full band." },
+    speaking:  { title: "Extend your answers", body: "Avoid one-word replies. Use the PEEL method: Point → Example → Explanation → Link back. This naturally increases your fluency and coherence scores." },
+  };
+  const tip = tips[weakestSkill as keyof typeof tips] ?? tips.reading;
 
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto w-full flex flex-col gap-10">
@@ -159,16 +284,24 @@ export default function DashboardPage() {
 
       <StatOverview attempts={attempts} loading={loading} />
 
-      <SkillProgressPanel attempts={attempts} loading={loading} />
+      {/* ── Skill + Readiness Row ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SkillProgressPanel summary={summary} attempts={attempts} loading={loading} />
+        </div>
+        <ExamReadinessWidget examReadiness={summary?.examReadiness} loading={loading} />
+      </div>
 
+      {/* ── Module Grid ────────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-6">
         <h2 className="text-xl font-bold">Select Test Module</h2>
         <ModuleGrid testCounts={testCounts} attempts={attempts} loading={loading} />
       </div>
 
+      {/* ── Bottom Grid ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* ── Recent Activity ─────────────────────────────────────────────── */}
+        {/* ── Recent Activity ─────────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold">Recent Activity</h2>
@@ -246,8 +379,12 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── AI Advisor + Daily Tip ──────────────────────────────────────── */}
+        {/* ── Right Sidebar ─────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
+
+          {/* Study Priority (from analytics) */}
+          <StudyPriorityCard summary={summary} loading={loading} />
+
           {/* AI Advisor CTA */}
           <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -267,35 +404,19 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Daily Tip — driven by weakest skill */}
-          {(() => {
-            const weakest = SKILLS_META.map(s => ({
-              ...s,
-              band: avgBandForSkill(attempts, s.id),
-            })).filter(s => s.band !== null).sort((a, b) => (a.band ?? 9) - (b.band ?? 9))[0];
-            const tips: Record<string, { title: string; body: string }> = {
-              listening: { title: "Focus on keywords", body: "Before the recording plays, read each question carefully and underline key words. Predict the type of answer (number, name, adjective) you need." },
-              reading:   { title: "Synonyms are key!", body: "The passage will rarely use the exact words from the question. Train yourself to spot synonyms and paraphrasing — that's where the answer hides." },
-              writing:   { title: "Structure every essay", body: "Always plan for 5 minutes before writing. A clear Introduction → Body 1 → Body 2 → Conclusion structure can lift your Task Achievement score by a full band." },
-              speaking:  { title: "Extend your answers", body: "Avoid one-word replies. Use the PEEL method: Point → Example → Explanation → Link back. This naturally increases your fluency and coherence scores." },
-            };
-            const skill = weakest?.id ?? "reading";
-            const tip = tips[skill];
-            return (
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-2xl">
-                <div className="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-500">
-                  <span className="material-symbols-outlined text-[18px]">lightbulb</span>
-                  <span className="font-bold uppercase tracking-wider text-xs capitalize">
-                    {skill} Tip
-                  </span>
-                </div>
-                <h3 className="text-base font-bold text-amber-900 dark:text-amber-100 mb-1.5">{tip.title}</h3>
-                <p className="text-amber-800 dark:text-amber-200/80 text-sm leading-relaxed">{tip.body}</p>
-              </div>
-            );
-          })()}
-        </div>
+          {/* Daily Tip */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-500">
+              <span className="material-symbols-outlined text-[18px]">lightbulb</span>
+              <span className="font-bold uppercase tracking-wider text-xs capitalize">
+                {weakestSkill} Tip
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-amber-900 dark:text-amber-100 mb-1.5">{tip.title}</h3>
+            <p className="text-amber-800 dark:text-amber-200/80 text-sm leading-relaxed">{tip.body}</p>
+          </div>
 
+        </div>
       </div>
     </div>
   );
