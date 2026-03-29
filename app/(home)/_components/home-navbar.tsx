@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/auth-context";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/tests", label: "Tests" },
-  { href: "/analysis", label: "Results" },
+  { href: "/rankings", label: "Rankings" },
   { href: "/resources", label: "Resources" },
 ];
 
@@ -66,16 +66,18 @@ export function HomeNavbar() {
         {/* Right: Search + Auth */}
         <div className="flex items-center gap-4">
           {/* Search */}
-          <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 w-56">
-            <span className="material-symbols-outlined text-muted-foreground text-[20px]">
-              search
-            </span>
-            <input
-              className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-muted-foreground ml-2 text-foreground"
-              placeholder="Search tests..."
-              type="text"
-            />
-          </div>
+          {pathname === "/tests" && (
+            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 w-56">
+              <span className="material-symbols-outlined text-muted-foreground text-[20px]">
+                search
+              </span>
+              <input
+                className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-muted-foreground ml-2 text-foreground"
+                placeholder="Search tests..."
+                type="text"
+              />
+            </div>
+          )}
 
           {/* Auth area */}
           {loading ? (
@@ -101,23 +103,11 @@ export function HomeNavbar() {
                     <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push("/profile")}>
-                    <span className="material-symbols-outlined text-[18px] mr-2">
-                      person
-                    </span>
-                    Profile
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard")}>
                     <span className="material-symbols-outlined text-[18px] mr-2">
                       dashboard
                     </span>
                     Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/analysis")}>
-                    <span className="material-symbols-outlined text-[18px] mr-2">
-                      analytics
-                    </span>
-                    My Results
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

@@ -20,10 +20,11 @@ export function HomeStats() {
   const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn && user?.profileId) {
+    const learnerId = (user as any)?.profileId || user?.id;
+    if (isLoggedIn && learnerId) {
       setStatsLoading(true);
       analyticsApi
-        .getDashboardSummary(user.profileId)
+        .getDashboardSummary(learnerId)
         .then((data) => setSummary(data))
         .catch(() => setSummary(null))
         .finally(() => setStatsLoading(false));

@@ -22,10 +22,8 @@ export function LearnerSidebar() {
   const routes = [
     { href: "/dashboard",  label: "Dashboard",        icon: "dashboard" },
     { href: "/practice",   label: "Practice Tests",   icon: "book_2" },
-    { href: "/analysis",   label: "Results Analysis", icon: "bar_chart" },
     { href: "/ai-advisor", label: "AI Coach",         icon: "smart_toy" },
     { href: "/resources",  label: "Resources",        icon: "library_books" },
-    { href: "/profile",    label: "My Profile",       icon: "person" },
   ];
 
   return (
