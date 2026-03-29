@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -24,6 +24,16 @@ export function AddTestPageSuspense() {
       | "listening"
       | "writing"
       | "speaking") || "reading";
+
+  // Redirect writing/speaking to dedicated forms
+  useEffect(() => {
+    if (initialSkill === "writing") {
+      router.replace("/admin/tests/add/writing");
+    } else if (initialSkill === "speaking") {
+      router.replace("/admin/tests/add/speaking");
+    }
+  }, [initialSkill, router]);
+
   const [isSkillLocked] = useState(!!searchParams.get("skill"));
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,6 +53,11 @@ export function AddTestPageSuspense() {
       length: initialSkill === "reading" || initialSkill === "listening" ? 3 : 1,
     }).map((_, i) => makeInitialSection(i + 1)),
   });
+
+  // While redirecting, don't render the full form
+  if (initialSkill === "writing" || initialSkill === "speaking") {
+    return <div className="p-8 text-slate-500">Redirecting…</div>;
+  }
 
   // ─── Test-level Handlers ──────────────────────────────────────────────────
 
@@ -387,11 +402,20 @@ export function AddTestPageSuspense() {
                 <div className="relative">
                   <select
                     value={testData.skill}
-                    onChange={(e) => handleTestChange("skill", e.target.value)}
+                    onChange={(e) => {
+                      const newSkill = e.target.value;
+                      if (newSkill === "writing") {
+                        router.push("/admin/tests/add/writing");
+                      } else if (newSkill === "speaking") {
+                        router.push("/admin/tests/add/speaking");
+                      } else {
+                        handleTestChange("skill", newSkill);
+                      }
+                    }}
                     disabled={isSkillLocked}
                     className={`w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none ${isSkillLocked
-                        ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-                        : "bg-white"
+                      ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                      : "bg-white"
                       }`}
                   >
                     <option value="reading">Reading</option>

@@ -10,12 +10,12 @@ import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
 import { PlusCircle, Trash2, ArrowLeft, Save, GripVertical, Lock, BookOpen, Layers } from 'lucide-react';
 
 const ROMAN_EDIT = [
-    "I","II","III","IV","V","VI","VII","VIII","IX","X",
-    "XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX",
+    "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+    "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
 ];
 
 // Pool configs for the edit page (mirrors GroupCard logic)
-interface PoolCfg { type: string; title: string; desc: string; addLabel: string; placeholder: string; mode: 'roman'|'letter'; color: 'orange'|'purple'|'teal'|'violet'; }
+interface PoolCfg { type: string; title: string; desc: string; addLabel: string; placeholder: string; mode: 'roman' | 'letter'; color: 'orange' | 'purple' | 'teal' | 'violet'; }
 const EDIT_POOL_CONFIGS: PoolCfg[] = [
     { type: 'matching_heading', title: 'Heading Pool', desc: 'Shared headings for all Matching Heading questions in this group.', addLabel: '+ Add Heading', placeholder: 'e.g. The impact of globalisation…', mode: 'roman', color: 'orange' },
     { type: 'matching', title: 'Matching Options Pool', desc: 'Shared options (A, B, C…) for all Matching questions.', addLabel: '+ Add Option', placeholder: 'e.g. Paragraph A — economic growth', mode: 'letter', color: 'purple' },
@@ -23,10 +23,10 @@ const EDIT_POOL_CONFIGS: PoolCfg[] = [
     { type: 'matching_features', title: 'Features / People Pool', desc: 'Shared features (A, B, C…) for all Matching Features questions.', addLabel: '+ Add Feature', placeholder: 'e.g. Dr. Smith / Organisation X', mode: 'letter', color: 'violet' },
 ];
 const POOL_THEME: Record<string, Record<string, string>> = {
-    orange: { border:'border-orange-200', bg:'bg-orange-50/60', hdr:'bg-orange-100/70 border-b border-orange-200', icon:'text-orange-600', title:'text-orange-800', desc:'text-orange-700', badge:'bg-orange-600', inp:'border-orange-200 focus:ring-orange-400', btn:'text-orange-700 bg-orange-100 hover:bg-orange-200' },
-    purple: { border:'border-purple-200', bg:'bg-purple-50/60', hdr:'bg-purple-100/70 border-b border-purple-200', icon:'text-purple-600', title:'text-purple-800', desc:'text-purple-700', badge:'bg-purple-600', inp:'border-purple-200 focus:ring-purple-400', btn:'text-purple-700 bg-purple-100 hover:bg-purple-200' },
-    teal:   { border:'border-teal-200',   bg:'bg-teal-50/60',   hdr:'bg-teal-100/70 border-b border-teal-200',   icon:'text-teal-600',   title:'text-teal-800',   desc:'text-teal-700',   badge:'bg-teal-600',   inp:'border-teal-200 focus:ring-teal-400',   btn:'text-teal-700 bg-teal-100 hover:bg-teal-200'   },
-    violet: { border:'border-violet-200', bg:'bg-violet-50/60', hdr:'bg-violet-100/70 border-b border-violet-200', icon:'text-violet-600', title:'text-violet-800', desc:'text-violet-700', badge:'bg-violet-600', inp:'border-violet-200 focus:ring-violet-400', btn:'text-violet-700 bg-violet-100 hover:bg-violet-200' },
+    orange: { border: 'border-orange-200', bg: 'bg-orange-50/60', hdr: 'bg-orange-100/70 border-b border-orange-200', icon: 'text-orange-600', title: 'text-orange-800', desc: 'text-orange-700', badge: 'bg-orange-600', inp: 'border-orange-200 focus:ring-orange-400', btn: 'text-orange-700 bg-orange-100 hover:bg-orange-200' },
+    purple: { border: 'border-purple-200', bg: 'bg-purple-50/60', hdr: 'bg-purple-100/70 border-b border-purple-200', icon: 'text-purple-600', title: 'text-purple-800', desc: 'text-purple-700', badge: 'bg-purple-600', inp: 'border-purple-200 focus:ring-purple-400', btn: 'text-purple-700 bg-purple-100 hover:bg-purple-200' },
+    teal: { border: 'border-teal-200', bg: 'bg-teal-50/60', hdr: 'bg-teal-100/70 border-b border-teal-200', icon: 'text-teal-600', title: 'text-teal-800', desc: 'text-teal-700', badge: 'bg-teal-600', inp: 'border-teal-200 focus:ring-teal-400', btn: 'text-teal-700 bg-teal-100 hover:bg-teal-200' },
+    violet: { border: 'border-violet-200', bg: 'bg-violet-50/60', hdr: 'bg-violet-100/70 border-b border-violet-200', icon: 'text-violet-600', title: 'text-violet-800', desc: 'text-violet-700', badge: 'bg-violet-600', inp: 'border-violet-200 focus:ring-violet-400', btn: 'text-violet-700 bg-violet-100 hover:bg-violet-200' },
 };
 
 import MultipleChoiceQuestion from "@/app/(admin)/_components/questions/MultipleChoiceQuestion";
@@ -79,8 +79,7 @@ export default function EditTestPage() {
     const router = useRouter();
     const { user } = useAuth();
 
-    const defaultAdminId = 'a1b2c3d4-0000-0000-0000-000000000001';
-    const createdBy = user?.id || defaultAdminId;
+    const createdBy = user?.id;
 
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -90,7 +89,7 @@ export default function EditTestPage() {
         skill: "reading",
         title: "",
         isMock: false,
-        createdBy,
+        createdBy: createdBy!,
         sections: [] // We'll populate this from the fetched test
     });
 
@@ -99,6 +98,15 @@ export default function EditTestPage() {
         try {
             if (!id) return;
             const data = await testsApi.getTestById(String(id));
+
+            if (data.skill === 'writing') {
+                router.replace(`/admin/tests/${id}/writing`);
+                return;
+            }
+            if (data.skill === 'speaking') {
+                router.replace(`/admin/tests/${id}/speaking`);
+                return;
+            }
 
             // Transform the fetched test data into the CreateManualTestRequest format
             const transformedSections = (data.sections || []).map((sec: any) => ({
@@ -133,7 +141,7 @@ export default function EditTestPage() {
                 skill: data.skill as any,
                 title: data.title,
                 isMock: data.isMock,
-                createdBy: data.createdBy || createdBy,
+                createdBy: data?.createdBy || createdBy!,
                 sections: transformedSections
             });
 
@@ -445,7 +453,7 @@ export default function EditTestPage() {
                                             {section.groups.map((group, gIndex) => {
                                                 // Build pool map for all 4 pool types
                                                 const poolMap = EDIT_POOL_CONFIGS.reduce<Record<string, { pool: string[]; sync: (p: string[]) => void }>>((acc, cfg) => {
-                                                    const idxs = group.questions.map((_,i)=>i).filter(i => group.questions[i].questionType === cfg.type);
+                                                    const idxs = group.questions.map((_, i) => i).filter(i => group.questions[i].questionType === cfg.type);
                                                     if (idxs.length > 0) {
                                                         const pool: string[] = group.questions[idxs[0]]?.config?.options ?? [];
                                                         acc[cfg.type] = { pool, sync: (np) => idxs.forEach(qi => updateQuestion(sIndex, gIndex, qi, 'config', { options: np })) };
@@ -460,142 +468,142 @@ export default function EditTestPage() {
                                                 };
 
                                                 return (
-                                                <div key={`group-${sIndex}-${gIndex}-${group.id || gIndex}`} className="border border-slate-200 rounded-xl bg-slate-50 relative group/g overflow-hidden">
-                                                    {/* Group header */}
-                                                    <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-slate-200">
-                                                        <span className="text-sm font-bold text-slate-600 tracking-wider">
-                                                            Group {gIndex + 1} <span className="text-xs font-normal text-slate-400">({group.questions.length} questions)</span>
-                                                        </span>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); removeGroup(sIndex, gIndex); }}
-                                                            title="Remove Group"
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover/g:opacity-100 transition-opacity"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="p-4 space-y-5">
-                                                        {/* Instructions */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-slate-700 mb-2">Instructions <span className="text-slate-400 font-normal text-xs">(optional)</span></label>
-                                                            <RichTextEditor
-                                                                value={group.instructions || ''}
-                                                                onChange={(val: any) => updateGroup(sIndex, gIndex, 'instructions', val)}
-                                                            />
-                                                            <p className="text-xs text-slate-400 mt-1.5">💡 You can insert tables here for Fill-in-Blank table questions.</p>
-                                                        </div>
-
-                                                        {/* ── Pool sections (one per active pool type) ── */}
-                                                        {activePoolCfgs.map(cfg => {
-                                                            const t = POOL_THEME[cfg.color];
-                                                            const { pool, sync } = poolMap[cfg.type];
-                                                            const maxItems = cfg.mode === 'roman' ? ROMAN_EDIT.length : 26;
-                                                            const getLabel = (i: number) => cfg.mode === 'roman' ? (ROMAN_EDIT[i] ?? String(i+1)) : String.fromCharCode(65+i);
-                                                            return (
-                                                                <div key={cfg.type} className={`rounded-xl border-2 ${t.border} ${t.bg} overflow-hidden`}>
-                                                                    <div className={`flex items-center gap-2 px-4 py-2.5 ${t.hdr}`}>
-                                                                        {cfg.mode === 'roman'
-                                                                            ? <BookOpen className={`w-4 h-4 ${t.icon} shrink-0`} />
-                                                                            : <Layers className={`w-4 h-4 ${t.icon} shrink-0`} />
-                                                                        }
-                                                                        <span className={`text-sm font-bold ${t.title}`}>{cfg.title}</span>
-                                                                        <span className={`text-xs font-medium ${t.desc} ml-1 opacity-80`}>— {cfg.desc}</span>
-                                                                    </div>
-                                                                    <div className="p-4 space-y-2">
-                                                                        {pool.length === 0 && <p className="text-xs italic text-slate-400 mb-2">No items yet — click &ldquo;{cfg.addLabel}&rdquo;.</p>}
-                                                                        {pool.map((item, hi) => {
-                                                                            const lbl = getLabel(hi);
-                                                                            return (
-                                                                                <div key={hi} className="flex items-center gap-2">
-                                                                                    <span className={`w-9 h-9 flex items-center justify-center rounded-lg ${t.badge} text-white text-xs font-bold shrink-0`}>{lbl}</span>
-                                                                                    <input value={item} onChange={(e) => { const next=[...pool]; next[hi]=e.target.value; sync(next); }} className={`flex-1 border ${t.inp} rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2`} placeholder={cfg.placeholder} />
-                                                                                    <button onClick={() => sync(pool.filter((_,i)=>i!==hi))} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                        <button onClick={() => sync([...pool,""])} disabled={pool.length >= maxItems} className={`mt-1 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${t.btn}`}>
-                                                                            <PlusCircle className="w-3.5 h-3.5" /> {cfg.addLabel}
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-
-                                                        {/* Questions */}
-                                                        <div>
-                                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 border-b border-slate-200 pb-2">Questions</h4>
-                                                            <div className="space-y-5 pl-3 border-l-2 border-slate-200">
-                                                                {group.questions.map((q, qIndex) => {
-                                                                    const commonProps = {
-                                                                        order: q.questionOrder || (qIndex + 1),
-                                                                        questionText: q.questionText,
-                                                                        correctAnswers: q.answer?.correctAnswers || [""],
-                                                                        caseSensitive: q.answer?.caseSensitive || false,
-                                                                        onUpdateField: (field: string, value: any) => updateQuestion(sIndex, gIndex, qIndex, field, value),
-                                                                        onUpdateAnswer: (field: string, value: any) => updateAnswer(sIndex, gIndex, qIndex, field, value),
-                                                                        onRemove: () => removeQuestion(sIndex, gIndex, qIndex)
-                                                                    };
-
-                                                                    return (
-                                                                        <div key={`q-${sIndex}-${gIndex}-${qIndex}-${q.id || qIndex}`} className="relative bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                                                                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg w-fit border border-slate-200">
-                                                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">Q{q.questionOrder}:</span>
-                                                                                    <select
-                                                                                        value={q.questionType}
-                                                                                        onChange={(e) => handleTypeChange(qIndex, e.target.value)}
-                                                                                        className="border-0 rounded px-2 py-1 text-sm font-medium text-slate-700 outline-none cursor-pointer hover:bg-slate-100 transition-colors bg-transparent"
-                                                                                    >
-                                                                                        <option value="multiple_choice">Multiple Choice</option>
-                                                                                        <option value="fill_in_blank">Fill in the Blank</option>
-                                                                                        <option value="matching">Matching</option>
-                                                                                        <option value="true_false_not_given">True / False / Not Given</option>
-                                                                                        <option value="yes_no_not_given">Yes / No / Not Given</option>
-                                                                                        <option value="matching_heading">Matching Headings</option>
-                                                                                        <option value="sentence_ending">Sentence Endings</option>
-                                                                                        <option value="matching_features">Matching Features</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <button onClick={() => removeQuestion(sIndex, gIndex, qIndex)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-md self-end sm:self-auto"><Trash2 className="w-4 h-4" /></button>
-                                                                            </div>
-
-                                                                            {['multiple_choice', 'true_false_not_given', 'yes_no_not_given'].includes(q.questionType) && (
-                                                                                <MultipleChoiceQuestion
-                                                                                    {...commonProps}
-                                                                                    questionType={q.questionType}
-                                                                                    options={q.config?.options || (q.questionType === 'true_false_not_given' ? ["TRUE", "FALSE", "NOT GIVEN"] : q.questionType === 'yes_no_not_given' ? ["YES", "NO", "NOT GIVEN"] : ["", "", "", ""])}
-                                                                                />
-                                                                            )}
-                                                                            {q.questionType === 'fill_in_blank' && (
-                                                                                <div className="space-y-4">
-                                                                                    <FillInBlankQuestion {...commonProps} />
-                                                                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 space-y-1">
-                                                                                        <p className="font-semibold">💡 Advanced Answer Formatting</p>
-                                                                                        <p>• Optional words: <code>(TEXT)</code> — e.g. <code>(FREDERICK) FLEET</code></p>
-                                                                                        <p>• OR: <code>[OR]</code> — e.g. <code>12 a.m. [OR] midnight</code></p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-                                                                            {q.questionType === 'matching' && <MatchingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
-                                                                            {q.questionType === 'matching_heading' && <HeadingMatchingQuestion {...commonProps} options={q.config?.options || []} />}
-                                                                            {q.questionType === 'sentence_ending' && <SentenceEndingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
-                                                                            {q.questionType === 'matching_features' && <MatchingFeaturesQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-
+                                                    <div key={`group-${sIndex}-${gIndex}-${group.id || gIndex}`} className="border border-slate-200 rounded-xl bg-slate-50 relative group/g overflow-hidden">
+                                                        {/* Group header */}
+                                                        <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-slate-200">
+                                                            <span className="text-sm font-bold text-slate-600 tracking-wider">
+                                                                Group {gIndex + 1} <span className="text-xs font-normal text-slate-400">({group.questions.length} questions)</span>
+                                                            </span>
                                                             <button
-                                                                onClick={() => addQuestion(sIndex, gIndex)}
-                                                                className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-100 px-4 py-2.5 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
+                                                                onClick={(e) => { e.stopPropagation(); removeGroup(sIndex, gIndex); }}
+                                                                title="Remove Group"
+                                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover/g:opacity-100 transition-opacity"
                                                             >
-                                                                <PlusCircle className="w-4 h-4" />
-                                                                Add Question to Group {gIndex + 1}
+                                                                <Trash2 className="w-4 h-4" />
                                                             </button>
                                                         </div>
+
+                                                        <div className="p-4 space-y-5">
+                                                            {/* Instructions */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-slate-700 mb-2">Instructions <span className="text-slate-400 font-normal text-xs">(optional)</span></label>
+                                                                <RichTextEditor
+                                                                    value={group.instructions || ''}
+                                                                    onChange={(val: any) => updateGroup(sIndex, gIndex, 'instructions', val)}
+                                                                />
+                                                                <p className="text-xs text-slate-400 mt-1.5">💡 You can insert tables here for Fill-in-Blank table questions.</p>
+                                                            </div>
+
+                                                            {/* ── Pool sections (one per active pool type) ── */}
+                                                            {activePoolCfgs.map(cfg => {
+                                                                const t = POOL_THEME[cfg.color];
+                                                                const { pool, sync } = poolMap[cfg.type];
+                                                                const maxItems = cfg.mode === 'roman' ? ROMAN_EDIT.length : 26;
+                                                                const getLabel = (i: number) => cfg.mode === 'roman' ? (ROMAN_EDIT[i] ?? String(i + 1)) : String.fromCharCode(65 + i);
+                                                                return (
+                                                                    <div key={cfg.type} className={`rounded-xl border-2 ${t.border} ${t.bg} overflow-hidden`}>
+                                                                        <div className={`flex items-center gap-2 px-4 py-2.5 ${t.hdr}`}>
+                                                                            {cfg.mode === 'roman'
+                                                                                ? <BookOpen className={`w-4 h-4 ${t.icon} shrink-0`} />
+                                                                                : <Layers className={`w-4 h-4 ${t.icon} shrink-0`} />
+                                                                            }
+                                                                            <span className={`text-sm font-bold ${t.title}`}>{cfg.title}</span>
+                                                                            <span className={`text-xs font-medium ${t.desc} ml-1 opacity-80`}>— {cfg.desc}</span>
+                                                                        </div>
+                                                                        <div className="p-4 space-y-2">
+                                                                            {pool.length === 0 && <p className="text-xs italic text-slate-400 mb-2">No items yet — click &ldquo;{cfg.addLabel}&rdquo;.</p>}
+                                                                            {pool.map((item, hi) => {
+                                                                                const lbl = getLabel(hi);
+                                                                                return (
+                                                                                    <div key={hi} className="flex items-center gap-2">
+                                                                                        <span className={`w-9 h-9 flex items-center justify-center rounded-lg ${t.badge} text-white text-xs font-bold shrink-0`}>{lbl}</span>
+                                                                                        <input value={item} onChange={(e) => { const next = [...pool]; next[hi] = e.target.value; sync(next); }} className={`flex-1 border ${t.inp} rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2`} placeholder={cfg.placeholder} />
+                                                                                        <button onClick={() => sync(pool.filter((_, i) => i !== hi))} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                            <button onClick={() => sync([...pool, ""])} disabled={pool.length >= maxItems} className={`mt-1 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${t.btn}`}>
+                                                                                <PlusCircle className="w-3.5 h-3.5" /> {cfg.addLabel}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+
+                                                            {/* Questions */}
+                                                            <div>
+                                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 border-b border-slate-200 pb-2">Questions</h4>
+                                                                <div className="space-y-5 pl-3 border-l-2 border-slate-200">
+                                                                    {group.questions.map((q, qIndex) => {
+                                                                        const commonProps = {
+                                                                            order: q.questionOrder || (qIndex + 1),
+                                                                            questionText: q.questionText,
+                                                                            correctAnswers: q.answer?.correctAnswers || [""],
+                                                                            caseSensitive: q.answer?.caseSensitive || false,
+                                                                            onUpdateField: (field: string, value: any) => updateQuestion(sIndex, gIndex, qIndex, field, value),
+                                                                            onUpdateAnswer: (field: string, value: any) => updateAnswer(sIndex, gIndex, qIndex, field, value),
+                                                                            onRemove: () => removeQuestion(sIndex, gIndex, qIndex)
+                                                                        };
+
+                                                                        return (
+                                                                            <div key={`q-${sIndex}-${gIndex}-${qIndex}-${q.id || qIndex}`} className="relative bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                                                                                    <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg w-fit border border-slate-200">
+                                                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">Q{q.questionOrder}:</span>
+                                                                                        <select
+                                                                                            value={q.questionType}
+                                                                                            onChange={(e) => handleTypeChange(qIndex, e.target.value)}
+                                                                                            className="border-0 rounded px-2 py-1 text-sm font-medium text-slate-700 outline-none cursor-pointer hover:bg-slate-100 transition-colors bg-transparent"
+                                                                                        >
+                                                                                            <option value="multiple_choice">Multiple Choice</option>
+                                                                                            <option value="fill_in_blank">Fill in the Blank</option>
+                                                                                            <option value="matching">Matching</option>
+                                                                                            <option value="true_false_not_given">True / False / Not Given</option>
+                                                                                            <option value="yes_no_not_given">Yes / No / Not Given</option>
+                                                                                            <option value="matching_heading">Matching Headings</option>
+                                                                                            <option value="sentence_ending">Sentence Endings</option>
+                                                                                            <option value="matching_features">Matching Features</option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <button onClick={() => removeQuestion(sIndex, gIndex, qIndex)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-md self-end sm:self-auto"><Trash2 className="w-4 h-4" /></button>
+                                                                                </div>
+
+                                                                                {['multiple_choice', 'true_false_not_given', 'yes_no_not_given'].includes(q.questionType) && (
+                                                                                    <MultipleChoiceQuestion
+                                                                                        {...commonProps}
+                                                                                        questionType={q.questionType}
+                                                                                        options={q.config?.options || (q.questionType === 'true_false_not_given' ? ["TRUE", "FALSE", "NOT GIVEN"] : q.questionType === 'yes_no_not_given' ? ["YES", "NO", "NOT GIVEN"] : ["", "", "", ""])}
+                                                                                    />
+                                                                                )}
+                                                                                {q.questionType === 'fill_in_blank' && (
+                                                                                    <div className="space-y-4">
+                                                                                        <FillInBlankQuestion {...commonProps} />
+                                                                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 space-y-1">
+                                                                                            <p className="font-semibold">💡 Advanced Answer Formatting</p>
+                                                                                            <p>• Optional words: <code>(TEXT)</code> — e.g. <code>(FREDERICK) FLEET</code></p>
+                                                                                            <p>• OR: <code>[OR]</code> — e.g. <code>12 a.m. [OR] midnight</code></p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {q.questionType === 'matching' && <MatchingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
+                                                                                {q.questionType === 'matching_heading' && <HeadingMatchingQuestion {...commonProps} options={q.config?.options || []} />}
+                                                                                {q.questionType === 'sentence_ending' && <SentenceEndingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
+                                                                                {q.questionType === 'matching_features' && <MatchingFeaturesQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+
+                                                                <button
+                                                                    onClick={() => addQuestion(sIndex, gIndex)}
+                                                                    className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-100 px-4 py-2.5 rounded-lg transition-colors w-full justify-center border border-blue-200 border-dashed"
+                                                                >
+                                                                    <PlusCircle className="w-4 h-4" />
+                                                                    Add Question to Group {gIndex + 1}
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
                                                 );
                                             })}
                                         </div>

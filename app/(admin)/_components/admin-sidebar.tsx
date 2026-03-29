@@ -1,6 +1,4 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -32,13 +30,22 @@ export function AdminSidebar() {
     <div className="hidden lg:flex flex-col w-[280px] border-r h-full bg-background">
       <div className="flex flex-col flex-1 p-6 gap-6">
         {/* Logo/Brand */}
-        <div className="flex items-center gap-2 pb-4">
+        <div className="flex items-center gap-3 pb-4">
+          <Link
+            href="/"
+            className="flex items-center justify-center p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors"
+            title="Back to Home"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              arrow_back
+            </span>
+          </Link>
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
             <span className="material-symbols-outlined text-[20px]">
               school
             </span>
           </div>
-          <span className="text-lg font-bold">IELTS Admin</span>
+          <span className="text-lg font-bold"><Link href="/admin/dashboard">IELTS Admin</Link></span>
         </div>
 
         {/* Admin Profile */}
