@@ -81,6 +81,8 @@ export default function EditWritingFormInner({ testId }: { testId: string }) {
             const payload = {
                 title,
                 isMock,
+                createdBy: user?.id
+                ,
                 tasks: tasks.map((t): WritingTaskItem => ({
                     taskNumber: t.taskNumber,
                     promptText: t.promptText,
