@@ -1,6 +1,4 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,10 +18,10 @@ export function LearnerSidebar() {
   };
 
   const routes = [
-    { href: "/dashboard",  label: "Dashboard",        icon: "dashboard" },
-    { href: "/practice",   label: "Practice Tests",   icon: "book_2" },
-    { href: "/ai-advisor", label: "AI Coach",         icon: "smart_toy" },
-    { href: "/resources",  label: "Resources",        icon: "library_books" },
+    { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
+    { href: "/analysis", label: "Analysis", icon: "analytics" },
+    { href: "/ai-advisor", label: "AI Coach", icon: "smart_toy" },
+    { href: "/resources", label: "Resources", icon: "library_books" },
   ];
 
   return (

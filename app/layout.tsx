@@ -27,6 +27,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "IELTS Master Platform",
   description: "Comprehensive IELTS preparation tools",
+  icons: {
+    icon: "/ielts_logo.jpg",
+  },
 };
 
 export default function RootLayout({
