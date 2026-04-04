@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { testsApi } from "@/lib/api/tests";
 import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
 import { PlusCircle, Trash2, ArrowLeft, Save, GripVertical, Lock, BookOpen, Layers } from 'lucide-react';
+import AudioUploader from "@/app/(admin)/admin/tests/add/_components/AudioUploader";
 
 const ROMAN_EDIT = [
     "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
@@ -421,13 +422,10 @@ export default function EditTestPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         {testData.skill === 'listening' && (
                                             <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">Audio URL</label>
-                                                <input
-                                                    type="text"
+                                                <label className="block text-sm font-medium text-slate-700 mb-2">Section Audio</label>
+                                                <AudioUploader
                                                     value={section.audioUrl || ''}
-                                                    onChange={(e) => updateSection(sIndex, 'audioUrl', e.target.value)}
-                                                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                                    placeholder="https://..."
+                                                    onChange={(url) => updateSection(sIndex, 'audioUrl', url)}
                                                 />
                                             </div>
                                         )}
