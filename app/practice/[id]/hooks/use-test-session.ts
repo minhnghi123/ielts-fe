@@ -65,7 +65,7 @@ export interface UseTestSessionReturn {
     answersRef: React.MutableRefObject<Record<string, string>>;
     handleAnswerUpdate: (newAnswers: Record<string, string>) => void;
     handleStartTest: (chosenDuration: number | 'full') => Promise<void>;
-    handleFinishTest: (finalAnswers?: Record<string, string>, currentAttemptId?: string) => Promise<void>;
+    handleFinishTest: (finalAnswers?: Record<string, string>, currentAttemptId?: string, gradingId?: string) => Promise<void>;
     handleResume: () => void;
     handleDiscardAndRestart: () => void;
 }
@@ -153,7 +153,18 @@ export function useTestSession(testId: string): UseTestSessionReturn {
     const handleFinishTest = useCallback(async (
         finalAnswers?: Record<string, string>,
         currentAttemptId?: string,
+        gradingId?: string,
     ) => {
+        // ── Writing skill: AI grading bypass ──────────────────────────────────
+        // Writing tests go through /api/ai/grade-writing and do NOT create a
+        // standard test_attempt. Navigate directly to the writing result page.
+        if (gradingId) {
+            stopTimer();
+            activeSessionRef.current = null;
+            clearSession(testId);
+            router.push(`/practice/${testId}/result?skill=writing&gradingId=${gradingId}`);
+            return;
+        }
         const idToSubmit = currentAttemptId || attemptId;
         if (!idToSubmit) {
             console.warn('[useTestSession] handleFinishTest called with no attemptId');
@@ -177,9 +188,12 @@ export function useTestSession(testId: string): UseTestSessionReturn {
             }
         }
 
-        const answersArray = allQuestionIds.length > 0
+        const rawAnswersArray = allQuestionIds.length > 0
             ? allQuestionIds.map(qId => ({ questionId: qId, answer: answers[qId] ?? '' }))
             : Object.entries(answers).map(([qId, ans]) => ({ questionId: qId, answer: ans }));
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const answersArray = rawAnswersArray.filter(a => uuidRegex.test(a.questionId));
 
         const elapsedSeconds = testStartTimeRef.current !== null
             ? Math.floor((Date.now() - testStartTimeRef.current) / 1000)

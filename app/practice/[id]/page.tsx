@@ -243,7 +243,7 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
             <WritingTestInterface
                 testId={id}
                 test={test}
-                onFinish={(answers?) => { void handleFinishTest(answers ?? answersRef.current); }}
+                onFinish={(answers?, gradingId?) => { void handleFinishTest(answers ?? answersRef.current, undefined, gradingId); }}
             />
         );
     }

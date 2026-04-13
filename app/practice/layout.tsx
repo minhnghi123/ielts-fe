@@ -117,7 +117,7 @@ export default function PracticeLayout({
 }) {
     return (
         <PracticeProvider>
-            <div className="min-h-screen bg-background text-foreground flex flex-col">
+            <div className="h-[100dvh] w-full bg-background text-foreground flex flex-col overflow-hidden">
                 <PracticeHeader />
                 <main className="flex-1 overflow-hidden relative">
                     {children}

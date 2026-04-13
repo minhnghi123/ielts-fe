@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt, Test, Section, QuestionAttempt } from "@/lib/types";
+import { WritingResult } from "./_components/writing-result";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -398,11 +399,14 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const { id: testId } = use(params);
     const searchParams = useSearchParams();
     const attemptId = searchParams.get("attemptId");
+    const gradingId = searchParams.get("gradingId");
+    const skillParam = searchParams.get("skill");
     const elapsedParam = searchParams.get("elapsed"); // seconds, set by frontend timer
     const { user } = useAuth();
 
     const [attempt, setAttempt] = useState<TestAttempt | null>(null);
     const [fullTest, setFullTest] = useState<Test | null>(null);
+    const [gradingData, setGradingData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState(0);   // 0 = overall, 1+ = section
@@ -414,6 +418,25 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const aiTriggeredRef = useRef(false); // prevent double-trigger in StrictMode
 
     useEffect(() => {
+        if (skillParam === "writing" && gradingId) {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            fetch(`${baseUrl}/api/writing-gradings/${gradingId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch");
+                    return res.json();
+                })
+                .then(data => {
+                    setGradingData(data);
+                    setIsLoading(false);
+                })
+                .catch(err => {
+                    console.error("Failed to load grading data:", err);
+                    setError("Failed to load writing results. Please try again.");
+                    setIsLoading(false);
+                });
+            return;
+        }
+
         if (!attemptId) { setIsLoading(false); return; }
 
         // Fetch attempt (with question attempts + question + correct answers)
@@ -430,9 +453,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             .catch(err => {
                 console.error("Failed to load result data:", err);
                 setError("Failed to load results. Please try again.");
-            setIsLoading(false);
+                setIsLoading(false);
             });
-    }, [attemptId, testId]);
+    }, [attemptId, testId, skillParam, gradingId]);
 
     // ── AI analysis trigger ───────────────────────────────────────────────────
 
@@ -532,6 +555,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 <p className="text-muted-foreground font-medium">Loading results…</p>
             </div>
         );
+    }
+
+    if (skillParam === "writing" && gradingData) {
+        return <WritingResult gradingData={gradingData} />;
     }
 
     if (error || !attempt) {
