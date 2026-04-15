@@ -37,7 +37,7 @@ interface WritingResultProps {
 export function WritingResult({ gradingData }: WritingResultProps) {
     const [activeTask, setActiveTask] = useState<"task1" | "task2">("task1");
     const [activeSuggestionId, setActiveSuggestionId] = useState<number | null>(null);
-
+    // console.log(gradingData);
     const t1 = gradingData.feedback.task1;
     const t2 = gradingData.feedback.task2;
 
@@ -113,7 +113,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                             <div className="text-center">
                                 <p className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">Overall Band</p>
                                 <p className="text-4xl font-black text-violet-700 dark:text-violet-300 leading-none">
-                                    {gradingData.overallBand.toFixed(1)}
+                                    {Number(gradingData.overallBand).toFixed(1)}
                                 </p>
                             </div>
                         </div>
@@ -139,10 +139,10 @@ export function WritingResult({ gradingData }: WritingResultProps) {
 
             {/* Main Content Area: Split View */}
             <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
-                
+
                 {/* LEFT PANE: Annotated Essay */}
                 <div className="lg:col-span-7 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    
+
                     {/* Score Breakdown Bar */}
                     <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="flex items-center justify-between mb-4">
@@ -163,10 +163,11 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                     {/* Essay Content */}
                     <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar relative" ref={leftPaneRef}>
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Your Essay</h3>
-                        
+
                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-lg">
                             {/* Injecting the HTML. The custom CSS classes are handled via Tailwind below or global CSS */}
-                            <style dangerouslySetInnerHTML={{__html: `
+                            <style dangerouslySetInnerHTML={{
+                                __html: `
                                 .ielts-good { 
                                     background-color: rgba(34, 197, 94, 0.15); 
                                     border-bottom: 2px solid rgba(34, 197, 94, 0.4); 
@@ -192,9 +193,9 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                     text-decoration-color: rgb(239, 68, 68);
                                 }
                             `}} />
-                            
-                            <div 
-                                dangerouslySetInnerHTML={{ __html: currentTask.annotated_html || '<p>No content provided</p>' }} 
+
+                            <div
+                                dangerouslySetInnerHTML={{ __html: currentTask.annotated_html || '<p>No content provided</p>' }}
                                 className="font-serif text-slate-700 dark:text-slate-300"
                             />
                         </div>
@@ -202,7 +203,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                 </div>
 
                 {/* RIGHT PANE: Interactive Feedback Board */}
-                <div 
+                <div
                     className="lg:col-span-5 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden"
                 >
                     <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center gap-3 shadow-sm z-10">
@@ -225,16 +226,15 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                         ) : (
                             currentTask.suggestions.map((suggestion) => {
                                 const isActive = activeSuggestionId === suggestion.id;
-                                
+
                                 return (
-                                    <div 
+                                    <div
                                         key={suggestion.id}
                                         id={`suggestion-${suggestion.id}`}
-                                        className={`transition-all duration-300 rounded-2xl border p-4 sm:p-5 bg-white dark:bg-slate-900 cursor-pointer hover:-translate-y-0.5 hover:shadow-md ${
-                                            isActive 
-                                                ? 'ring-2 ring-violet-500 dark:ring-violet-400 border-transparent shadow-lg shadow-violet-500/10' 
-                                                : 'border-slate-200 dark:border-slate-800 shadow-sm'
-                                        }`}
+                                        className={`transition-all duration-300 rounded-2xl border p-4 sm:p-5 bg-white dark:bg-slate-900 cursor-pointer hover:-translate-y-0.5 hover:shadow-md ${isActive
+                                            ? 'ring-2 ring-violet-500 dark:ring-violet-400 border-transparent shadow-lg shadow-violet-500/10'
+                                            : 'border-slate-200 dark:border-slate-800 shadow-sm'
+                                            }`}
                                         onClick={() => setActiveSuggestionId(suggestion.id)}
                                     >
                                         <div className="flex items-center justify-between mb-3">
@@ -243,14 +243,14 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                             </Badge>
                                             <span className="text-xs font-bold text-slate-400">#{suggestion.id}</span>
                                         </div>
-                                        
+
                                         <div className="space-y-3">
                                             {/* Original */}
                                             <div className="bg-red-50/50 dark:bg-red-950/20 rounded-xl p-3 border border-red-100/50 dark:border-red-900/30">
                                                 <span className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-wider mb-1 block">Original</span>
                                                 <p className="text-slate-800 dark:text-slate-200 line-through decoration-red-500/50">{suggestion.original_text}</p>
                                             </div>
-                                            
+
                                             <div className="flex justify-center -my-4 relative z-10 pointer-events-none">
                                                 <div className="bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-100 dark:border-slate-800 shadow-sm">
                                                     <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
@@ -262,7 +262,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1 block">Correction</span>
                                                 <p className="text-slate-800 dark:text-slate-200 font-medium">{suggestion.correction}</p>
                                             </div>
-                                            
+
                                             {/* Explanation */}
                                             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">

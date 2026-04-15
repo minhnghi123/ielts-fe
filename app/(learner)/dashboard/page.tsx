@@ -45,9 +45,9 @@ function bandTextColor(band: number | null | undefined): string {
 
 const SKILLS_META = [
   { id: "listening", label: "Listening", icon: "headphones", accent: "#3b82f6" },
-  { id: "reading",   label: "Reading",   icon: "menu_book",  accent: "#8b5cf6" },
-  { id: "writing",   label: "Writing",   icon: "edit_note",  accent: "#f97316" },
-  { id: "speaking",  label: "Speaking",  icon: "mic",        accent: "#ec4899" },
+  { id: "reading", label: "Reading", icon: "menu_book", accent: "#8b5cf6" },
+  { id: "writing", label: "Writing", icon: "edit_note", accent: "#f97316" },
+  { id: "speaking", label: "Speaking", icon: "mic", accent: "#ec4899" },
 ];
 
 function SkillProgressPanel({
@@ -71,7 +71,7 @@ function SkillProgressPanel({
         {SKILLS_META.map(({ id, label, icon }) => {
           // Prefer analytics band profiles (server-computed) over client avg
           const profileBand = summary?.bandProfiles?.find(p => p.skill === id)?.currentBand;
-          const band = profileBand ?? null;
+          const band = profileBand != null ? Number(profileBand) : null;
           const pct = band ? Math.round((band / 9) * 100) : 0;
           const count = attempts.filter(a => (a.test as any)?.skill === id && !!a.submittedAt).length;
           return (
@@ -151,9 +151,9 @@ function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number
       )}
       <p className="text-xs text-muted-foreground leading-relaxed">
         {pct >= 75 ? "You're well prepared! Keep it up." :
-         pct >= 50 ? "Good progress — a few more tests will get you there." :
-         pct >= 25 ? "Keep practicing — you're building momentum." :
-         "Start taking tests to track your readiness."}
+          pct >= 50 ? "Good progress — a few more tests will get you there." :
+            pct >= 25 ? "Keep practicing — you're building momentum." :
+              "Start taking tests to track your readiness."}
       </p>
     </div>
   );
@@ -187,13 +187,12 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
             {topTask.recommendation}
           </p>
           <div className="flex items-center justify-between">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              topTask.priority === "high"
-                ? "bg-rose-100 text-rose-700"
-                : topTask.priority === "medium"
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-green-100 text-green-700"
-            }`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${topTask.priority === "high"
+              ? "bg-rose-100 text-rose-700"
+              : topTask.priority === "medium"
+                ? "bg-amber-100 text-amber-700"
+                : "bg-green-100 text-green-700"
+              }`}>
               {topTask.priority} priority
             </span>
             <span className="text-[10px] text-blue-600 font-medium">Due in {topTask.dueInDays}d</span>
@@ -271,9 +270,9 @@ export default function DashboardPage() {
 
   const tips: Record<string, { title: string; body: string }> = {
     listening: { title: "Focus on keywords", body: "Before the recording plays, read each question carefully and underline key words. Predict the type of answer (number, name, adjective) you need." },
-    reading:   { title: "Synonyms are key!", body: "The passage will rarely use the exact words from the question. Train yourself to spot synonyms and paraphrasing — that's where the answer hides." },
-    writing:   { title: "Structure every essay", body: "Always plan for 5 minutes before writing. A clear Introduction → Body 1 → Body 2 → Conclusion structure can lift your Task Achievement score by a full band." },
-    speaking:  { title: "Extend your answers", body: "Avoid one-word replies. Use the PEEL method: Point → Example → Explanation → Link back. This naturally increases your fluency and coherence scores." },
+    reading: { title: "Synonyms are key!", body: "The passage will rarely use the exact words from the question. Train yourself to spot synonyms and paraphrasing — that's where the answer hides." },
+    writing: { title: "Structure every essay", body: "Always plan for 5 minutes before writing. A clear Introduction → Body 1 → Body 2 → Conclusion structure can lift your Task Achievement score by a full band." },
+    speaking: { title: "Extend your answers", body: "Avoid one-word replies. Use the PEEL method: Point → Example → Explanation → Link back. This naturally increases your fluency and coherence scores." },
   };
   const tip = tips[weakestSkill as keyof typeof tips] ?? tips.reading;
 

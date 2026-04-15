@@ -190,13 +190,12 @@ function AnalysisTable({
                                             return (
                                                 <span
                                                     key={n}
-                                                    className={`inline-flex items-center justify-center w-6 h-6 rounded text-[10px] font-bold ${
-                                                        isCorrect
+                                                    className={`inline-flex items-center justify-center w-6 h-6 rounded text-[10px] font-bold ${isCorrect
                                                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                                                             : hasAnswer
                                                                 ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
                                                                 : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {n}
                                                 </span>
@@ -238,22 +237,20 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                 return (
                     <div
                         key={qa.id}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors ${
-                            isCorrect
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors ${isCorrect
                                 ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/20"
                                 : isSkipped
                                     ? "bg-slate-50 dark:bg-slate-800/20 border-slate-100 dark:border-slate-700/30"
                                     : "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800/20"
-                        }`}
+                            }`}
                     >
                         {/* Number badge */}
-                        <span className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-[10px] font-extrabold ${
-                            isCorrect
+                        <span className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-[10px] font-extrabold ${isCorrect
                                 ? "bg-emerald-200 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-200"
                                 : isSkipped
                                     ? "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
                                     : "bg-red-200 text-red-600 dark:bg-red-800 dark:text-red-200"
-                        }`}>
+                            }`}>
                             {displayNum}
                         </span>
 
@@ -262,11 +259,10 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                             {isSkipped ? (
                                 <span className="italic text-[11px] text-muted-foreground">not answered</span>
                             ) : (
-                                <span className={`font-mono text-xs ${
-                                    isCorrect
+                                <span className={`font-mono text-xs ${isCorrect
                                         ? "font-bold text-emerald-700 dark:text-emerald-300"
                                         : "line-through text-red-400"
-                                }`}>
+                                    }`}>
                                     {qa.answer}
                                 </span>
                             )}
@@ -471,7 +467,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         const skill: string = (attemptData.test as any)?.skill ?? testData?.skill ?? "reading";
         const testTitle = attemptData.test?.title ?? testData?.title ?? "IELTS Test";
         const correctQ = enriched.filter(q => q.isCorrect === true).length;
-        const wrongQ   = enriched.filter(q => q.isCorrect !== true && !!q.answer?.trim()).length;
+        const wrongQ = enriched.filter(q => q.isCorrect !== true && !!q.answer?.trim()).length;
         const skippedQ = enriched.filter(q => !q.answer?.trim()).length;
 
         // Build question-type accuracy map
@@ -558,7 +554,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     }
 
     if (skillParam === "writing" && gradingData) {
-        return <WritingResult gradingData={gradingData} />;
+        return <WritingResult gradingData={gradingData.data} />;
     }
 
     if (error || !attempt) {
@@ -608,7 +604,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         timeTaken = fmtSeconds(elapsedSec);
     } else {
         const startMs = toUtcMs(attempt.startedAt);
-        const endMs   = toUtcMs(attempt.submittedAt);
+        const endMs = toUtcMs(attempt.submittedAt);
         if (startMs !== null && endMs !== null && endMs > startMs) {
             timeTaken = fmtSeconds(Math.floor((endMs - startMs) / 1000));
         }
@@ -618,7 +614,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const testDate = startMs
         ? new Date(startMs).toLocaleDateString("en-US", {
             day: "numeric", month: "long", year: "numeric",
-          })
+        })
         : "—";
 
     // Section tabs
@@ -650,7 +646,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                 {isListening ? `Recording ${i + 1}` : `Passage ${i + 1}`}
                             </Badge>
                         ))}
-                </div>
+                    </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -691,40 +687,40 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             icon: FileText,
                             color: "text-slate-600",
                             bg: "bg-slate-100 dark:bg-slate-800",
-                            },
-                            {
-                                label: "Accuracy",
+                        },
+                        {
+                            label: "Accuracy",
                             value: totalQ > 0 ? `${accuracy.toFixed(1)}%` : "—",
                             sub: "correct/total",
                             icon: Table2,
-                                color: "text-blue-600",
-                                bg: "bg-blue-50 dark:bg-blue-900/20",
-                            },
-                            {
-                                label: "Time Taken",
-                                value: timeTaken,
+                            color: "text-blue-600",
+                            bg: "bg-blue-50 dark:bg-blue-900/20",
+                        },
+                        {
+                            label: "Time Taken",
+                            value: timeTaken,
                             sub: "",
-                                icon: Clock,
-                                color: "text-amber-600",
-                                bg: "bg-amber-50 dark:bg-amber-900/20",
-                            },
+                            icon: Clock,
+                            color: "text-amber-600",
+                            bg: "bg-amber-50 dark:bg-amber-900/20",
+                        },
                     ].map(s => (
                         <Card key={s.label} className="bg-white dark:bg-slate-900 shadow-sm border">
                             <CardContent className="p-4 flex items-center gap-3">
                                 <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>
                                     <s.icon className={`h-5 w-5 ${s.color}`} />
-                                    </div>
-                                    <div>
+                                </div>
+                                <div>
                                     <p className="text-[11px] text-muted-foreground">{s.label}</p>
                                     <p className="text-xl font-black tabular-nums leading-tight">
                                         {s.value}
                                         {s.sub && <span className="text-sm font-semibold text-muted-foreground ml-1">{s.sub}</span>}
                                     </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
 
                 {/* ── 3 Stat Cards ───────────────────────────────────────── */}
                 <div className="grid grid-cols-3 gap-3">
@@ -773,12 +769,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="flex-shrink-0 text-center min-w-[80px]">
                                 <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-bold mb-1">Band Score</p>
-                                <p className={`text-5xl font-black leading-none tabular-nums ${
-                                    bandScore >= 7 ? "text-emerald-600 dark:text-emerald-400"
-                                    : bandScore >= 5 ? "text-amber-500"
-                                    : bandScore > 0 ? "text-red-500"
-                                    : "text-muted-foreground"
-                                }`}>
+                                <p className={`text-5xl font-black leading-none tabular-nums ${bandScore >= 7 ? "text-emerald-600 dark:text-emerald-400"
+                                        : bandScore >= 5 ? "text-amber-500"
+                                            : bandScore > 0 ? "text-red-500"
+                                                : "text-muted-foreground"
+                                    }`}>
                                     {bandScore > 0 ? bandScore.toFixed(1) : "—"}
                                 </p>
                             </div>
@@ -824,16 +819,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                     <button
                                         key={i}
                                         onClick={() => setActiveTab(i)}
-                                        className={`px-4 py-1.5 text-xs font-bold rounded-t border border-b-0 transition-colors -mb-px ${
-                                            activeTab === i
+                                        className={`px-4 py-1.5 text-xs font-bold rounded-t border border-b-0 transition-colors -mb-px ${activeTab === i
                                                 ? "bg-white dark:bg-slate-900 border-border text-primary"
                                                 : "bg-slate-50 dark:bg-slate-800 border-transparent text-muted-foreground hover:text-foreground"
-                                        }`}
+                                            }`}
                                     >
                                         {label}
                                     </button>
                                 ))}
-                        </div>
+                            </div>
                         )}
 
                         <AnalysisTable qas={activeQAs} skill={skill} />
@@ -842,7 +836,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
                 {/* ── Answer Review ───────────────────────────────────────── */}
                 <Card className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
-                        <CardContent className="p-0">
+                    <CardContent className="p-0">
                         {/* Header */}
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
@@ -888,11 +882,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                             <button
                                                 key={i}
                                                 onClick={() => setActiveTab(i)}
-                                                className={`px-3 py-1 text-xs font-bold rounded border transition-colors ${
-                                                    activeTab === i
+                                                className={`px-3 py-1 text-xs font-bold rounded border transition-colors ${activeTab === i
                                                         ? "bg-primary text-primary-foreground border-primary"
                                                         : "bg-background border-border text-muted-foreground hover:text-foreground"
-                                                }`}
+                                                    }`}
                                             >
                                                 {label}
                                             </button>
@@ -902,8 +895,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                 <AnswerList qas={activeQAs} />
                             </div>
                         )}
-                        </CardContent>
-                    </Card>
+                    </CardContent>
+                </Card>
 
                 {/* ── AI Coaching Feedback ───────────────────────────────── */}
                 <AiFeedbackPanel
