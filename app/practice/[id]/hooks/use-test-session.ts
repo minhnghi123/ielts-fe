@@ -65,7 +65,7 @@ export interface UseTestSessionReturn {
     answersRef: React.MutableRefObject<Record<string, string>>;
     handleAnswerUpdate: (newAnswers: Record<string, string>) => void;
     handleStartTest: (chosenDuration: number | 'full') => Promise<void>;
-    handleFinishTest: (finalAnswers?: Record<string, string>, currentAttemptId?: string, gradingId?: string) => Promise<void>;
+    handleFinishTest: (finalAnswers?: Record<string, string>, currentAttemptId?: string, gradingId?: string, bandScore?: number) => Promise<void>;
     handleResume: () => void;
     handleDiscardAndRestart: () => void;
 }

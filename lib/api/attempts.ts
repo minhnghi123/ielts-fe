@@ -34,17 +34,9 @@ export const attemptsApi = {
 
     getAttemptsByLearner: (learnerId: string) =>
         apiClient
-            .get<{ data: TestAttempt[] }>(`/api/learners/${learnerId}/attempts`)
+            .get<{ data: TestAttempt[] }>(`/api/attempts?learnerId=${learnerId}`)
             .then((r) => r.data.data)
             .catch(async (error) => {
-                // Compatibility fallback: some deployments expose learner attempts
-                // through test-service query route instead of submission-service.
-                if (error?.response?.status === 404) {
-                    const fallback = await apiClient.get<{ data: TestAttempt[] }>(
-                        `/api/attempts?learnerId=${learnerId}`,
-                    );
-                    return fallback.data.data;
-                }
                 throw error;
             }),
 
