@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Lexend, Noto_Sans, Roboto } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "sonner";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { AuthHydrator } from "@/components/providers/auth-hydrator";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -49,10 +50,13 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background font-display text-foreground antialiased">
-        <AuthProvider>
+        {/* TanStack Query client + devtools */}
+        <QueryProvider>
+          {/* Hydrates Zustand auth store from the session cookie on first render */}
+          <AuthHydrator />
           {children}
           <Toaster position="top-center" richColors />
-        </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

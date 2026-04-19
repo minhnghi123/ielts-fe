@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/contexts/auth-context";
-import { testsApi } from "@/lib/api/tests";
-import { analyticsApi } from "@/lib/api/analytics";
+import { useAuthStore } from "@/stores/auth-store";
+import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics";
+import { useAttemptsByLearner } from "@/lib/hooks/use-attempts";
+import { useTests } from "@/lib/hooks/use-tests";
 import type { TestAttempt, DashboardSummary } from "@/lib/types";
 import { WelcomeHeader } from "./_components/welcome-header";
 import { StatOverview } from "./_components/stat-overview";
@@ -12,8 +12,8 @@ import { ModuleGrid } from "./_components/module-grid";
 import { Button } from "@/components/ui/button";
 import {
   Headphones, BookOpen, FileText, PenLine,
-  CheckCircle2, XCircle, Clock, ArrowRight,
-  Target, Zap, TrendingUp,
+  CheckCircle2, Clock, ArrowRight,
+  Target,
 } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -44,10 +44,10 @@ function bandTextColor(band: number | null | undefined): string {
 // ─── Skill Progress Panel ──────────────────────────────────────────────────────
 
 const SKILLS_META = [
-  { id: "listening", label: "Listening", icon: "headphones", accent: "#3b82f6" },
-  { id: "reading", label: "Reading", icon: "menu_book", accent: "#8b5cf6" },
-  { id: "writing", label: "Writing", icon: "edit_note", accent: "#f97316" },
-  { id: "speaking", label: "Speaking", icon: "mic", accent: "#ec4899" },
+  { id: "listening", label: "Listening", icon: "headphones" },
+  { id: "reading", label: "Reading", icon: "menu_book" },
+  { id: "writing", label: "Writing", icon: "edit_note" },
+  { id: "speaking", label: "Speaking", icon: "mic" },
 ];
 
 function SkillProgressPanel({
@@ -55,7 +55,7 @@ function SkillProgressPanel({
   attempts,
   loading,
 }: {
-  summary: DashboardSummary | null;
+  summary: DashboardSummary | null | undefined;
   attempts: TestAttempt[];
   loading: boolean;
 }) {
@@ -69,11 +69,10 @@ function SkillProgressPanel({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {SKILLS_META.map(({ id, label, icon }) => {
-          // Prefer analytics band profiles (server-computed) over client avg
-          const profileBand = summary?.bandProfiles?.find(p => p.skill === id)?.currentBand;
+          const profileBand = summary?.bandProfiles?.find((p) => p.skill === id)?.currentBand;
           const band = profileBand != null ? Number(profileBand) : null;
           const pct = band ? Math.round((band / 9) * 100) : 0;
-          const count = attempts.filter(a => (a.test as any)?.skill === id && !!a.submittedAt).length;
+          const count = attempts.filter((a) => (a.test as any)?.skill === id && !!a.submittedAt).length;
           return (
             <div key={id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -110,7 +109,7 @@ function SkillProgressPanel({
   );
 }
 
-// ─── Exam Readiness Widget ──────────────────────────────────────────────────────
+// ─── Exam Readiness Widget ─────────────────────────────────────────────────────
 
 function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number | undefined; loading: boolean }) {
   const pct = examReadiness ?? 0;
@@ -159,9 +158,9 @@ function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number
   );
 }
 
-// ─── Study Priority Card ──────────────────────────────────────────────────────
+// ─── Study Priority Card ───────────────────────────────────────────────────────
 
-function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | null; loading: boolean }) {
+function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | null | undefined; loading: boolean }) {
   const topTask = summary?.adaptiveStudyPlan?.[0];
   if (!loading && !topTask) return null;
 
@@ -220,48 +219,38 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-// ─── Dashboard Page ────────────────────────────────────────────────────────────
+// ─── Dashboard Page ─────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const [attempts, setAttempts] = useState<TestAttempt[]>([]);
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [testCounts, setTestCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const learnerId = (user as any)?.profileId || user?.id;
 
-  useEffect(() => {
-    const learnerId = (user as any)?.profileId || user?.id;
-    if (!learnerId) return;
+  // ── TanStack Query — parallel data fetching with shared cache ──────────────
+  const { data: summary, isLoading: summaryLoading } = useAnalyticsDashboard(learnerId);
+  const { data: attempts = [], isLoading: attemptsLoading } = useAttemptsByLearner(learnerId);
 
-    const skills = ["listening", "reading", "writing", "speaking"];
+  // Fetch test counts for each skill in parallel
+  const { data: listeningData } = useTests({ skill: "listening", limit: 1 });
+  const { data: readingData } = useTests({ skill: "reading", limit: 1 });
+  const { data: writingData } = useTests({ skill: "writing", limit: 1 });
+  const { data: speakingData } = useTests({ skill: "speaking", limit: 1 });
 
-    Promise.allSettled([
-      testsApi.getAttemptsByLearnerId(learnerId),
-      analyticsApi.getDashboardSummary(learnerId),
-      ...skills.map(skill =>
-        testsApi.getTests({ skill, limit: 1 })
-          .then(res => ({ skill, count: res.total ?? res.data?.length ?? 0 }))
-          .catch(() => ({ skill, count: 0 }))
-      ),
-    ]).then(([attemptsResult, summaryResult, ...skillResults]) => {
-      if (attemptsResult.status === "fulfilled") setAttempts(attemptsResult.value as TestAttempt[]);
-      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value as DashboardSummary);
-      const counts: Record<string, number> = {};
-      (skillResults as PromiseSettledResult<{ skill: string; count: number }>[]).forEach(r => {
-        if (r.status === "fulfilled") counts[r.value.skill] = r.value.count;
-      });
-      setTestCounts(counts);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [user]);
+  const isLoading = summaryLoading || attemptsLoading;
+
+  const testCounts: Record<string, number> = {
+    listening: listeningData?.total ?? 0,
+    reading: readingData?.total ?? 0,
+    writing: writingData?.total ?? 0,
+    speaking: speakingData?.total ?? 0,
+  };
 
   const recentAttempts = attempts.slice(0, 4);
 
-  // Daily tip: driven by weakest band profile from analytics
+  // Daily tip driven by weakest band profile from analytics
   const weakestSkill = (() => {
     if (summary?.bandProfiles?.length) {
       const sorted = summary.bandProfiles
-        .filter(p => p.skill !== "overall" && p.currentBand != null)
+        .filter((p) => p.skill !== "overall" && p.currentBand != null)
         .sort((a, b) => Number(a.currentBand ?? 9) - Number(b.currentBand ?? 9));
       return sorted[0]?.skill ?? "reading";
     }
@@ -281,26 +270,26 @@ export default function DashboardPage() {
 
       <WelcomeHeader userName={user?.fullName || user?.email || ""} />
 
-      <StatOverview attempts={attempts} loading={loading} />
+      <StatOverview attempts={attempts} loading={isLoading} />
 
-      {/* ── Skill + Readiness Row ──────────────────────────────────────────────── */}
+      {/* ── Skill + Readiness Row ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <SkillProgressPanel summary={summary} attempts={attempts} loading={loading} />
+          <SkillProgressPanel summary={summary} attempts={attempts} loading={isLoading} />
         </div>
-        <ExamReadinessWidget examReadiness={summary?.examReadiness} loading={loading} />
+        <ExamReadinessWidget examReadiness={summary?.examReadiness} loading={isLoading} />
       </div>
 
-      {/* ── Module Grid ────────────────────────────────────────────────────────── */}
+      {/* ── Module Grid ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-6">
         <h2 className="text-xl font-bold">Select Test Module</h2>
-        <ModuleGrid testCounts={testCounts} attempts={attempts} loading={loading} />
+        <ModuleGrid testCounts={testCounts} attempts={attempts} loading={isLoading} />
       </div>
 
-      {/* ── Bottom Grid ──────────────────────────────────────────────────────── */}
+      {/* ── Bottom Grid ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* ── Recent Activity ─────────────────────────────────────────────────── */}
+        {/* ── Recent Activity ──────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold">Recent Activity</h2>
@@ -311,7 +300,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
             </div>
@@ -325,7 +314,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {recentAttempts.map(a => {
+              {recentAttempts.map((a) => {
                 const skill = (a.test as any)?.skill ?? "reading";
                 const { bg, text } = skillColors(skill);
                 const band = Number(a.bandScore ?? 0);
@@ -381,8 +370,7 @@ export default function DashboardPage() {
         {/* ── Right Sidebar ─────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
 
-          {/* Study Priority (from analytics) */}
-          <StudyPriorityCard summary={summary} loading={loading} />
+          <StudyPriorityCard summary={summary} loading={isLoading} />
 
           {/* AI Advisor CTA */}
           <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg">

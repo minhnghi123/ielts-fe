@@ -18,7 +18,6 @@ interface ParsePreview {
 }
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
-const ADMIN_ID = "a1b2c3d4-0000-0000-0000-000000000001";
 
 // ─── Skill badge colours ──────────────────────────────────────────────────────
 
@@ -95,7 +94,6 @@ export default function ImportTestPage() {
         try {
             const form = new FormData();
             form.append("file", docxFile);
-            form.append("adminId", ADMIN_ID);
             audioFiles.forEach((af) => form.append("audioFiles", af));
 
             const res = await fetch(`${API_BASE}/tests/import`, {

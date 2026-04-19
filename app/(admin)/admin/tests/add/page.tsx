@@ -15,8 +15,7 @@ export function AddTestPageSuspense() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  const defaultAdminId = "a1b2c3d4-0000-0000-0000-000000000001";
-  const createdBy = user?.id || defaultAdminId;
+  const createdBy = user?.id || "";
 
   const initialSkill =
     (searchParams.get("skill") as
@@ -390,8 +389,8 @@ export function AddTestPageSuspense() {
                     onChange={(e) => handleTestChange("skill", e.target.value)}
                     disabled={isSkillLocked}
                     className={`w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none ${isSkillLocked
-                        ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-                        : "bg-white"
+                      ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+                      : "bg-white"
                       }`}
                   >
                     <option value="reading">Reading</option>

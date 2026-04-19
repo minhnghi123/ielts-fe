@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,8 @@ import {
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
-import { analyticsApi } from "@/lib/api/analytics";
+import { useAdminGlobalStats, useSyncAll } from "@/lib/hooks/use-analytics";
+import { useTests } from "@/lib/hooks/use-tests";
 import type { AdminGlobalStats } from "@/lib/types";
 import {
   Users, BookOpen, TrendingUp, BarChart3,
@@ -30,7 +31,7 @@ function MiniBarChart({ data }: { data: Array<{ date: string; count: number }> }
   if (!data?.length) return (
     <p className="text-xs text-muted-foreground text-center py-6">No data yet</p>
   );
-  const max = Math.max(...data.map(d => d.count), 1);
+  const max = Math.max(...data.map((d) => d.count), 1);
   const last14 = data.slice(-14);
   return (
     <div className="flex items-end gap-0.5 h-16 w-full">
@@ -97,7 +98,7 @@ function SkillBreakdownRow({ data }: { data: AdminGlobalStats["skillBreakdown"] 
   if (!data?.length) return <p className="text-xs text-muted-foreground">No data yet</p>;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {data.map(s => (
+      {data.map((s) => (
         <div key={s.skill} className={`rounded-xl p-3 ${COLORS[s.skill] ?? "bg-slate-100 text-slate-700"}`}>
           <p className="text-xs font-bold capitalize">{s.skill}</p>
           <p className="text-xl font-black tabular-nums mt-0.5">{s.avgBand.toFixed(1)}</p>
@@ -111,60 +112,49 @@ function SkillBreakdownRow({ data }: { data: AdminGlobalStats["skillBreakdown"] 
 // ─── Admin Dashboard Page ─────────────────────────────────────────────────────
 
 export default function AdminDashboardPage() {
-  const { user, setUser } = useAuth();
-  const [stats, setStats] = useState<AdminGlobalStats | null>(null);
-  const [totalTests, setTotalTests] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
 
+  // ── TanStack Query ─────────────────────────────────────────────────────────
+  const { data: stats, isLoading: statsLoading } = useAdminGlobalStats();
+  const { data: testsData, isLoading: testsLoading } = useTests({ limit: 1 });
+  const syncAllMutation = useSyncAll();
+
+  const loading = statsLoading || testsLoading;
+  const totalTests = testsData?.total ?? 0;
+
+  // ── Profile Edit (local UI state only) ────────────────────────────────────
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState({ fullName: "", avatarUrl: "" });
   const [savingProfile, setSavingProfile] = useState(false);
-
-  const fetchAllStats = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [analyticsData, testsRes] = await Promise.allSettled([
-        analyticsApi.getAdminGlobalStats(),
-        fetch(`${AUTH_API}/tests?limit=1`).then(r => r.json().catch(() => ({}))),
-      ]);
-      if (analyticsData.status === "fulfilled") setStats(analyticsData.value);
-      if (testsRes.status === "fulfilled") setTotalTests(testsRes.value?.data?.total ?? testsRes.value?.total ?? 0);
-    } catch {
-      // silently fail — show partial data
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchAllStats(); }, [fetchAllStats]);
 
   useEffect(() => {
     if (user) setEditForm({ fullName: user.fullName || "", avatarUrl: user.avatarUrl || "" });
   }, [user]);
 
-  async function handleSyncAll() {
-    setSyncing(true);
+  const handleSyncAll = async () => {
     try {
-      const result = await analyticsApi.syncAll();
+      const result = await syncAllMutation.mutateAsync();
       toast.success(`Synced analytics for ${result.synced ?? "all"} learners`);
-      fetchAllStats();
     } catch {
       toast.error("Sync failed — please try again");
-    } finally {
-      setSyncing(false);
     }
-  }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingProfile(true);
     try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("accessToken="))
+        ?.split("=")[1];
+
       const res = await fetch(`${AUTH_API}/auth/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${authApi.getStoredUser() ? (document.cookie.split("; ").find(row => row.startsWith("accessToken="))?.split("=")[1]) : ""}`,
+          Authorization: `Bearer ${token ?? ""}`,
         },
         body: JSON.stringify(editForm),
       });
@@ -198,11 +188,11 @@ export default function AdminDashboardPage() {
             variant="outline"
             size="sm"
             onClick={handleSyncAll}
-            disabled={syncing}
+            disabled={syncAllMutation.isPending}
             className="gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing…" : "Sync Analytics"}
+            <RefreshCw className={`h-4 w-4 ${syncAllMutation.isPending ? "animate-spin" : ""}`} />
+            {syncAllMutation.isPending ? "Syncing…" : "Sync Analytics"}
           </Button>
 
           {/* Admin Profile */}
@@ -234,7 +224,7 @@ export default function AdminDashboardPage() {
                         size="lg"
                         currentAvatarUrl={editForm.avatarUrl}
                         fullName={editForm.fullName}
-                        onUpload={(url) => setEditForm(prev => ({ ...prev, avatarUrl: url }))}
+                        onUpload={(url) => setEditForm((prev) => ({ ...prev, avatarUrl: url }))}
                       />
                     </div>
                     <div className="space-y-2">
@@ -259,7 +249,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ── KPI Cards ───────────────────────────────────────────────────────────── */}
+      {/* ── KPI Cards ──────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Learners"
@@ -270,7 +260,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           title="Active Tests"
-          value={loading ? "…" : (totalTests ?? 0)}
+          value={loading ? "…" : totalTests}
           subtext="Available in test library"
           icon={<BookOpen className="h-5 w-5" />}
           color="green"
@@ -295,8 +285,6 @@ export default function AdminDashboardPage() {
 
       {/* ── Charts Row ──────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Attempts per Day */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
@@ -315,7 +303,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Band Distribution */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
@@ -326,7 +313,7 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-2">
             {loading ? (
               <div className="space-y-2">
-                {[1,2,3,4,5].map(i => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="h-4 bg-slate-100 rounded animate-pulse" />
                 ))}
               </div>
@@ -337,7 +324,7 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* ── Skill Breakdown ─────────────────────────────────────────────────────── */}
+      {/* ── Skill Breakdown ──────────────────────────────────────────────────────── */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -348,7 +335,7 @@ export default function AdminDashboardPage() {
         <CardContent>
           {loading ? (
             <div className="grid grid-cols-4 gap-3">
-              {[1,2,3,4].map(i => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
             </div>
           ) : (
             <SkillBreakdownRow data={stats?.skillBreakdown ?? []} />
@@ -358,8 +345,6 @@ export default function AdminDashboardPage() {
 
       {/* ── Top Learners + Recent Activity ───────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Top Learners */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -370,7 +355,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1,2,3].map(i => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
+                {[1, 2, 3].map((i) => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
               </div>
             ) : !stats?.topLearners?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No graded learners yet</p>
@@ -402,7 +387,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -413,7 +397,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
+                {[1, 2, 3, 4].map((i) => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
               </div>
             ) : !stats?.recentActivity?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
@@ -466,8 +450,8 @@ function StatCard({
   color: "blue" | "green" | "purple" | "orange";
 }) {
   const colors = {
-    blue:   "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-    green:  "bg-green-50 dark:bg-green-900/20 text-green-600",
+    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
+    green: "bg-green-50 dark:bg-green-900/20 text-green-600",
     purple: "bg-purple-50 dark:bg-purple-900/20 text-purple-600",
     orange: "bg-orange-50 dark:bg-orange-900/20 text-orange-600",
   };

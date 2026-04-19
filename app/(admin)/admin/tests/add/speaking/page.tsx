@@ -18,7 +18,6 @@ import {
   Part3Data,
 } from "../_components/SpeakingPartCard";
 
-const DEFAULT_ADMIN_ID = "a1b2c3d4-0000-0000-0000-000000000001";
 
 const initialPart1: Part1Data = {
   topics: [
@@ -38,7 +37,7 @@ const initialPart3: Part3Data = {
 function SpeakingFormInner() {
   const router = useRouter();
   const { user } = useAuth();
-  const createdBy = user?.id || DEFAULT_ADMIN_ID;
+  const createdBy = user?.id || "";
 
   const [title, setTitle] = useState("");
   const [isMock, setIsMock] = useState(false);

@@ -9,7 +9,6 @@ import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 import { createWritingTest, CreateWritingTestRequest, WritingTaskItem } from "@/lib/api.tests";
 import WritingTaskCard, { WritingTaskData } from "../_components/WritingTaskCard";
 
-const DEFAULT_ADMIN_ID = "a1b2c3d4-0000-0000-0000-000000000001";
 
 function makTask(n: number): WritingTaskData {
   return {
@@ -24,7 +23,7 @@ function makTask(n: number): WritingTaskData {
 function WritingFormInner() {
   const router = useRouter();
   const { user } = useAuth();
-  const createdBy = user?.id || DEFAULT_ADMIN_ID;
+  const createdBy = user?.id || "";
 
   const [title, setTitle] = useState("");
   const [isMock, setIsMock] = useState(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { testsApi } from '@/lib/api/tests';
 import { authApi } from '@/lib/api/auth';
 import { usePractice } from '../practice-context';
@@ -74,6 +74,7 @@ export interface UseTestSessionReturn {
 
 export function useTestSession(testId: string): UseTestSessionReturn {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const {
         startTimer, stopTimer,
         setOnTimeUp, setOnExitAndSave,
@@ -93,11 +94,127 @@ export function useTestSession(testId: string): UseTestSessionReturn {
     // The currently-live session object (kept in sync so beforeunload can write it)
     const activeSessionRef = useRef<PracticeSession | null>(null);
 
+    // ── Finish test: submit answers → clear session → navigate to result ──────
+    // Defined early so activateTest (below) can reference it via a stable ref.
+
+    const handleFinishTest = useCallback(async (
+        finalAnswers?: Record<string, string>,
+        currentAttemptId?: string,
+        gradingId?: string,
+        bandScore?: number,
+    ) => {
+        // ── Writing/Speaking skill: AI grading bypass ──────────────────────────────────
+        if (gradingId) {
+            const idToSubmit = currentAttemptId || attemptId;
+            if (idToSubmit) {
+                try {
+                    await testsApi.submitAttempt(idToSubmit, {
+                        answers: [],
+                        ...(bandScore !== undefined && { bandScore })
+                    });
+                } catch (err) {
+                    console.error('[useTestSession] Failed to submit AI-graded attempt:', err);
+                }
+            }
+            stopTimer();
+            activeSessionRef.current = null;
+            clearSession(testId);
+            router.push(`/practice/${testId}/result?skill=writing&gradingId=${gradingId}`);
+            return;
+        }
+        const idToSubmit = currentAttemptId || attemptId;
+        if (!idToSubmit) {
+            console.warn('[useTestSession] handleFinishTest called with no attemptId');
+            return;
+        }
+
+        stopTimer();
+        activeSessionRef.current = null;
+
+        const answers = finalAnswers ?? answersRef.current;
+
+        const allQuestionIds: string[] = [];
+        if (test?.sections) {
+            for (const sec of test.sections) {
+                for (const group of sec.questionGroups ?? []) {
+                    for (const q of group.questions ?? []) {
+                        allQuestionIds.push(q.id);
+                    }
+                }
+            }
+        }
+
+        const rawAnswersArray = allQuestionIds.length > 0
+            ? allQuestionIds.map(qId => ({ questionId: qId, answer: answers[qId] ?? '' }))
+            : Object.entries(answers).map(([qId, ans]) => ({ questionId: qId, answer: ans }));
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const answersArray = rawAnswersArray.filter(a => uuidRegex.test(a.questionId));
+
+        const elapsedSeconds = testStartTimeRef.current !== null
+            ? Math.floor((Date.now() - testStartTimeRef.current) / 1000)
+            : null;
+
+        try {
+            await testsApi.submitAttempt(idToSubmit, { answers: answersArray });
+            clearSession(testId);
+            const elapsed = elapsedSeconds !== null ? `&elapsed=${elapsedSeconds}` : '';
+            router.push(`/practice/${testId}/result?attemptId=${idToSubmit}${elapsed}`);
+        } catch (err) {
+            console.error('[useTestSession] Failed to submit attempt:', err);
+            alert('Error submitting answers. Please try again.');
+        }
+    }, [attemptId, test, testId, router, stopTimer]);
+
+    // Keep a stable ref to handleFinishTest so activateTest doesn't need it as a dep
+    const handleFinishTestRef = useRef(handleFinishTest);
+    handleFinishTestRef.current = handleFinishTest;
+
+    // ── Activate test (shared by start + resume) ──────────────────────────────
+    // Uses a stable ref so it can be called from the async IIFE in the fetch
+    // effect without being a useCallback dependency that triggers re-renders.
+
+    const activateTest = useCallback((
+        attemptIdValue: string,
+        session: PracticeSession,
+        remainingMs: number,
+    ) => {
+        answersRef.current = session.answers;
+        activeSessionRef.current = session;
+        testStartTimeRef.current = session.startedAt;
+        setAttemptId(attemptIdValue);
+
+        const remainingMins = remainingMs / (60 * 1000);
+        startTimer(remainingMins, remainingMins);
+
+        setOnTimeUp(() => {
+            handleFinishTestRef.current(answersRef.current, attemptIdValue);
+        });
+
+        setOnExitAndSave(async () => {
+            await handleFinishTestRef.current(answersRef.current, attemptIdValue);
+        });
+
+        setTestState('test');
+    }, [setAttemptId, startTimer, setOnTimeUp, setOnExitAndSave]);
+    // Note: handleFinishTest is intentionally NOT a dep; accessed via ref above.
+
+    const activateTestRef = useRef(activateTest);
+    activateTestRef.current = activateTest;
+
+    // ── Save searchParams in a ref (avoid re-fetching when URL changes) ───────
+    const searchParamsRef = useRef(searchParams);
+    searchParamsRef.current = searchParams;
+
+    // Prevent auto-start from firing twice (React StrictMode double-invoke)
+    const autoStartedRef = useRef(false);
+
     // ── Fetch test + check for in-progress session ────────────────────────────
 
     useEffect(() => {
         let cancelled = false;
         setTestState('loading');
+        autoStartedRef.current = false;
 
         testsApi.getTestById(testId)
             .then((data) => {
@@ -109,6 +226,50 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 if (session) {
                     setResumeSession(session);
                     setTestState('resume-prompt');
+                    return;
+                }
+
+                // If the user came from the test-detail page with ?duration=X,
+                // skip the instructions screen and auto-start immediately.
+                const durationParam = searchParamsRef.current.get('duration');
+                if (durationParam && !autoStartedRef.current) {
+                    autoStartedRef.current = true;
+                    setIsStarting(true);
+                    setTestState('instructions'); // Transition gracefully so user sees the styled instructions page
+                    
+                    (async () => {
+                        try {
+                            const user = authApi.getStoredUser();
+                            if (!user) {
+                                if (!cancelled) setTestState('instructions');
+                                return;
+                            }
+                            const learnerId = (user as any).profileId || user.id;
+                            const attempt = await testsApi.startAttempt(testId, learnerId);
+                            if (cancelled) return;
+
+                            const skillDurations: Record<string, number> = {
+                                reading: 60, listening: 30, writing: 60, speaking: 15,
+                            };
+                            const defaultFull = skillDurations[data.skill ?? 'reading'] ?? 60;
+                            const mins = durationParam === 'full' ? defaultFull : parseInt(durationParam, 10);
+                            const durationMs = mins * 60 * 1000;
+
+                            const newSession: PracticeSession = {
+                                attemptId: attempt.id,
+                                startedAt: Date.now(),
+                                durationMs,
+                                answers: {},
+                            };
+                            saveSession(testId, newSession);
+                            activateTestRef.current(attempt.id, newSession, durationMs);
+                        } catch (err) {
+                            console.error('[useTestSession] Auto-start failed:', err);
+                            if (!cancelled) setTestState('instructions');
+                        } finally {
+                            if (!cancelled) setIsStarting(false);
+                        }
+                    })();
                 } else {
                     setTestState('instructions');
                 }
@@ -148,95 +309,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         return () => window.removeEventListener('beforeunload', onBeforeUnload);
     }, [testId]);
 
-    // ── Finish test: submit answers → clear session → navigate to result ──────
-
-    const handleFinishTest = useCallback(async (
-        finalAnswers?: Record<string, string>,
-        currentAttemptId?: string,
-        gradingId?: string,
-    ) => {
-        // ── Writing skill: AI grading bypass ──────────────────────────────────
-        // Writing tests go through /api/ai/grade-writing and do NOT create a
-        // standard test_attempt. Navigate directly to the writing result page.
-        if (gradingId) {
-            stopTimer();
-            activeSessionRef.current = null;
-            clearSession(testId);
-            router.push(`/practice/${testId}/result?skill=writing&gradingId=${gradingId}`);
-            return;
-        }
-        const idToSubmit = currentAttemptId || attemptId;
-        if (!idToSubmit) {
-            console.warn('[useTestSession] handleFinishTest called with no attemptId');
-            return;
-        }
-
-        stopTimer();
-        activeSessionRef.current = null; // prevent further localStorage writes
-
-        const answers = finalAnswers ?? answersRef.current;
-
-        // Build an answer array that includes every question (unanswered = "")
-        const allQuestionIds: string[] = [];
-        if (test?.sections) {
-            for (const sec of test.sections) {
-                for (const group of sec.questionGroups ?? []) {
-                    for (const q of group.questions ?? []) {
-                        allQuestionIds.push(q.id);
-                    }
-                }
-            }
-        }
-
-        const rawAnswersArray = allQuestionIds.length > 0
-            ? allQuestionIds.map(qId => ({ questionId: qId, answer: answers[qId] ?? '' }))
-            : Object.entries(answers).map(([qId, ans]) => ({ questionId: qId, answer: ans }));
-
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const answersArray = rawAnswersArray.filter(a => uuidRegex.test(a.questionId));
-
-        const elapsedSeconds = testStartTimeRef.current !== null
-            ? Math.floor((Date.now() - testStartTimeRef.current) / 1000)
-            : null;
-
-        try {
-            await testsApi.submitAttempt(idToSubmit, { answers: answersArray });
-            clearSession(testId);
-            const elapsed = elapsedSeconds !== null ? `&elapsed=${elapsedSeconds}` : '';
-            router.push(`/practice/${testId}/result?attemptId=${idToSubmit}${elapsed}`);
-        } catch (err) {
-            console.error('[useTestSession] Failed to submit attempt:', err);
-            alert('Error submitting answers. Please try again.');
-        }
-    }, [attemptId, test, testId, router, stopTimer]);
-
-    // ── Helpers shared by handleStartTest and handleResume ────────────────────
-
-    const activateTest = useCallback((
-        attemptIdValue: string,
-        session: PracticeSession,
-        remainingMs: number,
-    ) => {
-        answersRef.current = session.answers;
-        activeSessionRef.current = session;
-        testStartTimeRef.current = session.startedAt;
-        setAttemptId(attemptIdValue);
-
-        const remainingMins = remainingMs / (60 * 1000);
-        startTimer(remainingMins, remainingMins);
-
-        setOnTimeUp(() => {
-            handleFinishTest(answersRef.current, attemptIdValue);
-        });
-
-        setOnExitAndSave(async () => {
-            await handleFinishTest(answersRef.current, attemptIdValue);
-        });
-
-        setTestState('test');
-    }, [setAttemptId, startTimer, setOnTimeUp, setOnExitAndSave, handleFinishTest]);
-
-    // ── Start fresh test ──────────────────────────────────────────────────────
+    // ── Start fresh test (manual, from instructions screen) ──────────────────
 
     const handleStartTest = useCallback(async (chosenDuration: number | 'full' = 'full') => {
         const user = authApi.getStoredUser();
@@ -265,15 +338,14 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 answers: {},
             };
             saveSession(testId, session);
-
-            activateTest(attempt.id, session, durationMs);
+            activateTestRef.current(attempt.id, session, durationMs);
         } catch (err) {
             console.error('[useTestSession] Failed to start attempt:', err);
             alert('Could not start test. Please try again.');
         } finally {
             setIsStarting(false);
         }
-    }, [test, testId, router, activateTest]);
+    }, [test, testId, router]);
 
     // ── Resume existing session ───────────────────────────────────────────────
 
@@ -283,13 +355,12 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         const remainingMs = getRemainingMs(resumeSession);
 
         if (remainingMs <= 0) {
-            // Time has already run out — submit the saved answers automatically
-            void handleFinishTest(resumeSession.answers, resumeSession.attemptId);
+            void handleFinishTestRef.current(resumeSession.answers, resumeSession.attemptId);
             return;
         }
 
-        activateTest(resumeSession.attemptId, resumeSession, remainingMs);
-    }, [resumeSession, activateTest, handleFinishTest]);
+        activateTestRef.current(resumeSession.attemptId, resumeSession, remainingMs);
+    }, [resumeSession]);
 
     // ── Discard old session and go back to instructions ───────────────────────
 

@@ -115,7 +115,7 @@ export function WritingTestInterface({
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: (answers?: Record<string, string>, gradingId?: string) => void;
+    onFinish: (answers?: Record<string, string>, gradingId?: string, bandScore?: number) => void;
 }) {
     const [responses, setResponses] = useState<Record<number, string>>({});
     const [gradingStep, setGradingStep] = useState<GradingStep | null>(null);
@@ -188,7 +188,7 @@ export function WritingTestInterface({
                 finalAnswers[`writing_task_${t.taskNumber}`] = responses[t.taskNumber] || "";
             });
 
-            onFinish(finalAnswers, data.gradingId);
+            onFinish(finalAnswers, data.gradingId, data.overallBand);
         } catch (err) {
             console.error("[WritingTestInterface] Grading error:", err);
             setGradingStep("error");

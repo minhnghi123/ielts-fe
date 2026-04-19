@@ -102,13 +102,12 @@ function StepBadge({
   return (
     <div className="flex items-center gap-2">
       <div
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-          done
+        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done
             ? "bg-green-500 text-white"
             : active
               ? "bg-orange-500 text-white"
               : "bg-slate-200 text-slate-500"
-        }`}
+          }`}
       >
         {done ? "✓" : n}
       </div>
@@ -205,10 +204,9 @@ export default function AIGeneratorPage() {
 
   const handleSave = async () => {
     if (!generated) return;
-    const defaultAdminId = "a1b2c3d4-0000-0000-0000-000000000001";
     const payload: CreateManualTestRequest = {
       ...generated,
-      createdBy: user?.id ?? defaultAdminId,
+      createdBy: user?.id,
     } as CreateManualTestRequest;
     setIsSaving(true);
     try {
@@ -286,11 +284,10 @@ export default function AIGeneratorPage() {
                       setSkill(s);
                       setNumSections(s === "listening" ? 4 : 3);
                     }}
-                    className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold capitalize transition-all ${
-                      skill === s
+                    className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold capitalize transition-all ${skill === s
                         ? "border-orange-500 bg-orange-50 text-orange-700"
                         : "border-border text-muted-foreground hover:border-slate-400"
-                    }`}
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[18px] align-middle mr-1.5">
                       {s === "reading" ? "menu_book" : "headphones"}
@@ -372,11 +369,10 @@ export default function AIGeneratorPage() {
                       key={value}
                       type="button"
                       onClick={() => toggleType(value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                        sel
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${sel
                           ? "border-orange-400 bg-orange-50 text-orange-700"
                           : "border-border text-muted-foreground hover:border-slate-400"
-                      }`}
+                        }`}
                     >
                       {label}
                     </button>
@@ -483,11 +479,10 @@ export default function AIGeneratorPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
-                        generated.skill === "reading"
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${generated.skill === "reading"
                           ? "bg-blue-100 text-blue-700"
                           : "bg-green-100 text-green-700"
-                      }`}
+                        }`}
                     >
                       {generated.skill}
                     </span>
@@ -686,7 +681,7 @@ export default function AIGeneratorPage() {
                                     {/* Options */}
                                     {Array.isArray(q.config?.options) &&
                                       (q.config.options as string[]).length >
-                                        0 && (
+                                      0 && (
                                         <div className="ml-7 mt-1.5 flex flex-wrap gap-1">
                                           {(q.config.options as string[]).map(
                                             (opt, oi) => (

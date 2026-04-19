@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '@/lib/api';
 import type {
     TestAttempt,
     QuestionAttempt,
@@ -6,39 +6,14 @@ import type {
     SpeakingSubmission,
 } from '../types';
 
-const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-const submissionAxios = axios.create({
-    baseURL: BASE_URL,
-    timeout: 15000,
-    headers: { 'Content-Type': 'application/json' },
-});
-
-submissionAxios.interceptors.request.use((config) => {
-    if (typeof document !== 'undefined') {
-        const cookies = document.cookie.split(';').reduce(
-            (acc, c) => {
-                const [k, v] = c.trim().split('=');
-                acc[k] = v;
-                return acc;
-            },
-            {} as Record<string, string>,
-        );
-        const token = cookies['accessToken'];
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
 export const attemptsApi = {
     startAttempt: (learnerId: string, testId: string) =>
-        submissionAxios
+        apiClient
             .post<{ data: TestAttempt }>('/api/attempts', { learnerId, testId })
             .then((r) => r.data.data),
 
     saveAnswer: (attemptId: string, questionId: string, answer: string) =>
-        submissionAxios
+        apiClient
             .post<{ data: QuestionAttempt }>(`/api/attempts/${attemptId}/answers`, {
                 questionId,
                 answer,
@@ -46,26 +21,26 @@ export const attemptsApi = {
             .then((r) => r.data.data),
 
     submitAttempt: (attemptId: string) =>
-        submissionAxios
+        apiClient
             .post<{ data: TestAttempt }>(`/api/attempts/${attemptId}/submit`)
             .then((r) => r.data.data),
 
     getAttempt: (attemptId: string) =>
-        submissionAxios
+        apiClient
             .get<{ data: TestAttempt & { questionAttempts: QuestionAttempt[] } }>(
                 `/api/attempts/${attemptId}`,
             )
             .then((r) => r.data.data),
 
     getAttemptsByLearner: (learnerId: string) =>
-        submissionAxios
+        apiClient
             .get<{ data: TestAttempt[] }>(`/api/learners/${learnerId}/attempts`)
             .then((r) => r.data.data)
             .catch(async (error) => {
                 // Compatibility fallback: some deployments expose learner attempts
                 // through test-service query route instead of submission-service.
                 if (error?.response?.status === 404) {
-                    const fallback = await submissionAxios.get<{ data: TestAttempt[] }>(
+                    const fallback = await apiClient.get<{ data: TestAttempt[] }>(
                         `/api/attempts?learnerId=${learnerId}`,
                     );
                     return fallback.data.data;
@@ -74,7 +49,7 @@ export const attemptsApi = {
             }),
 
     submitWriting: (learnerId: string, writingTaskId: string, content: string) =>
-        submissionAxios
+        apiClient
             .post<{ data: WritingSubmission }>('/api/writing-submissions', {
                 learnerId,
                 writingTaskId,
@@ -83,7 +58,7 @@ export const attemptsApi = {
             .then((r) => r.data.data),
 
     getWritingSubmission: (id: string) =>
-        submissionAxios
+        apiClient
             .get<{ data: WritingSubmission }>(`/api/writing-submissions/${id}`)
             .then((r) => r.data.data),
 
@@ -93,7 +68,7 @@ export const attemptsApi = {
         audioUrl: string,
         transcript?: string,
     ) =>
-        submissionAxios
+        apiClient
             .post<{ data: SpeakingSubmission }>('/api/speaking-submissions', {
                 learnerId,
                 speakingPartId,
@@ -103,7 +78,7 @@ export const attemptsApi = {
             .then((r) => r.data.data),
 
     getSpeakingSubmission: (id: string) =>
-        submissionAxios
+        apiClient
             .get<{ data: SpeakingSubmission }>(`/api/speaking-submissions/${id}`)
             .then((r) => r.data.data),
 };

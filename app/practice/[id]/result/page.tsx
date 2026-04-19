@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
     CheckCircle2, XCircle, Clock, SkipForward,
     RotateCcw, ChevronRight, AlertCircle, ListChecks,
-    FileText, Table2, Headphones, BookOpen, Sparkles, RefreshCw,
+    Table2, Headphones, BookOpen, Sparkles, RefreshCw, FileText,
 } from "lucide-react";
 
 import { useEffect, useState, use, useCallback, useRef } from "react";
@@ -630,7 +630,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         : qaEnriched.filter(qa => qa.sectionIdx === activeTab - 1);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
 
             {/* ── Sticky Header ──────────────────────────────────────────── */}
             <div className="bg-white dark:bg-slate-900 border-b border-border sticky top-0 z-20 shadow-sm">
@@ -659,12 +659,6 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             <ListChecks className="h-3.5 w-3.5" />
                             {showAnswers ? "Hide Answers" : "Show Answers"}
                         </Button>
-                        <Link href={`/practice/${testId}`}>
-                            <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5">
-                                <FileText className="h-3.5 w-3.5" />
-                                View Test
-                            </Button>
-                        </Link>
                         <Link href={`/practice/${testId}`}>
                             <Button size="sm" className="h-8 text-xs font-semibold gap-1.5">
                                 <RotateCcw className="h-3.5 w-3.5" />
@@ -763,8 +757,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                     ))}
                 </div>
 
-                {/* ── Band Score (simple, no reference table) ────────────── */}
-                {isAutoGraded && (
+                {/* ── Band Score — only for Writing / Speaking (AI-assessed) ── */}
+                {!isAutoGraded && (
                     <Card className="bg-white dark:bg-slate-900 shadow-sm border">
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="flex-shrink-0 text-center min-w-[80px]">

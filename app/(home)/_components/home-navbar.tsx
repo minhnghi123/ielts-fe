@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter, usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuthStore } from "@/stores/auth-store";
+import { useLogout } from "@/lib/hooks/use-auth";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -22,9 +24,11 @@ const NAV_LINKS = [
 export function HomeNavbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoggedIn, loading, logout } = useAuth();
+  const user = useAuthStore((s) => s.user);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const loading = useAuthStore((s) => s.loading);
+  const logout = useLogout();
 
-  // Get initials from email or name for avatar fallback
   const initials = user?.fullName
     ? user.fullName.charAt(0).toUpperCase()
     : user?.email
@@ -45,8 +49,7 @@ export function HomeNavbar() {
 
           <nav className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map(({ href, label }) => {
-              const isActive =
-                href === "/" ? pathname === "/" : pathname.startsWith(href);
+              const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (
                 <Link
                   key={href}
@@ -65,12 +68,9 @@ export function HomeNavbar() {
 
         {/* Right: Search + Auth */}
         <div className="flex items-center gap-4">
-          {/* Search */}
           {pathname === "/tests" && (
             <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 w-56">
-              <span className="material-symbols-outlined text-muted-foreground text-[20px]">
-                search
-              </span>
+              <span className="material-symbols-outlined text-muted-foreground text-[20px]">search</span>
               <input
                 className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-muted-foreground ml-2 text-foreground"
                 placeholder="Search tests..."
@@ -83,7 +83,6 @@ export function HomeNavbar() {
           {loading ? (
             <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
           ) : isLoggedIn ? (
-            /* Logged-in state */
             <div className="flex items-center gap-3">
               <button className="text-muted-foreground hover:text-primary transition-colors">
                 <span className="material-symbols-outlined">notifications</span>
@@ -104,9 +103,7 @@ export function HomeNavbar() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard")}>
-                    <span className="material-symbols-outlined text-[18px] mr-2">
-                      dashboard
-                    </span>
+                    <span className="material-symbols-outlined text-[18px] mr-2">dashboard</span>
                     Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -114,22 +111,15 @@ export function HomeNavbar() {
                     className="text-destructive focus:text-destructive"
                     onClick={logout}
                   >
-                    <span className="material-symbols-outlined text-[18px] mr-2">
-                      logout
-                    </span>
+                    <span className="material-symbols-outlined text-[18px] mr-2">logout</span>
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           ) : (
-            /* Guest state */
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/login")}
-              >
+              <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>
                 Sign In
               </Button>
               <Button size="sm" onClick={() => router.push("/register")}>

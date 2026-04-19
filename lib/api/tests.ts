@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from '@/lib/api';
 import type {
     Test,
     PaginatedTests,
@@ -7,33 +7,7 @@ import type {
     WritingTask,
     SpeakingPart,
     TestAttempt,
-    QuestionAttempt,
 } from '../types';
-
-const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-const testAxios = axios.create({
-    baseURL: BASE_URL,
-    timeout: 15000,
-    headers: { 'Content-Type': 'application/json' },
-});
-
-testAxios.interceptors.request.use((config) => {
-    if (typeof document !== 'undefined') {
-        const cookies = document.cookie.split(';').reduce(
-            (acc, c) => {
-                const [k, v] = c.trim().split('=');
-                acc[k] = v;
-                return acc;
-            },
-            {} as Record<string, string>,
-        );
-        const token = cookies['accessToken'];
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
 
 export const testsApi = {
     getTests: (params?: {
@@ -42,17 +16,17 @@ export const testsApi = {
         page?: number;
         limit?: number;
     }) =>
-        testAxios
+        apiClient
             .get<{ data: PaginatedTests }>('/api/tests', { params })
             .then((r) => r.data.data),
 
     getTestById: (id: string) =>
-        testAxios
+        apiClient
             .get<{ data: Test }>(`/api/tests/${id}`)
             .then((r) => r.data.data),
 
     getSections: (testId: string) =>
-        testAxios
+        apiClient
             .get<{ data: Section[] }>(`/api/tests/${testId}/sections`)
             .then((r) => r.data.data),
 
@@ -61,17 +35,17 @@ export const testsApi = {
      * The backend models questions under groups, not directly under sections.
      */
     getQuestions: (groupId: string) =>
-        testAxios
+        apiClient
             .get<{ data: Question[] }>(`/api/groups/${groupId}/questions`)
             .then((r) => r.data.data),
 
     getWritingTasks: (testId: string) =>
-        testAxios
+        apiClient
             .get<{ data: WritingTask[] }>(`/api/tests/${testId}/writing-tasks`)
             .then((r) => r.data.data),
 
     getSpeakingParts: (testId: string) =>
-        testAxios
+        apiClient
             .get<{ data: SpeakingPart[] }>(`/api/tests/${testId}/speaking-parts`)
             .then((r) => r.data.data),
 
@@ -81,7 +55,7 @@ export const testsApi = {
         isMock: boolean;
         createdBy: string;
     }) =>
-        testAxios
+        apiClient
             .post<{ data: Test }>('/api/tests', dto)
             .then((r) => r.data.data),
 
@@ -89,11 +63,11 @@ export const testsApi = {
         id: string,
         dto: Partial<Pick<Test, 'title' | 'skill' | 'isMock'>>,
     ) =>
-        testAxios
+        apiClient
             .put<{ data: Test }>(`/api/tests/${id}`, dto)
             .then((r) => r.data.data),
 
-    deleteTest: (id: string) => testAxios.delete(`/api/tests/${id}`),
+    deleteTest: (id: string) => apiClient.delete(`/api/tests/${id}`),
 
     // ─── Sections ─────────────────────────────────────────────────────────────
 
@@ -106,7 +80,7 @@ export const testsApi = {
             timeLimit?: number;
         },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: Section }>(`/api/tests/${testId}/sections`, dto)
             .then((r) => r.data.data),
 
@@ -119,12 +93,12 @@ export const testsApi = {
             timeLimit?: number;
         },
     ) =>
-        testAxios
+        apiClient
             .put<{ data: Section }>(`/api/sections/${sectionId}`, dto)
             .then((r) => r.data.data),
 
     deleteSection: (sectionId: string) =>
-        testAxios.delete(`/api/sections/${sectionId}`),
+        apiClient.delete(`/api/sections/${sectionId}`),
 
     // ─── Question Groups ───────────────────────────────────────────────────────
 
@@ -132,7 +106,7 @@ export const testsApi = {
         sectionId: string,
         dto: { groupOrder: number; instructions?: string },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: { id: string; groupOrder: number; instructions: string } }>(
                 `/api/sections/${sectionId}/groups`,
                 dto,
@@ -143,7 +117,7 @@ export const testsApi = {
         groupId: string,
         dto: { groupOrder?: number; instructions?: string },
     ) =>
-        testAxios
+        apiClient
             .put<{ data: { id: string; groupOrder: number; instructions: string } }>(
                 `/api/groups/${groupId}`,
                 dto,
@@ -151,7 +125,7 @@ export const testsApi = {
             .then((r) => r.data.data),
 
     deleteGroup: (groupId: string) =>
-        testAxios.delete(`/api/groups/${groupId}`),
+        apiClient.delete(`/api/groups/${groupId}`),
 
     // ─── Questions ────────────────────────────────────────────────────────────
 
@@ -169,7 +143,7 @@ export const testsApi = {
             };
         },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: Question }>(`/api/groups/${groupId}/questions`, dto)
             .then((r) => r.data.data),
 
@@ -187,12 +161,12 @@ export const testsApi = {
             };
         },
     ) =>
-        testAxios
+        apiClient
             .put<{ data: Question }>(`/api/questions/${questionId}`, dto)
             .then((r) => r.data.data),
 
     deleteQuestion: (questionId: string) =>
-        testAxios.delete(`/api/questions/${questionId}`),
+        apiClient.delete(`/api/questions/${questionId}`),
 
     // ─── Writing Tasks ────────────────────────────────────────────────────────
 
@@ -204,7 +178,7 @@ export const testsApi = {
             wordLimit: number;
         },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: WritingTask }>(
                 `/api/tests/${testId}/writing-tasks`,
                 dto,
@@ -212,7 +186,7 @@ export const testsApi = {
             .then((r) => r.data.data),
 
     deleteWritingTask: (taskId: string) =>
-        testAxios.delete(`/api/writing-tasks/${taskId}`),
+        apiClient.delete(`/api/writing-tasks/${taskId}`),
 
     // ─── Speaking Parts ───────────────────────────────────────────────────────
 
@@ -223,7 +197,7 @@ export const testsApi = {
             prompt?: string;
         },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: SpeakingPart }>(
                 `/api/tests/${testId}/speaking-parts`,
                 dto,
@@ -231,34 +205,34 @@ export const testsApi = {
             .then((r) => r.data.data),
 
     deleteSpeakingPart: (partId: string) =>
-        testAxios.delete(`/api/speaking-parts/${partId}`),
+        apiClient.delete(`/api/speaking-parts/${partId}`),
 
     // ─── Test Attempts ────────────────────────────────────────────────────────
 
     startAttempt: (testId: string, learnerId: string) =>
-        testAxios
+        apiClient
             .post<{ data: TestAttempt }>(`/api/tests/${testId}/attempts`, { learnerId })
             .then((r) => r.data.data),
 
     getAttemptById: (attemptId: string) =>
-        testAxios
+        apiClient
             .get<{ data: TestAttempt }>(`/api/attempts/${attemptId}`)
             .then((r) => r.data.data),
 
     submitAttempt: (
         attemptId: string,
-        dto: { answers: { questionId: string; answer?: string }[] }
+        dto: { answers: { questionId: string; answer?: string }[]; bandScore?: number },
     ) =>
-        testAxios
+        apiClient
             .post<{ data: TestAttempt }>(`/api/attempts/${attemptId}/submit`, dto)
             .then((r) => r.data.data),
 
     getAttemptsByLearnerId: (learnerId: string) =>
-        testAxios
+        apiClient
             .get<{ data: TestAttempt[] }>(`/api/attempts?learnerId=${learnerId}`)
             .then((r) => r.data.data),
 
     /** Persist AI-generated feedback text back to the test_attempt row. */
     saveAiFeedback: (attemptId: string, aiFeedback: string) =>
-        testAxios.put(`/api/attempts/${attemptId}/ai-feedback`, { aiFeedback }),
+        apiClient.put(`/api/attempts/${attemptId}/ai-feedback`, { aiFeedback }),
 };

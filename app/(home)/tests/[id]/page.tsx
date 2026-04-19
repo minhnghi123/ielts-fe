@@ -97,7 +97,6 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const [test, setTest] = useState<Test | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [duration, setDuration] = useState("full");
 
   useEffect(() => {
     testsApi.getTestById(id)
@@ -301,28 +300,12 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Practice Duration</label>
-                  <Select value={duration} onValueChange={setDuration}>
-                    <SelectTrigger className="w-full h-11">
-                      <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full">Full Test ({durConfig.text})</SelectItem>
-                      <SelectItem value="40">40 minutes</SelectItem>
-                      <SelectItem value="20">20 minutes</SelectItem>
-                      <SelectItem value="10">10 minutes (Quick)</SelectItem>
-                      <SelectItem value="untimed">Untimed Mode</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <Button
-                  className={`w-full h-12 text-base font-bold bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 shadow-lg transition-all gap-2`}
-                  onClick={() => router.push(`/practice/${test.id}?duration=${duration}`)}
+                  className={`w-[calc(100%+1px)] h-12 text-base font-bold bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 shadow-lg transition-all gap-2`}
+                  onClick={() => router.push(`/practice/${test.id}`)}
                 >
                   <PlayCircle className="h-5 w-5" />
-                  Start Test Now
+                  Enter Practice Room
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">

@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useAuth } from "@/contexts/auth-context";
-import { attemptsApi } from "@/lib/api/attempts";
-import type { TestAttempt } from "@/lib/types";
+import { useAuthStore } from "@/stores/auth-store";
+import { useAttemptsByLearner } from "@/lib/hooks/use-attempts";
 
 const SKILL_COLORS: Record<string, string> = {
   reading: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
@@ -15,26 +13,21 @@ const SKILL_COLORS: Record<string, string> = {
   speaking: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
 };
 
-// Optional: removed PLACEHOLDER_ROWS to prevent fake data being shown
-
 export function RecentActivity() {
-  const { user, isLoggedIn, loading: authLoading } = useAuth();
-  const [attempts, setAttempts] = useState<TestAttempt[]>([]);
-  const [loading, setLoading] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const loading = useAuthStore((s) => s.loading);
 
-  useEffect(() => {
-    if (isLoggedIn && user?.profileId) {
-      setLoading(true);
-      attemptsApi
-        .getAttemptsByLearner(user.profileId)
-        .then((data) => setAttempts(data.slice(0, 5)))
-        .catch(() => setAttempts([]))
-        .finally(() => setLoading(false));
-    }
-    // console.log(attempts.length  );
-  }, [isLoggedIn, user?.profileId]);
+  // TanStack Query — data is cached; if dashboard already fetched this, no extra request is made
+  const { data: attempts = [], isLoading: attemptsLoading } = useAttemptsByLearner(
+    isLoggedIn ? (user?.profileId ?? user?.id) : undefined,
+  );
 
-  if (authLoading) return null;
+  const recentAttempts = attempts.slice(0, 5);
+
+  const isLoading = attemptsLoading;
+
+  if (loading) return null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -48,7 +41,7 @@ export function RecentActivity() {
       </div>
 
       <Card className="overflow-hidden border-border bg-white dark:bg-[#151c2a]">
-        {loading ? (
+        {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-10 bg-muted rounded animate-pulse" />
@@ -66,8 +59,8 @@ export function RecentActivity() {
             </thead>
             <tbody className="divide-y divide-border">
               {isLoggedIn ? (
-                attempts.length > 0 ? (
-                  attempts.map((a) => (
+                recentAttempts.length > 0 ? (
+                  recentAttempts.map((a) => (
                     <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-6 py-4 font-semibold text-sm">
                         <Link href={`/practice/${a.testId}/result?attemptId=${a.id}`} className="hover:text-primary">
@@ -75,20 +68,18 @@ export function RecentActivity() {
                         </Link>
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground hidden sm:table-cell">
-                        {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : new Date(a.startedAt).toLocaleDateString()}
+                        {a.submittedAt
+                          ? new Date(a.submittedAt).toLocaleDateString()
+                          : new Date(a.startedAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge className="bg-primary/10 text-primary border-0 text-xs">
+                        <Badge className={`border-0 text-xs ${SKILL_COLORS[a.test?.skill ?? ""] ?? "bg-primary/10 text-primary"}`}>
                           {a.test?.skill}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 font-bold text-primary">
-                        {/* {a.bandScore ? a.bandScore.toFixed(1) : a.rawScore ?? "—"} */}
-                        {a.bandScore}
-                      </td>
+                      <td className="px-6 py-4 font-bold text-primary">{a.bandScore}</td>
                     </tr>
                   ))
-                  
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
