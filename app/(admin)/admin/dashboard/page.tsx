@@ -23,7 +23,7 @@ import {
   RefreshCw, Award, Activity, Target,
 } from "lucide-react";
 
-const AUTH_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
+const AUTH_API = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 // ─── Mini Bar Chart ────────────────────────────────────────────────────────────
 

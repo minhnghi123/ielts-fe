@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const SYSTEM_PROMPT = `You are an expert IELTS examiner with 20 years of experience grading Writing tasks. 
 You must evaluate the given essays strictly against official IELTS band descriptors.

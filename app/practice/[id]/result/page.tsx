@@ -415,7 +415,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
     useEffect(() => {
         if (skillParam === "writing" && gradingId) {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const baseUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
             fetch(`${baseUrl}/api/writing-gradings/${gradingId}`)
                 .then(res => {
                     if (!res.ok) throw new Error("Failed to fetch");

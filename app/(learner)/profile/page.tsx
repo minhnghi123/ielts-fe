@@ -20,7 +20,7 @@ import {
     TrendingUp, Calendar, Trophy,
 } from "lucide-react";
 
-const AUTH_API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
+const AUTH_API = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

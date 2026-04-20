@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
 
   // ── Save AI feedback to test_attempts via the NestJS backend ─────────────
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const apiBase = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
   try {
     await fetch(`${apiBase}/api/attempts/${body.attemptId}/ai-feedback`, {
       method: 'PUT',
