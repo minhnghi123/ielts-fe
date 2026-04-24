@@ -65,6 +65,30 @@ export interface SpeakingPart {
     testId: string;
     partNumber: number;
     prompt?: string;
+    config?: {
+        // Part 1
+        topics?: { topicName: string; questions: { questionText: string }[] }[];
+        // Part 2
+        cues?: string[];
+        prepTime?: number;
+        speakTime?: number;
+        // Part 3
+        questions?: { questionText: string }[];
+    };
+}
+
+export interface ConversationMessage {
+    role: 'examiner' | 'candidate';
+    content: string;
+}
+
+export interface PartGrading {
+    fluency: number;
+    lexical: number;
+    grammar: number;
+    pronunciation: number;
+    overall: number;
+    suggestions: { criterion: string; feedback: string; improvement: string }[];
 }
 
 export interface PaginatedTests {

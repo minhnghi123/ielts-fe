@@ -1,11 +1,105 @@
-import { useState, useEffect } from "react";
-import type { Test } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { Test, ConversationMessage, PartGrading } from "@/lib/types";
+import { useUser } from "@/stores/auth-store";
 import { Badge } from "@/components/ui/badge";
+import { Mic, MicOff, Loader2, Volume2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { SpeakingGradingCard } from "./speaking-grading-card";
+import { attemptsApi } from "@/lib/api/attempts";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Phase =
+    | 'loading'      // fetching first examiner message
+    | 'speaking'     // TTS playing examiner message
+    | 'prep'         // Part 2 preparation countdown
+    | 'examiner'     // waiting for candidate to press mic
+    | 'recording'    // candidate is speaking (silence detection active)
+    | 'processing'   // waiting for AI response
+    | 'grading';     // showing score card overlay
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+async function uploadAudioBlob(blob: Blob): Promise<string> {
+    const form = new FormData();
+    form.append('file', new File([blob], 'speaking.webm', { type: blob.type }));
+    const res = await fetch('/api/upload/audio', { method: 'POST', body: form });
+    if (!res.ok) throw new Error('Audio upload failed');
+    const json = await res.json() as { url: string };
+    return json.url;
+}
+
+// ─── Waveform Visualizer ──────────────────────────────────────────────────────
+
+function WaveformVisualizer({ analyser }: { analyser: AnalyserNode | null }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !analyser) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const bufLen = analyser.frequencyBinCount;
+        const data = new Uint8Array(bufLen);
+        let rafId = 0;
+
+        function draw() {
+            rafId = requestAnimationFrame(draw);
+            analyser!.getByteFrequencyData(data);
+            const W = canvas!.width;
+            const H = canvas!.height;
+            ctx!.clearRect(0, 0, W, H);
+            const bw = Math.max(2, Math.floor(W / bufLen) - 1);
+            for (let i = 0; i < bufLen; i++) {
+                const norm = data[i] / 255;
+                const bh = Math.max(3, norm * H);
+                ctx!.fillStyle = '#ef4444';
+                ctx!.fillRect(i * (bw + 1), H - bh, bw, bh);
+            }
+        }
+        draw();
+        return () => cancelAnimationFrame(rafId);
+    }, [analyser]);
+
+    return <canvas ref={canvasRef} width={256} height={48} className="w-64 h-12 rounded opacity-80" />;
+}
+
+// ─── Examiner Avatar ──────────────────────────────────────────────────────────
+
+function ExaminerAvatar({ phase }: { phase: Phase }) {
+    const isSpeaking = phase === 'speaking';
+    const isRecording = phase === 'recording';
+
+    return (
+        <div className="relative flex items-center justify-center h-32 w-32">
+            {isSpeaking && (
+                <>
+                    <div className="absolute inset-0 rounded-full border border-blue-400/30 animate-ping" />
+                    <div className="absolute inset-[-6px] rounded-full border-2 border-blue-400/50 animate-pulse" />
+                </>
+            )}
+            {isRecording && (
+                <div className="absolute inset-[-6px] rounded-full border-2 border-red-400/60 animate-pulse" />
+            )}
+            <div className={`relative h-24 w-24 rounded-full bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-white text-4xl font-bold shadow-2xl transition-all duration-300 ${
+                isSpeaking ? 'ring-2 ring-blue-400 scale-105' : isRecording ? 'ring-2 ring-red-400' : ''
+            }`}>
+                S
+                {isSpeaking && (
+                    <div className="absolute bottom-1 right-1 h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Volume2 className="h-3 w-3 text-white" />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function SpeakingTestInterface({
-    testId,
     test,
     onFinish,
 }: {
@@ -13,186 +107,534 @@ export function SpeakingTestInterface({
     test?: Test | null;
     onFinish: () => void;
 }) {
-    const [part, setPart] = useState<1 | 2 | 3>(1);
-    const [isRecording, setIsRecording] = useState(false);
-    const [timer, setTimer] = useState(0);
+    const user = useUser();
 
-    // Extract real data, fallback to empty states if not available
-    const testParts = (test as any)?.speakingParts || [];
-    const p1 = testParts.find((p: any) => p.partNumber === 1);
-    const p2 = testParts.find((p: any) => p.partNumber === 2);
-    const p3 = testParts.find((p: any) => p.partNumber === 3);
+    const [currentPart, setCurrentPart] = useState<1 | 2 | 3>(1);
+    const [phase, setPhase] = useState<Phase>('loading');
+    const [history, setHistory] = useState<ConversationMessage[]>([]);
+    const [currentQuestion, setCurrentQuestion] = useState('');
+    const [liveTranscript, setLiveTranscript] = useState('');
+    const [partGrading, setPartGrading] = useState<PartGrading | null>(null);
+    const [allGradings, setAllGradings] = useState<(PartGrading & { partNumber: number })[]>([]);
+    const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
+    const [prepTimeLeft, setPrepTimeLeft] = useState(60);
+    const [showHistory, setShowHistory] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const part1Topics = p1?.config?.topics || [];
-    const part2MainTopic = p2?.prompt || "";
-    const part2Cues = p2?.config?.cues || [];
-    const part2PrepTime = p2?.config?.prepTime || 1;
-    const part2SpeakTime = p2?.config?.speakTime || 2;
-    const part3Questions = p3?.config?.questions || [];
+    // Audio recording refs
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const partAudioChunksRef = useRef<Blob[]>([]);
 
-    // Reset timer when switching parts or recording status
+    // Speech recognition
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognitionRef = useRef<any>(null);
+    const finalTranscriptRef = useRef('');
+
+    // Web Audio for silence detection + waveform
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const silenceRafRef = useRef<number>(0);
+    const silenceStartRef = useRef<number | null>(null);
+
+    // TTS generation counter — prevents stale onend/onerror from old utterances
+    const ttsGenRef = useRef(0);
+
+    // Stable ref for currentPart (used inside RAF callbacks to avoid stale closure)
+    const currentPartRef = useRef(currentPart);
+    useEffect(() => { currentPartRef.current = currentPart; }, [currentPart]);
+
+    const speakingParts = test?.speakingParts ?? [];
+    const getPartData = useCallback((partNum: number) => {
+        return speakingParts.find(p => p.partNumber === partNum) ?? null;
+    }, [speakingParts]);
+
+    const partLabels = ['Introduction & Interview', 'Individual Long Turn', 'Two-Way Discussion'];
+    const partLabel = partLabels[currentPart - 1];
+    const currentPartData = getPartData(currentPart);
+
+    // ── Cleanup on unmount ───────────────────────────────────────────────────
     useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isRecording) {
-            interval = setInterval(() => setTimer((t) => t + 1), 1000);
+        return () => {
+            window.speechSynthesis?.cancel();
+            cancelAnimationFrame(silenceRafRef.current);
+            audioCtxRef.current?.close().catch(() => {});
+            recognitionRef.current?.stop();
+            if (mediaRecorderRef.current?.state !== 'inactive') {
+                mediaRecorderRef.current?.stop();
+            }
+        };
+    }, []);
+
+    // ── Part 2 prep countdown ────────────────────────────────────────────────
+    useEffect(() => {
+        if (phase !== 'prep') return;
+        setPrepTimeLeft(60);
+        const id = setInterval(() => {
+            setPrepTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(id);
+                    setPhase('examiner');
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [phase]);
+
+    // ── TTS: speak examiner message, then transition to afterPhase ───────────
+    const speakExaminer = useCallback((text: string, afterPhase: Phase) => {
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
+            setCurrentQuestion(text);
+            setPhase(afterPhase);
+            return;
         }
-        return () => clearInterval(interval);
-    }, [isRecording]);
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
+        window.speechSynthesis.cancel();
+        const gen = ++ttsGenRef.current;
+        setCurrentQuestion(text);
+        setPhase('speaking');
 
-    const handleNextPart = () => {
-        setIsRecording(false);
-        setTimer(0);
-        if (part < 3) {
-            setPart(p => (p + 1) as 1 | 2 | 3);
-        } else {
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.lang = 'en-GB';
+        utt.rate = 0.90;
+        utt.pitch = 1.02;
+
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.lang.startsWith('en-GB'))
+            ?? voices.find(v => v.lang.startsWith('en'));
+        if (voice) utt.voice = voice;
+
+        utt.onend = () => { if (ttsGenRef.current === gen) setPhase(afterPhase); };
+        utt.onerror = (e) => {
+            if (e.error !== 'interrupted' && ttsGenRef.current === gen) setPhase(afterPhase);
+        };
+
+        window.speechSynthesis.speak(utt);
+    }, []);
+
+    // ── Call examiner AI ─────────────────────────────────────────────────────
+    const callExaminer = useCallback(async (
+        action: 'start_part' | 'respond' | 'grade_part',
+        partNum: number,
+        partHistory: ConversationMessage[],
+        transcript?: string,
+    ) => {
+        setPhase('processing');
+        setErrorMsg(null);
+
+        const partData = getPartData(partNum);
+        const partConfig = partData ? {
+            prompt: partData.prompt,
+            topics: partData.config?.topics,
+            cues: partData.config?.cues,
+            prepTime: partData.config?.prepTime,
+            speakTime: partData.config?.speakTime,
+            questions: partData.config?.questions,
+        } : {};
+
+        const historyToSend = action === 'respond' && transcript
+            ? [...partHistory, { role: 'candidate' as const, content: transcript }]
+            : partHistory;
+
+        try {
+            const res = await fetch('/api/ai/speaking-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action,
+                    partNumber: partNum,
+                    partConfig,
+                    conversationHistory: historyToSend,
+                    userTranscript: transcript,
+                }),
+            });
+
+            if (!res.ok) throw new Error(`AI request failed (${res.status})`);
+
+            const data = await res.json() as {
+                examinerMessage: string;
+                isPartDone: boolean;
+                grading?: PartGrading;
+            };
+
+            setHistory(prev => {
+                const next = [...prev];
+                if (action === 'respond' && transcript) {
+                    next.push({ role: 'candidate', content: transcript });
+                }
+                next.push({ role: 'examiner', content: data.examinerMessage });
+                return next;
+            });
+
+            if (action === 'grade_part') {
+                if (data.grading) {
+                    setPartGrading(data.grading);
+                    setAllGradings(prev => [...prev, { ...data.grading!, partNumber: partNum }]);
+                }
+                speakExaminer(data.examinerMessage, 'grading');
+            } else if (data.isPartDone) {
+                await callExaminer('grade_part', partNum, historyToSend);
+            } else {
+                // After Part 2 opening, go to prep timer; otherwise go straight to examiner
+                const afterPhase: Phase = (action === 'start_part' && partNum === 2) ? 'prep' : 'examiner';
+                speakExaminer(data.examinerMessage, afterPhase);
+            }
+        } catch (err) {
+            setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+            setPhase('examiner');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getPartData, speakExaminer]);
+
+    // ── Start Part 1 on mount ────────────────────────────────────────────────
+    useEffect(() => {
+        callExaminer('start_part', 1, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ── Stop recording: inline logic so RAF callback can call it safely ──────
+    const doStopRecording = useCallback(async () => {
+        cancelAnimationFrame(silenceRafRef.current);
+        silenceStartRef.current = null;
+
+        recognitionRef.current?.stop();
+        recognitionRef.current = null;
+
+        const recorder = mediaRecorderRef.current;
+        if (recorder && recorder.state !== 'inactive') {
+            await new Promise<void>(resolve => {
+                recorder.onstop = () => resolve();
+                recorder.stop();
+                recorder.stream.getTracks().forEach(t => t.stop());
+            });
+        }
+        mediaRecorderRef.current = null;
+
+        audioCtxRef.current?.close().catch(() => {});
+        audioCtxRef.current = null;
+        analyserRef.current = null;
+        setAnalyserNode(null);
+
+        const blob = audioChunksRef.current.length > 0
+            ? new Blob(audioChunksRef.current, { type: 'audio/webm' })
+            : null;
+        if (blob) partAudioChunksRef.current.push(blob);
+
+        const transcript = finalTranscriptRef.current.trim() || '(no response recorded)';
+
+        setHistory(prev => {
+            void callExaminer('respond', currentPartRef.current, prev, transcript);
+            return prev;
+        });
+        setLiveTranscript('');
+    }, [callExaminer]);
+
+    // Keep a ref to doStopRecording so the silence-detection RAF loop always calls the latest version
+    const doStopRecordingRef = useRef(doStopRecording);
+    useEffect(() => { doStopRecordingRef.current = doStopRecording; }, [doStopRecording]);
+
+    // ── Start recording ───────────────────────────────────────────────────────
+    const startRecording = useCallback(async () => {
+        setLiveTranscript('');
+        finalTranscriptRef.current = '';
+        audioChunksRef.current = [];
+        silenceStartRef.current = null;
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // MediaRecorder for audio blob
+            const recorder = new MediaRecorder(stream);
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunksRef.current.push(e.data);
+            };
+            recorder.start(250);
+            mediaRecorderRef.current = recorder;
+
+            // Web Audio: analyser for waveform + silence detection
+            const audioCtx = new AudioContext();
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64;
+            analyser.smoothingTimeConstant = 0.7;
+            audioCtx.createMediaStreamSource(stream).connect(analyser);
+            audioCtxRef.current = audioCtx;
+            analyserRef.current = analyser;
+            setAnalyserNode(analyser);
+
+            // Silence detection: auto-stop after 2.5s of quiet
+            const SILENCE_THRESHOLD = 10;
+            const SILENCE_MS = 2500;
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+
+            function detectSilence() {
+                silenceRafRef.current = requestAnimationFrame(detectSilence);
+                analyser.getByteFrequencyData(freqData);
+                const avg = freqData.reduce((s, v) => s + v, 0) / freqData.length;
+                if (avg < SILENCE_THRESHOLD) {
+                    if (silenceStartRef.current === null) silenceStartRef.current = Date.now();
+                    else if (Date.now() - silenceStartRef.current >= SILENCE_MS) {
+                        cancelAnimationFrame(silenceRafRef.current);
+                        void doStopRecordingRef.current();
+                        return;
+                    }
+                } else {
+                    silenceStartRef.current = null;
+                }
+            }
+            detectSilence();
+        } catch {
+            // Mic unavailable — continue in transcript-only mode
+        }
+
+        // Speech recognition for live transcript display
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognitionAPI) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recognition = new SpeechRecognitionAPI() as any;
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            recognition.onresult = (event: any) => {
+                let interim = '';
+                let final = finalTranscriptRef.current;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const text = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        final += (final ? ' ' : '') + text.trim();
+                        finalTranscriptRef.current = final;
+                    } else {
+                        interim = text;
+                    }
+                }
+                setLiveTranscript(final + (interim ? ' ' + interim : ''));
+            };
+            recognition.onerror = () => {};
+            recognition.start();
+            recognitionRef.current = recognition;
+        }
+
+        setPhase('recording');
+    }, []);
+
+    // ── Move to next part or finish ───────────────────────────────────────────
+    const handleNextPart = useCallback(async () => {
+        if (currentPart === 3) {
+            try {
+                const learnerId = user?.profileId ?? user?.id;
+                const part1 = getPartData(1);
+                if (learnerId && part1) {
+                    const allTranscript = allGradings
+                        .map(g => `Part ${g.partNumber} overall band: ${g.overall}`)
+                        .join(' | ');
+                    let audioUrl = 'https://res.cloudinary.com/placeholder/audio/upload/speaking.webm';
+                    if (partAudioChunksRef.current.length > 0) {
+                        const combined = new Blob(partAudioChunksRef.current, { type: 'audio/webm' });
+                        audioUrl = await uploadAudioBlob(combined).catch(() => audioUrl);
+                    }
+                    await attemptsApi.submitSpeaking(learnerId, part1.id, audioUrl, allTranscript);
+                }
+            } catch { /* non-critical */ }
             onFinish();
+            return;
         }
-    };
 
-    const EmptyPlaceholder = () => (
-        <div className="text-center py-8 text-muted-foreground italic">
-            No data configured for this part.
-        </div>
-    );
+        const nextPart = (currentPart + 1) as 2 | 3;
+        setCurrentPart(nextPart);
+        setHistory([]);
+        setPartGrading(null);
+        setCurrentQuestion('');
+        partAudioChunksRef.current = [];
+        setPhase('loading');
+        callExaminer('start_part', nextPart, []);
+    }, [currentPart, user, getPartData, allGradings, onFinish, callExaminer]);
+
+    // ── Render ───────────────────────────────────────────────────────────────
+
+    const cues = currentPartData?.config?.cues as string[] | undefined;
 
     return (
-        <div className="h-full flex flex-col md:flex-row overflow-hidden bg-slate-50 dark:bg-slate-900/50">
-            {/* LEFT PANEL: EXAMINER / INSTRUCTIONS */}
-            <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center items-center text-center border-r border-border overflow-y-auto">
-                <div className="max-w-md w-full space-y-8">
-                    <div className="relative">
-                        <div className="h-32 w-32 bg-blue-100 dark:bg-blue-900/30 rounded-full mx-auto flex items-center justify-center mb-6">
-                            <span className="material-symbols-outlined text-6xl text-primary">person</span>
-                        </div>
-                        <Badge className="absolute bottom-0 left-1/2 -translate-x-1/2 px-4 py-1">Examiner</Badge>
-                    </div>
+        <div className="relative h-full flex flex-col overflow-hidden">
 
-                    <div className="space-y-4">
-                        <h2 className="text-3xl font-bold">Speaking Part {part}</h2>
-                        <h3 className="text-xl text-muted-foreground font-medium">
-                            {part === 1 && "Introduction & Interview"}
-                            {part === 2 && "Individual Long Turn"}
-                            {part === 3 && "Two-way Discussion"}
-                        </h3>
-                    </div>
-
-                    <Card className="p-6 bg-white dark:bg-slate-800 shadow-sm text-left relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-                        
-                        {/* PART 1 */}
-                        {part === 1 && (
-                            <div className="space-y-6">
-                                {part1Topics.length > 0 ? (
-                                    part1Topics.map((topic: any, idx: number) => (
-                                        <div key={idx} className="space-y-3">
-                                            <p className="font-bold text-lg border-b pb-2">Topic: {topic.topicName || `Topic ${idx+1}`}</p>
-                                            <ul className="list-disc list-inside space-y-2 text-slate-700 dark:text-slate-300">
-                                                {topic.questions.map((q: any, qIdx: number) => (
-                                                    <li key={qIdx}>{q.questionText}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ))
-                                ) : <EmptyPlaceholder />}
-                            </div>
-                        )}
-
-                        {/* PART 2 */}
-                        {part === 2 && (
-                            <div className="space-y-4">
-                                {part2MainTopic ? (
-                                    <>
-                                        <p className="font-bold text-lg mb-2">{part2MainTopic}</p>
-                                        {part2Cues.length > 0 && (
-                                            <>
-                                                <p className="text-sm text-muted-foreground mb-4">You should say:</p>
-                                                <ul className="list-disc list-inside space-y-2 text-slate-700 dark:text-slate-300">
-                                                    {part2Cues.map((cue: string, idx: number) => (
-                                                        <li key={idx}>{cue}</li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
-                                        <div className="mt-4 pt-4 border-t text-sm font-bold text-orange-600">
-                                            You have {part2PrepTime} minute(s) to prepare and {part2SpeakTime} minute(s) to speak.
-                                        </div>
-                                    </>
-                                ) : <EmptyPlaceholder />}
-                            </div>
-                        )}
-
-                        {/* PART 3 */}
-                        {part === 3 && (
-                            <div className="space-y-4">
-                                {part3Questions.length > 0 ? (
-                                    <>
-                                        <p className="font-bold text-lg border-b pb-2">Discussion Topics</p>
-                                        <ul className="list-disc list-inside space-y-3 text-slate-700 dark:text-slate-300">
-                                            {part3Questions.map((q: any, idx: number) => (
-                                                <li key={idx}>{q.questionText}</li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                ) : <EmptyPlaceholder />}
-                            </div>
-                        )}
-                    </Card>
+            {/* Header */}
+            <header className="shrink-0 flex items-center gap-3 px-5 py-3 bg-slate-900 text-white border-b border-white/10">
+                <div>
+                    <p className="text-sm font-semibold leading-none">IELTS Examiner · Sarah</p>
+                    <p className="text-xs text-white/50 mt-0.5">Part {currentPart} — {partLabel}</p>
                 </div>
+                <Badge variant="outline" className="ml-auto border-white/20 text-white/60 text-xs">
+                    Part {currentPart} / 3
+                </Badge>
+            </header>
+
+            {/* Examination room — dark, focused */}
+            <div className="flex-1 min-h-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center gap-6 p-8 overflow-y-auto">
+
+                {phase === 'loading' ? (
+                    <div className="text-center space-y-3">
+                        <Loader2 className="h-10 w-10 animate-spin text-blue-400 mx-auto" />
+                        <p className="text-sm text-white/40">Examiner is preparing…</p>
+                    </div>
+                ) : (
+                    <>
+                        <ExaminerAvatar phase={phase} />
+
+                        {/* Current examiner message — shown as subtitle */}
+                        {currentQuestion && (
+                            <p className="max-w-lg text-center text-base text-white/90 leading-relaxed font-light">
+                                {currentQuestion}
+                            </p>
+                        )}
+
+                        {/* Part 2 prep: topic card with countdown */}
+                        {phase === 'prep' && cues && cues.length > 0 && (
+                            <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 max-w-sm w-full shadow-xl text-slate-800">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Clock className="h-4 w-4 text-amber-600 shrink-0" />
+                                    <span className="text-sm font-semibold text-amber-700">Preparation Time</span>
+                                    <span className="ml-auto text-2xl font-bold text-amber-600 tabular-nums">
+                                        {prepTimeLeft}s
+                                    </span>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                    Topic Card
+                                </p>
+                                <p className="font-medium text-sm mb-2">{cues[0]}</p>
+                                {cues.length > 1 && (
+                                    <ul className="space-y-1">
+                                        {cues.slice(1).map((cue, i) => (
+                                            <li key={i} className="flex items-start gap-1.5 text-sm text-slate-600">
+                                                <span className="text-amber-500 mt-0.5 shrink-0">•</span>
+                                                {cue}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
 
-            {/* RIGHT PANEL: RECORDING INTERFACE */}
-            <div className="w-full md:w-1/2 p-6 md:p-10 bg-background flex flex-col items-center justify-center">
-                <div className="max-w-md w-full space-y-12 text-center">
+            {/* Candidate controls */}
+            <div className="shrink-0 bg-slate-800 border-t border-white/10 flex flex-col items-center gap-3 px-6 py-5">
 
-                    <div className={`transition-all duration-500 ${isRecording ? 'opacity-100 transform scale-100' : 'opacity-50 transform scale-95'}`}>
-                        <div className="relative h-64 flex items-center justify-center">
-                            {/* Visualizer bars */}
-                            <div className="flex items-center gap-1.5 h-32">
-                                {[...Array(20)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-2 rounded-full bg-primary transition-all duration-100 ease-in-out ${isRecording ? 'animate-pulse' : ''}`}
-                                        style={{
-                                            height: isRecording ? `${Math.random() * 100}%` : '5px',
-                                            animationDelay: `${i * 0.05}s`
-                                        }}
-                                    />
+                {/* Waveform */}
+                {phase === 'recording' && <WaveformVisualizer analyser={analyserNode} />}
+
+                {/* Live transcript */}
+                {phase === 'recording' && liveTranscript && (
+                    <p className="text-xs text-white/50 italic max-w-sm text-center leading-relaxed">
+                        {liveTranscript}
+                    </p>
+                )}
+
+                {/* Mic / status button */}
+                <div className="flex flex-col items-center gap-2">
+                    {phase === 'examiner' && (
+                        <>
+                            <button
+                                onClick={startRecording}
+                                className="h-20 w-20 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
+                                aria-label="Start speaking"
+                            >
+                                <Mic className="h-9 w-9" />
+                            </button>
+                            <p className="text-xs text-white/40">Press to speak</p>
+                        </>
+                    )}
+
+                    {phase === 'recording' && (
+                        <>
+                            <button
+                                onClick={() => void doStopRecording()}
+                                className="h-20 w-20 rounded-full bg-slate-600 hover:bg-slate-500 text-white flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
+                                aria-label="Stop speaking"
+                            >
+                                <MicOff className="h-9 w-9" />
+                            </button>
+                            <p className="text-xs text-white/40">Tap to stop · auto-stops on silence</p>
+                        </>
+                    )}
+
+                    {(phase === 'processing' || phase === 'speaking') && (
+                        <>
+                            <div className="h-20 w-20 rounded-full bg-slate-700 flex items-center justify-center">
+                                <Loader2 className="h-9 w-9 animate-spin text-white/30" />
+                            </div>
+                            <p className="text-xs text-white/40">
+                                {phase === 'speaking' ? 'Examiner is speaking…' : 'Examiner is thinking…'}
+                            </p>
+                        </>
+                    )}
+
+                    {phase === 'prep' && (
+                        <>
+                            <div className="h-20 w-20 rounded-full bg-amber-900/30 border-2 border-amber-500/40 flex items-center justify-center">
+                                <Clock className="h-9 w-9 text-amber-400" />
+                            </div>
+                            <p className="text-xs text-white/40">
+                                Mic opens in {prepTimeLeft}s — prepare your answer
+                            </p>
+                        </>
+                    )}
+                </div>
+
+                {/* Error */}
+                {errorMsg && (
+                    <p className="text-xs text-red-400 bg-red-950/30 rounded-lg px-3 py-2 max-w-sm text-center">
+                        {errorMsg}
+                    </p>
+                )}
+
+                {/* Collapsible conversation history */}
+                {history.length > 0 && (
+                    <div className="w-full max-w-xl mt-1">
+                        <button
+                            onClick={() => setShowHistory(h => !h)}
+                            className="w-full flex items-center gap-1.5 text-xs text-white/30 hover:text-white/50 transition-colors"
+                        >
+                            {showHistory
+                                ? <ChevronDown className="h-3 w-3" />
+                                : <ChevronUp className="h-3 w-3" />}
+                            {showHistory ? 'Hide' : 'Show'} conversation ({history.length} messages)
+                        </button>
+                        {showHistory && (
+                            <div className="mt-2 max-h-36 overflow-y-auto space-y-1.5 bg-slate-900/60 rounded-lg p-3">
+                                {history.map((msg, i) => (
+                                    <p key={i} className={`text-xs leading-relaxed ${
+                                        msg.role === 'examiner'
+                                            ? 'text-blue-300'
+                                            : 'text-white/50 text-right'
+                                    }`}>
+                                        <span className="font-medium">
+                                            {msg.role === 'examiner' ? 'Examiner: ' : 'You: '}
+                                        </span>
+                                        {msg.content}
+                                    </p>
                                 ))}
                             </div>
-                        </div>
-                        <div className="text-4xl font-mono font-bold tabular-nums mt-4">
-                            {formatTime(timer)}
-                        </div>
-                        <p className="text-muted-foreground mt-2 animate-pulse">{isRecording ? "Recording in progress..." : "Ready to record"}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-4">
-                        {!isRecording ? (
-                            <Button onClick={() => setIsRecording(true)} size="lg" className="h-16 rounded-full text-lg w-full max-w-xs mx-auto shadow-lg bg-red-600 hover:bg-red-700 text-white">
-                                <span className="material-symbols-outlined mr-2">mic</span>
-                                Start Recording
-                            </Button>
-                        ) : (
-                            <Button onClick={handleNextPart} size="lg" variant="outline" className="h-16 rounded-full text-lg w-full max-w-xs mx-auto border-2">
-                                <span className="material-symbols-outlined mr-2">
-                                    {part < 3 ? 'skip_next' : 'done'}
-                                </span>
-                                {part < 3 ? 'Stop & Next Part' : 'Stop & Finish Test'}
-                            </Button>
                         )}
                     </div>
+                )}
+            </div>
 
-                    <div className="text-sm text-muted-foreground bg-slate-100 dark:bg-slate-800 p-3 rounded-lg mt-8">
-                        Check your microphone settings before starting. Your responses are not actually saved in this demo until you integrate WebRTC or Audio Blob uploading.
+            {/* Grading overlay */}
+            {phase === 'grading' && partGrading && (
+                <div className="absolute inset-0 z-20 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="w-full max-w-sm">
+                        <SpeakingGradingCard
+                            partNumber={currentPart}
+                            grading={partGrading}
+                            onNext={handleNextPart}
+                            isLast={currentPart === 3}
+                        />
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
