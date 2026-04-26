@@ -154,6 +154,19 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                     const dur = formatDuration(a.startedAt, a.submittedAt);
                                     const testId = a.testId;
 
+                                    // Build skill-aware review URL so the result page renders correctly.
+                                    const writingGradingId = typeof window !== 'undefined' && skill === 'writing'
+                                        ? localStorage.getItem(`writing_grading_${a.id}`)
+                                        : null;
+                                    const reviewHref =
+                                        skill === 'writing' && writingGradingId
+                                            ? `/practice/${testId}/result?skill=writing&gradingId=${writingGradingId}`
+                                            : skill === 'writing'
+                                                ? `/practice/${testId}/result?skill=writing&attemptId=${a.id}`
+                                                : skill === 'speaking'
+                                                    ? `/practice/${testId}/result?skill=speaking&attemptId=${a.id}`
+                                                    : `/practice/${testId}/result?attemptId=${a.id}`;
+
                                     return (
                                         <tr key={a.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                             <td className="px-4 py-3">
@@ -202,7 +215,7 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                             <td className="px-3 py-3">
                                                 <div className="flex items-center justify-center gap-1.5">
                                                     {a.submittedAt && (
-                                                        <Link href={`/practice/${testId}/result?attemptId=${a.id}`}>
+                                                        <Link href={reviewHref}>
                                                             <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs font-semibold gap-1">
                                                                 <Eye className="h-3 w-3" />
                                                                 Review

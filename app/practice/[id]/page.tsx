@@ -253,7 +253,12 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
             <SpeakingTestInterface
                 testId={id}
                 test={test}
-                onFinish={() => { void handleFinishTest(answersRef.current); }}
+                onFinish={(gradings, bandScore) => {
+                    try {
+                        sessionStorage.setItem(`speaking_result_${id}`, JSON.stringify(gradings));
+                    } catch { /* storage unavailable */ }
+                    void handleFinishTest(answersRef.current, undefined, undefined, bandScore);
+                }}
             />
         );
     }

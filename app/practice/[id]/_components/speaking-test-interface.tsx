@@ -105,7 +105,7 @@ export function SpeakingTestInterface({
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: () => void;
+    onFinish: (gradings: Array<PartGrading & { partNumber: number }>, bandScore: number) => void;
 }) {
     const user = useUser();
 
@@ -438,7 +438,9 @@ export function SpeakingTestInterface({
                     await attemptsApi.submitSpeaking(learnerId, part1.id, audioUrl, allTranscript);
                 }
             } catch { /* non-critical */ }
-            onFinish();
+            const sum = allGradings.reduce((s, g) => s + g.overall, 0);
+            const avgBand = allGradings.length ? Math.round((sum / allGradings.length) * 2) / 2 : 0;
+            onFinish(allGradings, avgBand);
             return;
         }
 

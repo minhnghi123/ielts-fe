@@ -103,10 +103,13 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         gradingId?: string,
         bandScore?: number,
     ) => {
-        // ── Writing/Speaking skill: AI grading bypass ──────────────────────────────────
+        // ── Writing skill: AI grading bypass (gradingId provided by WritingTestInterface) ─
         if (gradingId) {
             const idToSubmit = currentAttemptId || attemptId;
             if (idToSubmit) {
+                // Persist the gradingId→attemptId mapping so the profile history page
+                // can reconstruct the writing review link on the same device.
+                try { localStorage.setItem(`writing_grading_${idToSubmit}`, gradingId); } catch { /* ignore */ }
                 try {
                     await testsApi.submitAttempt(idToSubmit, {
                         answers: [],
@@ -156,10 +159,17 @@ export function useTestSession(testId: string): UseTestSessionReturn {
             : null;
 
         try {
-            await testsApi.submitAttempt(idToSubmit, { answers: answersArray });
+            await testsApi.submitAttempt(idToSubmit, {
+                answers: answersArray,
+                ...(bandScore !== undefined && { bandScore }),
+            });
             clearSession(testId);
             const elapsed = elapsedSeconds !== null ? `&elapsed=${elapsedSeconds}` : '';
-            router.push(`/practice/${testId}/result?attemptId=${idToSubmit}${elapsed}`);
+            if (test?.skill === 'speaking') {
+                router.push(`/practice/${testId}/result?skill=speaking&attemptId=${idToSubmit}`);
+            } else {
+                router.push(`/practice/${testId}/result?attemptId=${idToSubmit}${elapsed}`);
+            }
         } catch (err) {
             console.error('[useTestSession] Failed to submit attempt:', err);
             alert('Error submitting answers. Please try again.');

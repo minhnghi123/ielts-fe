@@ -14,8 +14,9 @@ import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
-import type { TestAttempt, Test, Section, QuestionAttempt } from "@/lib/types";
+import type { TestAttempt, Test, Section, QuestionAttempt, PartGrading } from "@/lib/types";
 import { WritingResult } from "./_components/writing-result";
+import { SpeakingResult } from "./_components/speaking-result";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -403,6 +404,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const [attempt, setAttempt] = useState<TestAttempt | null>(null);
     const [fullTest, setFullTest] = useState<Test | null>(null);
     const [gradingData, setGradingData] = useState<any>(null);
+    const [speakingGradings, setSpeakingGradings] = useState<Array<PartGrading & { partNumber: number }> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState(0);   // 0 = overall, 1+ = section
@@ -414,8 +416,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const aiTriggeredRef = useRef(false); // prevent double-trigger in StrictMode
 
     useEffect(() => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+        // ── Fast path: writing result redirected here with a gradingId ────────────
         if (skillParam === "writing" && gradingId) {
-            const baseUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
             fetch(`${baseUrl}/api/writing-gradings/${gradingId}`)
                 .then(res => {
                     if (!res.ok) throw new Error("Failed to fetch");
@@ -435,15 +439,68 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
         if (!attemptId) { setIsLoading(false); return; }
 
-        // Fetch attempt (with question attempts + question + correct answers)
-        // AND the full test (with sections/groups/questions for section structure)
+        // ── Load attempt + test (used by L/R, speaking, and writing-from-history) ─
         Promise.all([
             testsApi.getAttemptById(attemptId),
             testsApi.getTestById(testId),
         ])
-            .then(([attemptData, testData]) => {
+            .then(async ([attemptData, testData]) => {
                 setAttempt(attemptData);
                 setFullTest(testData);
+
+                const skillFromAttempt: string = (testData as any)?.skill ?? (attemptData.test as any)?.skill ?? '';
+
+                // ── Speaking: restore per-part gradings from sessionStorage ──────
+                if (skillFromAttempt === 'speaking' || skillParam === 'speaking') {
+                    try {
+                        const raw = sessionStorage.getItem(`speaking_result_${testId}`);
+                        if (raw) setSpeakingGradings(JSON.parse(raw));
+                    } catch { /* storage unavailable */ }
+                }
+
+                // ── Writing from history: no gradingId in URL ────────────────────
+                if (skillFromAttempt === 'writing' && !gradingId) {
+                    // 1. Try localStorage (same device)
+                    const storedGradingId = (() => {
+                        try { return localStorage.getItem(`writing_grading_${attemptId}`); } catch { return null; }
+                    })();
+
+                    if (storedGradingId) {
+                        try {
+                            const res = await fetch(`${baseUrl}/api/writing-gradings/${storedGradingId}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                setGradingData(data);
+                            }
+                        } catch { /* fall through */ }
+                    } else {
+                        // 2. Fallback: find via writing submissions (cross-device)
+                        const learnerId = (attemptData as any).learnerId;
+                        const taskIds: string[] = (testData as any)?.writingTasks?.map((t: any) => t.id) ?? [];
+                        if (learnerId && taskIds.length > 0) {
+                            try {
+                                const subsRes = await fetch(`${baseUrl}/api/learners/${learnerId}/writing-submissions`);
+                                if (subsRes.ok) {
+                                    const subsJson = await subsRes.json();
+                                    const subs: any[] = subsJson.data ?? [];
+                                    const matching = subs
+                                        .filter((s: any) => taskIds.includes(s.writingTaskId))
+                                        .sort((a: any, b: any) =>
+                                            new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+                                        );
+                                    if (matching.length > 0) {
+                                        const gradingRes = await fetch(`${baseUrl}/api/writing-gradings/by-submission/${matching[0].id}`);
+                                        if (gradingRes.ok) {
+                                            const gradingJson = await gradingRes.json();
+                                            setGradingData(gradingJson);
+                                        }
+                                    }
+                                }
+                            } catch { /* no grading available */ }
+                        }
+                    }
+                }
+
                 setIsLoading(false);
             })
             .catch(err => {
@@ -528,6 +585,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     // Auto-trigger analysis when data is ready; re-use stored feedback if present
     useEffect(() => {
         if (!attempt || isLoading || aiTriggeredRef.current) return;
+        // Speaking and writing have their own result pages — skip L/R AI analysis
+        const attemptSkill = (fullTest as any)?.skill ?? (attempt.test as any)?.skill ?? '';
+        if (attemptSkill === 'speaking' || attemptSkill === 'writing') return;
         aiTriggeredRef.current = true;
 
         const storedFeedback = (attempt as any).aiFeedback as string | null;
@@ -553,8 +613,37 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         );
     }
 
-    if (skillParam === "writing" && gradingData) {
+    // ── Speaking result ──────────────────────────────────────────────────────────
+    const skillFromLoaded: string = (fullTest as any)?.skill ?? (attempt?.test as any)?.skill ?? '';
+    if (skillParam === "speaking" || skillFromLoaded === "speaking") {
+        const title = attempt?.test?.title ?? fullTest?.title ?? "IELTS Speaking Test";
+        return (
+            <SpeakingResult
+                gradings={speakingGradings}
+                bandScore={Number(attempt?.bandScore ?? 0)}
+                testTitle={title}
+                testId={testId}
+            />
+        );
+    }
+
+    // ── Writing result ───────────────────────────────────────────────────────────
+    if ((skillParam === "writing" || skillFromLoaded === "writing") && gradingData) {
         return <WritingResult gradingData={gradingData.data} />;
+    }
+
+    // Writing test but grading data could not be found
+    if ((skillParam === "writing" || skillFromLoaded === "writing") && !gradingData && !isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950 px-4">
+                <FileText className="h-12 w-12 text-muted-foreground" />
+                <p className="font-semibold text-foreground text-center">Writing feedback not available</p>
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
+                    Detailed essay feedback is only accessible on the device where the test was completed.
+                </p>
+                <Link href="/tests"><Button variant="outline">Back to Tests</Button></Link>
+            </div>
+        );
     }
 
     if (error || !attempt) {
