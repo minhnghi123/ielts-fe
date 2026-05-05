@@ -113,7 +113,7 @@ export const TabbedAudioPanel = memo(function TabbedAudioPanel({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/30">
+      <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 custom-scrollbar bg-muted/20">
         <div className="max-w-2xl mx-auto space-y-8">
           <Card className="p-8 border-none shadow-xl bg-white dark:bg-slate-800 rounded-2xl relative">
             <div className="flex flex-col items-center gap-6">

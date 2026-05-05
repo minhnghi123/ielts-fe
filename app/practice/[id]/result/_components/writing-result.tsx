@@ -78,9 +78,9 @@ export function WritingResult({ gradingData }: WritingResultProps) {
     }, [activeTask]);
 
     const renderBandScore = (label: string, score: number) => (
-        <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 text-center">{label}</span>
-            <span className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100">{score.toFixed(1)}</span>
+        <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-muted/50 rounded-xl border border-border">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 text-center">{label}</span>
+            <span className="text-xl sm:text-2xl font-black text-foreground">{score.toFixed(1)}</span>
         </div>
     );
 
@@ -90,23 +90,23 @@ export function WritingResult({ gradingData }: WritingResultProps) {
         if (t.includes('lexical') || t.includes('vocabulary')) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800';
         if (t.includes('cohe')) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
         if (t.includes('task')) return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200 dark:border-violet-800';
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        return 'bg-muted text-muted-foreground border-border';
     };
 
     return (
-        <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950">
+        <div className="flex flex-col h-full bg-background">
             {/* Header / Score Overview */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 sm:p-6 lg:px-8">
+            <div className="bg-card border-b border-border p-4 sm:p-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div>
-                            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
                                 <span className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 p-2 rounded-xl">
                                     <PenTool className="w-6 h-6" />
                                 </span>
                                 Writing Assessment
                             </h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">Review your essays, scores, and detailed AI feedback.</p>
+                            <p className="text-muted-foreground mt-1">Review your essays, scores, and detailed AI feedback.</p>
                         </div>
 
                         <div className="flex items-center gap-4 bg-violet-50 dark:bg-violet-900/20 px-6 py-4 rounded-2xl border border-violet-100 dark:border-violet-800/30">
@@ -123,11 +123,11 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                     {t2 && (
                         <div className="mt-8">
                             <Tabs value={activeTask} onValueChange={(v) => setActiveTask(v as "task1" | "task2")}>
-                                <TabsList className="grid w-full max-w-md grid-cols-2 bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl">
-                                    <TabsTrigger value="task1" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-300 data-[state=active]:shadow-sm transition-all">
+                                <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted p-1 rounded-xl">
+                                    <TabsTrigger value="task1" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-300 data-[state=active]:shadow-sm transition-all">
                                         Task 1 (Band {t1.overall_band.toFixed(1)})
                                     </TabsTrigger>
-                                    <TabsTrigger value="task2" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-300 data-[state=active]:shadow-sm transition-all">
+                                    <TabsTrigger value="task2" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-violet-700 dark:data-[state=active]:text-violet-300 data-[state=active]:shadow-sm transition-all">
                                         Task 2 (Band {t2.overall_band.toFixed(1)})
                                     </TabsTrigger>
                                 </TabsList>
@@ -141,14 +141,14 @@ export function WritingResult({ gradingData }: WritingResultProps) {
             <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
 
                 {/* LEFT PANE: Annotated Essay */}
-                <div className="lg:col-span-7 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="lg:col-span-7 flex flex-col min-h-0 bg-card rounded-xl shadow-sm border border-border overflow-hidden">
 
                     {/* Score Breakdown Bar */}
-                    <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="p-4 sm:p-6 border-b border-border bg-muted/20">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Criterion Scores</h3>
+                            <h3 className="text-lg font-bold text-foreground">Criterion Scores</h3>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-slate-500">Task Band:</span>
+                                <span className="text-sm text-muted-foreground">Task Band:</span>
                                 <span className="text-lg font-black text-violet-600 dark:text-violet-400">{currentTask.overall_band.toFixed(1)}</span>
                             </div>
                         </div>
@@ -162,7 +162,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
 
                     {/* Essay Content */}
                     <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar relative" ref={leftPaneRef}>
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Your Essay</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">Your Essay</h3>
 
                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-lg">
                             {/* Injecting the HTML. The custom CSS classes are handled via Tailwind below or global CSS */}
@@ -196,7 +196,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
 
                             <div
                                 dangerouslySetInnerHTML={{ __html: currentTask.annotated_html || '<p>No content provided</p>' }}
-                                className="font-serif text-slate-700 dark:text-slate-300"
+                                className="font-serif text-foreground"
                             />
                         </div>
                     </div>
@@ -204,23 +204,23 @@ export function WritingResult({ gradingData }: WritingResultProps) {
 
                 {/* RIGHT PANE: Interactive Feedback Board */}
                 <div
-                    className="lg:col-span-5 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                    className="lg:col-span-5 flex flex-col min-h-0 bg-muted/20 rounded-xl border border-border overflow-hidden"
                 >
-                    <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center gap-3 shadow-sm z-10">
+                    <div className="p-5 border-b border-border bg-card flex items-center gap-3 shadow-sm z-10">
                         <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                             <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                         </div>
-                        <h3 className="font-bold text-slate-800 dark:text-slate-200">Improvements</h3>
-                        <Badge variant="secondary" className="ml-auto bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        <h3 className="font-bold text-foreground">Improvements</h3>
+                        <Badge variant="secondary" className="ml-auto bg-muted text-muted-foreground">
                             {currentTask.suggestions?.length || 0} Total
                         </Badge>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar space-y-4" ref={rightPaneRef}>
                         {(!currentTask.suggestions || currentTask.suggestions.length === 0) ? (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
                                 <CheckCircle2 className="w-12 h-12 text-emerald-400 mb-4 opacity-50" />
-                                <p className="text-lg font-medium text-slate-600 dark:text-slate-300">Great job!</p>
+                                <p className="text-lg font-medium text-foreground">Great job!</p>
                                 <p className="text-sm mt-1">No major improvements suggested for this task.</p>
                             </div>
                         ) : (
@@ -231,9 +231,9 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                     <div
                                         key={suggestion.id}
                                         id={`suggestion-${suggestion.id}`}
-                                        className={`transition-all duration-300 rounded-2xl border p-4 sm:p-5 bg-white dark:bg-slate-900 cursor-pointer hover:-translate-y-0.5 hover:shadow-md ${isActive
+                                        className={`transition-all duration-300 rounded-xl border p-4 sm:p-5 bg-card cursor-pointer hover:-translate-y-0.5 hover:shadow-md ${isActive
                                             ? 'ring-2 ring-violet-500 dark:ring-violet-400 border-transparent shadow-lg shadow-violet-500/10'
-                                            : 'border-slate-200 dark:border-slate-800 shadow-sm'
+                                            : 'border-border shadow-sm'
                                             }`}
                                         onClick={() => setActiveSuggestionId(suggestion.id)}
                                     >
@@ -241,31 +241,31 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                             <Badge className={`px-2.5 py-0.5 text-xs font-semibold border ${getErrorBadgeColor(suggestion.error_type)}`}>
                                                 {suggestion.error_type}
                                             </Badge>
-                                            <span className="text-xs font-bold text-slate-400">#{suggestion.id}</span>
+                                            <span className="text-xs font-bold text-muted-foreground">#{suggestion.id}</span>
                                         </div>
 
                                         <div className="space-y-3">
                                             {/* Original */}
                                             <div className="bg-red-50/50 dark:bg-red-950/20 rounded-xl p-3 border border-red-100/50 dark:border-red-900/30">
                                                 <span className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-wider mb-1 block">Original</span>
-                                                <p className="text-slate-800 dark:text-slate-200 line-through decoration-red-500/50">{suggestion.original_text}</p>
+                                                <p className="text-foreground line-through decoration-red-500/50">{suggestion.original_text}</p>
                                             </div>
 
                                             <div className="flex justify-center -my-4 relative z-10 pointer-events-none">
-                                                <div className="bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-100 dark:border-slate-800 shadow-sm">
-                                                    <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
+                                                <div className="bg-card rounded-full p-1 border border-border shadow-sm">
+                                                    <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90" />
                                                 </div>
                                             </div>
 
                                             {/* Better */}
                                             <div className="bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl p-3 border border-emerald-100/50 dark:border-emerald-900/30 mt-2">
                                                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider mb-1 block">Correction</span>
-                                                <p className="text-slate-800 dark:text-slate-200 font-medium">{suggestion.correction}</p>
+                                                <p className="text-foreground font-medium">{suggestion.correction}</p>
                                             </div>
 
                                             {/* Explanation */}
-                                            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                            <div className="mt-4 pt-4 border-t border-border">
+                                                <p className="text-sm text-muted-foreground leading-relaxed">
                                                     {suggestion.explanation}
                                                 </p>
                                             </div>

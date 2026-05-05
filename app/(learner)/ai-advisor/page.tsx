@@ -70,7 +70,7 @@ function AIMessage({ content, streaming }: { content: string; streaming?: boolea
       <div className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm mt-0.5">
         <span className="material-symbols-outlined text-white text-[18px]">smart_toy</span>
       </div>
-      <div className="flex-1 min-w-0 bg-white dark:bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+      <div className="flex-1 min-w-0 bg-card border border-border rounded-xl rounded-tl-sm px-4 py-3 shadow-sm">
         {content ? (
           <div
             className="text-sm text-foreground leading-relaxed"
@@ -101,8 +101,8 @@ function UserMessage({ content }: { content: string }) {
       <div className="max-w-[80%] bg-primary text-primary-foreground text-sm rounded-2xl rounded-tr-sm px-4 py-2.5 leading-relaxed shadow-sm">
         {content}
       </div>
-      <div className="shrink-0 w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mt-0.5">
-        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[18px]">person</span>
+      <div className="shrink-0 w-9 h-9 rounded-full bg-muted flex items-center justify-center mt-0.5">
+        <span className="material-symbols-outlined text-muted-foreground text-[18px]">person</span>
       </div>
     </div>
   );
@@ -331,8 +331,8 @@ export default function AIAdvisorPage() {
   const SnapshotBar = () => {
     if (!profile || profile.totalCompleted === 0) return null;
     const skillColors: Record<string, string> = {
-      listening: "text-blue-600", reading: "text-purple-600",
-      writing: "text-orange-600", speaking: "text-pink-600",
+      listening: "text-blue-700", reading: "text-emerald-700",
+      writing: "text-amber-700", speaking: "text-violet-700",
     };
     return (
       <div className="shrink-0 bg-slate-50 dark:bg-muted/30 border-b px-6 py-2.5 flex items-center gap-6 overflow-x-auto text-xs">
@@ -359,10 +359,10 @@ export default function AIAdvisorPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-background">
+    <div className="flex flex-col h-full bg-background">
 
       {/* Top bar */}
-      <div className="shrink-0 flex items-center gap-3 px-6 py-3.5 border-b bg-white dark:bg-card shadow-sm">
+      <div className="shrink-0 flex items-center gap-3 px-6 py-3.5 border-b bg-card shadow-sm">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow">
           <span className="material-symbols-outlined text-white text-[20px]">smart_toy</span>
         </div>
@@ -424,7 +424,7 @@ export default function AIAdvisorPage() {
               <button
                 key={p}
                 onClick={() => doSend(p)}
-                className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-foreground transition-colors whitespace-nowrap"
               >
                 {p}
               </button>
@@ -434,7 +434,7 @@ export default function AIAdvisorPage() {
       )}
 
       {/* Input */}
-      <div className="shrink-0 px-4 md:px-8 py-4 border-t bg-white dark:bg-card">
+      <div className="shrink-0 px-4 md:px-8 py-4 border-t bg-card">
         <div className="max-w-3xl mx-auto flex items-end gap-3">
           <textarea
             ref={textareaRef}
@@ -444,12 +444,12 @@ export default function AIAdvisorPage() {
             rows={1}
             disabled={streaming || loading}
             placeholder="Ask me anything about your IELTS preparation…"
-            className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-muted-foreground/60 transition-shadow max-h-40 overflow-y-auto disabled:opacity-50"
+            className="flex-1 resize-none rounded-lg border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/60 transition-shadow max-h-40 overflow-y-auto disabled:opacity-50"
           />
           <button
             onClick={() => doSend(input)}
             disabled={!input.trim() || streaming || loading}
-            className="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {streaming ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

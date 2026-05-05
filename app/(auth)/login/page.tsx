@@ -17,7 +17,7 @@ export default function LoginPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
               <span className="material-symbols-outlined text-white">school</span>
             </div>
-            <span className="text-xl font-bold tracking-tight">IELTS Master</span>
+            <span className="text-xl font-bold tracking-tight">IELTS-MN</span>
           </div>
 
           {/* Hero Text */}
@@ -41,7 +41,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="text-sm text-slate-500 flex justify-between items-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
-            <span>© 2024 IELTS Master Platform</span>
+            <span>© 2024 IELTS-MN Platform</span>
             <div className="flex gap-4">
               <Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy</Link>
               <Link href="/terms" className="hover:text-white transition-colors duration-200">Terms</Link>

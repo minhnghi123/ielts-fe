@@ -36,7 +36,7 @@ export function HomeNavbar() {
       : "?";
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white dark:bg-[#151c2a] border-b border-border">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-[1200px] mx-auto flex items-center justify-between px-6 py-3">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-10">
@@ -44,7 +44,7 @@ export function HomeNavbar() {
             <div className="text-primary h-8 w-8 bg-primary/10 flex items-center justify-center rounded-lg">
               <span className="material-symbols-outlined">school</span>
             </div>
-            <h2 className="text-xl font-bold tracking-tight">IELTS Master</h2>
+            <h2 className="font-display text-xl font-bold tracking-tight">IELTS-MN</h2>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -68,8 +68,8 @@ export function HomeNavbar() {
 
         {/* Right: Search + Auth */}
         <div className="flex items-center gap-4">
-          {pathname === "/tests" && (
-            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 w-56">
+          {/* {pathname === "/tests" && (
+            <div className="hidden sm:flex items-center bg-muted rounded-lg px-3 py-1.5 w-56">
               <span className="material-symbols-outlined text-muted-foreground text-[20px]">search</span>
               <input
                 className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-muted-foreground ml-2 text-foreground"
@@ -77,16 +77,16 @@ export function HomeNavbar() {
                 type="text"
               />
             </div>
-          )}
+          )} */}
 
           {/* Auth area */}
           {loading ? (
             <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
           ) : isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <button className="text-muted-foreground hover:text-primary transition-colors">
+              {/* <button className="text-muted-foreground hover:text-primary transition-colors">
                 <span className="material-symbols-outlined">notifications</span>
-              </button>
+              </button> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="h-9 w-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">

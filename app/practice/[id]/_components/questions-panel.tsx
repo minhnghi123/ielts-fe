@@ -27,7 +27,7 @@ export function QuestionsPanel({
   return (
     <div className={`flex flex-col h-full overflow-hidden ${className}`}>
       {/* Panel header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-border shadow-sm">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 bg-card border-b border-border shadow-sm">
         <span className="text-xs font-extrabold tracking-widest text-muted-foreground uppercase">
           {title}
         </span>

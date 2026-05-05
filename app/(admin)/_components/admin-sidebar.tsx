@@ -24,36 +24,36 @@ export function AdminSidebar() {
   ];
 
   return (
-    <div className="hidden lg:flex flex-col w-[280px] border-r h-full bg-background">
+    <div className="hidden lg:flex flex-col w-64 border-r h-full bg-card">
       <div className="flex flex-col flex-1 p-6 gap-6">
         {/* Logo/Brand */}
         <div className="flex items-center gap-3 pb-4">
           <Link
             href="/"
-            className="flex items-center justify-center p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors"
+            className="flex items-center justify-center p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground rounded-lg transition-colors"
             title="Back to Home"
           >
             <span className="material-symbols-outlined text-[20px]">
               arrow_back
             </span>
           </Link>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <span className="material-symbols-outlined text-[20px]">
               school
             </span>
           </div>
-          <span className="text-lg font-bold"><Link href="/admin/dashboard">IELTS Admin</Link></span>
+          <span className="font-display text-base font-bold text-foreground"><Link href="/admin/dashboard">IELTS Admin</Link></span>
         </div>
 
         {/* Admin Profile */}
-        <div className="flex items-center gap-3 pb-6 border-b">
+        <div className="flex items-center gap-3 pb-6 border-b border-border">
           <div className="relative">
-            <Avatar className="h-12 w-12 border-2 border-orange-500">
+            <Avatar className="h-12 w-12 border-2 border-primary">
               <AvatarImage
                 src={user?.avatarUrl}
                 alt={user?.fullName || user?.email || "Admin"}
               />
-              <AvatarFallback className="bg-orange-100 text-orange-600 font-bold">
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {(user?.fullName || user?.email || "A").charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -64,7 +64,7 @@ export function AdminSidebar() {
             <h1 className="text-sm font-semibold text-foreground truncate">
               {user?.fullName || user?.email || "Loading..."}
             </h1>
-            <p className="text-xs text-orange-600 font-semibold uppercase">
+            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               Administrator
             </p>
           </div>
@@ -81,7 +81,7 @@ export function AdminSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   isActive
-                    ? "bg-orange-500/10 text-orange-600 font-semibold"
+                    ? "bg-primary/10 text-primary font-semibold"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground font-medium",
                 )}
               >

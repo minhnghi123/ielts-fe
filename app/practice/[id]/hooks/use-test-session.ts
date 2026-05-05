@@ -41,13 +41,13 @@ function loadSession(testId: string): PracticeSession | null {
 function saveSession(testId: string, session: PracticeSession) {
     try {
         localStorage.setItem(sessionKey(testId), JSON.stringify(session));
-    } catch {}
+    } catch { }
 }
 
 function clearSession(testId: string) {
     try {
         localStorage.removeItem(sessionKey(testId));
-    } catch {}
+    } catch { }
 }
 
 /** ms remaining based on wall-clock time since the session started */
@@ -246,7 +246,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                     autoStartedRef.current = true;
                     setIsStarting(true);
                     setTestState('instructions'); // Transition gracefully so user sees the styled instructions page
-                    
+
                     (async () => {
                         try {
                             const user = authApi.getStoredUser();
@@ -325,7 +325,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         const user = authApi.getStoredUser();
         if (!user) {
             alert('Please log in to take a test.');
-            router.push('/auth/login');
+            router.push('/login');
             return;
         }
 

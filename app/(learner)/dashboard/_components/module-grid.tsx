@@ -39,21 +39,21 @@ export function ModuleGrid({ testCounts, attempts, loading }: Props) {
       title: "Reading Module",
       info: "60 mins · 3 Passages · 40 Questions",
       icon: "menu_book",
-      theme: "purple",
+      theme: "emerald",
     },
     {
       id: "writing",
       title: "Writing Module",
       info: "60 mins · 2 Tasks · Academic / General",
       icon: "edit_note",
-      theme: "orange",
+      theme: "amber",
     },
     {
       id: "speaking",
       title: "Speaking Module",
       info: "11–14 mins · 3 Parts · One-on-one",
       icon: "record_voice_over",
-      theme: "pink",
+      theme: "violet",
     },
   ];
 
@@ -63,35 +63,35 @@ export function ModuleGrid({ testCounts, attempts, loading }: Props) {
   }> = {
     blue: {
       bgIcon: "bg-blue-100 dark:bg-blue-900/30",
-      textIcon: "text-primary",
+      textIcon: "text-blue-700 dark:text-blue-400",
       bgDecoration: "bg-blue-50 dark:bg-blue-900/10",
-      hoverBorder: "hover:border-primary",
-      btnColor: "bg-primary hover:bg-blue-700",
-      progressIndicator: "bg-primary",
+      hoverBorder: "hover:border-blue-400",
+      btnColor: "bg-blue-600 hover:bg-blue-700",
+      progressIndicator: "bg-blue-600",
     },
-    purple: {
-      bgIcon: "bg-purple-100 dark:bg-purple-900/30",
-      textIcon: "text-purple-600 dark:text-purple-400",
-      bgDecoration: "bg-purple-50 dark:bg-purple-900/10",
-      hoverBorder: "hover:border-purple-500",
-      btnColor: "bg-purple-600 hover:bg-purple-700",
-      progressIndicator: "bg-purple-600",
+    emerald: {
+      bgIcon: "bg-emerald-100 dark:bg-emerald-900/30",
+      textIcon: "text-emerald-700 dark:text-emerald-400",
+      bgDecoration: "bg-emerald-50 dark:bg-emerald-900/10",
+      hoverBorder: "hover:border-emerald-400",
+      btnColor: "bg-emerald-600 hover:bg-emerald-700",
+      progressIndicator: "bg-emerald-600",
     },
-    orange: {
-      bgIcon: "bg-orange-100 dark:bg-orange-900/30",
-      textIcon: "text-orange-600 dark:text-orange-400",
-      bgDecoration: "bg-orange-50 dark:bg-orange-900/10",
-      hoverBorder: "hover:border-orange-500",
-      btnColor: "bg-orange-600 hover:bg-orange-700",
-      progressIndicator: "bg-orange-600",
+    amber: {
+      bgIcon: "bg-amber-100 dark:bg-amber-900/30",
+      textIcon: "text-amber-700 dark:text-amber-400",
+      bgDecoration: "bg-amber-50 dark:bg-amber-900/10",
+      hoverBorder: "hover:border-amber-400",
+      btnColor: "bg-amber-600 hover:bg-amber-700",
+      progressIndicator: "bg-amber-600",
     },
-    pink: {
-      bgIcon: "bg-pink-100 dark:bg-pink-900/30",
-      textIcon: "text-pink-600 dark:text-pink-400",
-      bgDecoration: "bg-pink-50 dark:bg-pink-900/10",
-      hoverBorder: "hover:border-pink-500",
-      btnColor: "bg-pink-600 hover:bg-pink-700",
-      progressIndicator: "bg-pink-600",
+    violet: {
+      bgIcon: "bg-violet-100 dark:bg-violet-900/30",
+      textIcon: "text-violet-700 dark:text-violet-400",
+      bgDecoration: "bg-violet-50 dark:bg-violet-900/10",
+      hoverBorder: "hover:border-violet-400",
+      btnColor: "bg-violet-600 hover:bg-violet-700",
+      progressIndicator: "bg-violet-600",
     },
   };
 
@@ -125,7 +125,7 @@ export function ModuleGrid({ testCounts, attempts, loading }: Props) {
 
                 {/* Title & Info */}
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">{module.title}</h3>
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-2">{module.title}</h3>
                   <p className="text-muted-foreground mb-4">{module.info}</p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>
@@ -150,7 +150,7 @@ export function ModuleGrid({ testCounts, attempts, loading }: Props) {
                 />
 
                 <Button
-                  onClick={() => router.push(`/practice?module=${module.id}`)}
+                  onClick={() => router.push(`/tests`)}
                   className={cn("mt-6 w-full font-bold text-white shadow-md transition-colors", colors.btnColor)}
                 >
                   <span>Start {module.title.split(" ")[0]} Test</span>

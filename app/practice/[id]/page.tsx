@@ -82,7 +82,7 @@ function ResumePrompt({ testTitle, session, onResume, onStartFresh }: ResumeProm
             <div className="w-full max-w-lg space-y-6">
 
                 {/* Card */}
-                <div className="rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-white dark:bg-slate-900 shadow-lg overflow-hidden">
+                <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-card shadow-lg overflow-hidden">
 
                     {/* Header stripe */}
                     <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-6 py-5">

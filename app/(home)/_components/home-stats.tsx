@@ -35,7 +35,7 @@ export function HomeStats() {
 
   return (
     <section className="mb-10">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+      <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
         <span className="material-symbols-outlined text-primary">analytics</span>
         {isLoggedIn ? "Your Stats" : "Platform Stats"}
       </h2>
@@ -71,7 +71,7 @@ export function HomeStats() {
               value={summary?.practiceHours ? `${summary.practiceHours}h` : "—"}
               badge="Time invested"
             />
-            <Card className="p-6 border-border shadow-sm bg-white dark:bg-[#151c2a]">
+            <Card className="p-6 border-border shadow-sm bg-card">
               <p className="text-muted-foreground text-sm font-medium mb-1">
                 Exam Readiness
               </p>
@@ -110,10 +110,10 @@ function StatCard({
   isPrimary?: boolean;
 }) {
   return (
-    <Card className="p-6 border-border shadow-sm bg-white dark:bg-[#151c2a]">
+    <Card className="p-6 border-border shadow-sm bg-card">
       <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
       <div className="flex items-end justify-between mt-1">
-        <p className={`text-3xl font-bold ${isPrimary ? "text-primary" : ""}`}>
+        <p className={`font-display text-3xl font-bold tabular-nums ${isPrimary ? "text-primary" : "text-foreground"}`}>
           {value}
         </p>
         <span className="text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">

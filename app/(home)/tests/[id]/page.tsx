@@ -23,41 +23,40 @@ import type { Test } from "@/lib/types";
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
+  label: string;
   gradient: string;
   badge: string;
-  bg: string;
-  label: string;
+  iconBg: string;
 }> = {
   reading: {
     icon: BookOpen,
-    gradient: "from-blue-500 to-indigo-600",
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-    bg: "bg-blue-50 dark:bg-blue-900/20",
-    label: "Reading",
+    label: 'Reading',
+    gradient: 'from-emerald-500 to-teal-600',
+    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
   },
   listening: {
     icon: Headphones,
-    gradient: "from-purple-500 to-violet-600",
-    badge: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-    bg: "bg-purple-50 dark:bg-purple-900/20",
-    label: "Listening",
+    label: 'Listening',
+    gradient: 'from-blue-500 to-indigo-600',
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
   },
   writing: {
     icon: PenTool,
-    gradient: "from-emerald-500 to-teal-600",
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
-    label: "Writing",
+    label: 'Writing',
+    gradient: 'from-amber-500 to-orange-500',
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
   },
   speaking: {
     icon: Mic,
-    gradient: "from-orange-500 to-rose-500",
-    badge: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-    bg: "bg-orange-50 dark:bg-orange-900/20",
-    label: "Speaking",
+    label: 'Speaking',
+    gradient: 'from-violet-500 to-purple-600',
+    badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+    iconBg: 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400',
   },
 };
-
 const DURATION_MAP: Record<string, { text: string; mins: number }> = {
   reading: { text: "60 minutes", mins: 60 },
   listening: { text: "30 minutes", mins: 30 },
@@ -216,7 +215,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
                 <Layers className="h-5 w-5 text-primary" />
                 Test Structure
               </h3>
-              <div className={`rounded-xl border border-border ${config.bg} p-4 space-y-2`}>
+              <div className={`rounded-xl border border-border ${config.iconBg} p-4 space-y-2`}>
                 {test.sections.map((sec, index) => {
                   const qCount = sec.questionGroups?.reduce((qacc, g) => qacc + (g.questions?.length || 0), 0) || 0;
                   return (

@@ -58,7 +58,7 @@ const QUESTION_TYPE_COLORS: Record<string, string> = {
   fill_in_blank: "bg-amber-100 text-amber-700",
   multiple_choice: "bg-purple-100 text-purple-700",
   matching: "bg-green-100 text-green-700",
-  matching_heading: "bg-orange-100 text-orange-700",
+  matching_heading: "bg-amber-100 text-amber-700",
   sentence_ending: "bg-teal-100 text-teal-700",
   matching_features: "bg-rose-100 text-rose-700",
 };
@@ -103,10 +103,10 @@ function StepBadge({
     <div className="flex items-center gap-2">
       <div
         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done
-            ? "bg-green-500 text-white"
+            ? "bg-emerald-500 text-white"
             : active
-              ? "bg-orange-500 text-white"
-              : "bg-slate-200 text-slate-500"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground"
           }`}
       >
         {done ? "✓" : n}
@@ -223,7 +223,7 @@ export default function AIGeneratorPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+    <div className="bg-background p-6 md:p-10 min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -233,7 +233,7 @@ export default function AIGeneratorPage() {
                 auto_awesome
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="font-display text-2xl font-bold text-foreground">
               AI Test Generator
             </h1>
           </div>
@@ -269,7 +269,7 @@ export default function AIGeneratorPage() {
 
         {/* ── STEP 1: Configure ── */}
         {step === "configure" && (
-          <div className="bg-white rounded-2xl border border-border shadow-sm p-6 space-y-6">
+          <div className="bg-card rounded-xl border border-border shadow-sm p-6 space-y-6">
             {/* Skill */}
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
@@ -284,9 +284,9 @@ export default function AIGeneratorPage() {
                       setSkill(s);
                       setNumSections(s === "listening" ? 4 : 3);
                     }}
-                    className={`flex-1 py-3 rounded-xl border-2 text-sm font-semibold capitalize transition-all ${skill === s
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-border text-muted-foreground hover:border-slate-400"
+                    className={`flex-1 py-3 rounded-lg border-2 text-sm font-semibold capitalize transition-all ${skill === s
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/40"
                       }`}
                   >
                     <span className="material-symbols-outlined text-[18px] align-middle mr-1.5">
@@ -302,14 +302,14 @@ export default function AIGeneratorPage() {
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
                 Topic / Theme{" "}
-                <span className="text-orange-500">*</span>
+                <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder='e.g. "Urban Architecture", "Marine Biology", "Artificial Intelligence"'
-                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-400 bg-background"
+                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-background"
               />
             </div>
 
@@ -322,7 +322,7 @@ export default function AIGeneratorPage() {
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-400 bg-background"
+                  className="w-full border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-background"
                 >
                   {DIFFICULTIES.map((d) => (
                     <option key={d} value={d}>
@@ -345,7 +345,7 @@ export default function AIGeneratorPage() {
                       e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-400 bg-background"
+                  className="w-full border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-background"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Max {skill === "listening" ? 4 : 3} for {skill}
@@ -370,8 +370,8 @@ export default function AIGeneratorPage() {
                       type="button"
                       onClick={() => toggleType(value)}
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${sel
-                          ? "border-orange-400 bg-orange-50 text-orange-700"
-                          : "border-border text-muted-foreground hover:border-slate-400"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40"
                         }`}
                     >
                       {label}
@@ -386,7 +386,7 @@ export default function AIGeneratorPage() {
               <button
                 type="button"
                 onClick={() => setIsMock((v) => !v)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${isMock ? "bg-orange-500" : "bg-slate-300"}`}
+                className={`relative w-11 h-6 rounded-full transition-colors ${isMock ? "bg-primary" : "bg-muted"}`}
               >
                 <span
                   className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isMock ? "translate-x-5" : "translate-x-0"}`}
@@ -413,7 +413,7 @@ export default function AIGeneratorPage() {
                 onChange={(e) => setExtraInstructions(e.target.value)}
                 rows={3}
                 placeholder='e.g. "Include a graph description task", "Focus on matching headings for section 2", "Make section 1 about a conversation between two people"'
-                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-400 bg-background resize-none"
+                className="w-full border border-border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-background resize-none"
               />
             </div>
 
@@ -435,7 +435,7 @@ export default function AIGeneratorPage() {
 
         {/* ── STEP 2: Generating ── */}
         {step === "generating" && (
-          <div className="bg-white rounded-2xl border border-border shadow-sm p-16 flex flex-col items-center gap-6">
+          <div className="bg-card rounded-xl border border-border shadow-sm p-16 flex flex-col items-center gap-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full border-4 border-violet-200 border-t-violet-500 animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -474,20 +474,20 @@ export default function AIGeneratorPage() {
         {step === "preview" && generated && (
           <div className="space-y-6">
             {/* Test summary card */}
-            <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
+            <div className="bg-card rounded-xl border border-border shadow-sm p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${generated.skill === "reading"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-blue-100 text-blue-700"
                         }`}
                     >
                       {generated.skill}
                     </span>
                     {generated.isMock && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-orange-100 text-orange-700">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-100 text-amber-700">
                         Mock
                       </span>
                     )}
@@ -505,7 +505,7 @@ export default function AIGeneratorPage() {
                   <button
                     type="button"
                     onClick={() => setStep("configure")}
-                    className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-slate-50 transition-colors"
+                    className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
                   >
                     Reconfigure
                   </button>
@@ -524,7 +524,7 @@ export default function AIGeneratorPage() {
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors flex items-center gap-1.5 shadow"
+                    className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-colors flex items-center gap-1.5 shadow"
                   >
                     {isSaving ? (
                       <>
@@ -554,16 +554,16 @@ export default function AIGeneratorPage() {
               return (
                 <div
                   key={si}
-                  className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden"
+                  className="bg-card rounded-xl border border-border shadow-sm overflow-hidden"
                 >
                   {/* Section header */}
                   <button
                     type="button"
                     onClick={() => toggleSection(si)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors text-left"
+                    className="w-full flex items-center justify-between p-5 hover:bg-muted/30 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                         {section.sectionOrder}
                       </div>
                       <div>
@@ -587,8 +587,8 @@ export default function AIGeneratorPage() {
                     <div className="border-t border-border divide-y divide-border">
                       {/* Passage preview */}
                       {section.passage && (
-                        <div className="p-5 bg-slate-50">
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        <div className="p-5 bg-muted/30">
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                             {generated.skill === "reading"
                               ? "Passage"
                               : "Audio Transcript"}
@@ -614,7 +614,7 @@ export default function AIGeneratorPage() {
                             <button
                               type="button"
                               onClick={() => toggleGroup(groupKey)}
-                              className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 text-left transition-colors"
+                              className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/30 text-left transition-colors"
                             >
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -634,7 +634,7 @@ export default function AIGeneratorPage() {
                                   ].map((t) => (
                                     <span
                                       key={t}
-                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${QUESTION_TYPE_COLORS[t] ?? "bg-slate-100 text-slate-600"}`}
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${QUESTION_TYPE_COLORS[t] ?? "bg-muted text-muted-foreground"}`}
                                     >
                                       {shortTypeName(t)}
                                     </span>
@@ -649,7 +649,7 @@ export default function AIGeneratorPage() {
                             {isGroupOpen && (
                               <div className="px-5 pb-5 space-y-3">
                                 {group.instructions && (
-                                  <p className="text-xs font-medium text-slate-600 italic bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+                                  <p className="text-xs font-medium text-muted-foreground italic bg-muted/30 rounded-lg px-3 py-2 border border-border">
                                     {group.instructions}
                                   </p>
                                 )}
@@ -687,7 +687,7 @@ export default function AIGeneratorPage() {
                                             (opt, oi) => (
                                               <span
                                                 key={oi}
-                                                className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded"
+                                                className="text-[11px] bg-muted text-muted-foreground px-2 py-0.5 rounded"
                                               >
                                                 {opt}
                                               </span>
@@ -727,7 +727,7 @@ export default function AIGeneratorPage() {
             })}
 
             {/* Bottom save bar */}
-            <div className="bg-white rounded-2xl border border-border shadow-sm p-4 flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-border shadow-sm p-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Review the test above, then save it to your database.
               </p>

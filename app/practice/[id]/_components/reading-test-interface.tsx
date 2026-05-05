@@ -123,9 +123,9 @@ export function ReadingTestInterface({
       {/* ── Middle: Questions ── */}
       <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
         {/* Questions header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-border bg-white dark:bg-slate-900 shadow-sm">
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-border bg-card shadow-sm">
           <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">
-            Câu hỏi
+            Questions
           </span>
           {activeSection < sections.length - 1 ? (
             <button
@@ -140,7 +140,7 @@ export function ReadingTestInterface({
               className="flex items-center gap-1 text-xs font-semibold text-rose-500 hover:underline"
             >
               <CheckSquare className="w-3.5 h-3.5" />
-              Nộp bài
+              Submit
             </button>
           )}
         </div>

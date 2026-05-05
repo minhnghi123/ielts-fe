@@ -95,7 +95,7 @@ export function LoginFormContent() {
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <span className="material-symbols-outlined">school</span>
           </div>
-          <span className="text-xl font-bold">IELTS Master</span>
+          <span className="text-xl font-bold">IELTS-MN</span>
         </div>
 
         <CardTitle className="text-3xl font-bold tracking-tight">Welcome back</CardTitle>

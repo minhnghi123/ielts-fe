@@ -14,7 +14,7 @@ export default function RegisterPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
               <span className="material-symbols-outlined text-white">school</span>
             </div>
-            <span className="text-xl font-bold tracking-tight">IELTS Master</span>
+            <span className="text-xl font-bold tracking-tight">IELTS</span>
           </div>
 
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-8 duration-700 delay-150 fill-mode-both">
@@ -27,7 +27,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="text-sm text-slate-500 flex justify-between items-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
-            <span>© 2024 IELTS Master Platform</span>
+            <span>© 2024 IELTS-MN Platform</span>
             <div className="flex gap-4">
               <Link href="/privacy" className="hover:text-white transition-colors duration-200">Privacy</Link>
               <Link href="/terms" className="hover:text-white transition-colors duration-200">Terms</Link>

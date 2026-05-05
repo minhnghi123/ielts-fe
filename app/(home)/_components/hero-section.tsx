@@ -41,7 +41,7 @@ export function HeroSection() {
           />
 
           {/* Content */}
-          <div className="w-full md:w-1/2 p-8 flex flex-col justify-center gap-6 bg-white dark:bg-[#151c2a]">
+          <div className="w-full md:w-1/2 p-8 flex flex-col justify-center gap-6 bg-card">
             {isLoggedIn ? (
               /* ── Logged-in hero ─────────────────────────────── */
               <>
@@ -49,7 +49,7 @@ export function HeroSection() {
                   <Badge className="mb-3 bg-primary/10 text-primary border-primary/20">
                     Welcome back 👋
                   </Badge>
-                  <h1 className="text-3xl font-black leading-tight mb-3">
+                  <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-foreground mb-3">
                     Ready to practise,{" "}
                     <span className="text-primary">
                       {user?.email.split("@")[0]}
@@ -90,7 +90,7 @@ export function HeroSection() {
                   <Badge className="mb-3 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0">
                     Trusted by 10,000+ students
                   </Badge>
-                  <h1 className="text-3xl font-black leading-tight mb-3">
+                  <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-foreground mb-3">
                     Achieve your{" "}
                     <span className="text-primary">target IELTS band</span>{" "}
                     score.

@@ -29,26 +29,26 @@ export function LearnerSidebar() {
   ];
 
   return (
-    <div className="hidden lg:flex flex-col w-[280px] border-r h-full bg-background">
+    <div className="hidden lg:flex flex-col w-64 border-r h-full bg-card">
       <div className="flex flex-col flex-1 p-6 gap-6">
         {/* Logo and back button*/}
         {/* Logo/Brand */}
         <div className="flex items-center gap-3 pb-4">
           <Link
             href="/"
-            className="flex items-center justify-center p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors"
+            className="flex items-center justify-center p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground rounded-lg transition-colors"
             title="Back to Home"
           >
             <span className="material-symbols-outlined text-[20px]">
               arrow_back
             </span>
           </Link>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <span className="material-symbols-outlined text-[20px]">
               school
             </span>
           </div>
-          <span className="text-lg font-bold"><Link href="/admin/dashboard">IELTS Admin</Link></span>
+          <span className="font-display text-base font-bold text-foreground"><Link href="/admin/dashboard">IELTS User</Link></span>
         </div>
 
         {/* User Profile */}

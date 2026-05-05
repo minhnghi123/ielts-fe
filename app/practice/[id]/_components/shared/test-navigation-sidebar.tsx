@@ -50,11 +50,11 @@ export function NavigationSidebar({
   });
 
   return (
-    <aside className="h-full w-[180px] flex-shrink-0 border-l border-border bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
+    <aside className="h-full w-56 flex-shrink-0 border-l border-border bg-card flex flex-col overflow-hidden">
       {/* Timer */}
       <div className={`flex-shrink-0 px-3 pt-3 pb-2.5 border-b border-border/60 ${isUrgent ? "bg-red-50 dark:bg-red-950/30" : ""}`}>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
-          Thời gian làm bài
+          Time Remaining
         </p>
         <div className={`flex items-center gap-1.5 ${isUrgent ? "text-red-600 dark:text-red-400" : isWarning ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>
           <Timer className={`w-3.5 h-3.5 ${isUrgent ? "animate-bounce" : ""}`} />
@@ -63,7 +63,7 @@ export function NavigationSidebar({
           </span>
         </div>
         {isUrgent && (
-          <p className="text-[10px] text-red-500 font-semibold mt-0.5">Sắp hết giờ!</p>
+          <p className="text-[10px] text-red-500 font-semibold mt-0.5">Time's almost up!</p>
         )}
       </div>
 
@@ -73,10 +73,10 @@ export function NavigationSidebar({
           onClick={() => setConfirmOpen(true)}
           className="w-full py-2 rounded-lg bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white text-sm font-extrabold tracking-wide transition-colors shadow-sm"
         >
-          NỘP BÀI
+          SUBMIT
         </button>
         <p className="text-[10px] text-center text-muted-foreground mt-1.5 font-medium">
-          {answeredQ}/{totalQ} đã trả lời
+          {answeredQ}/{totalQ} answered
         </p>
       </div>
 
@@ -121,7 +121,7 @@ export function NavigationSidebar({
                       onClick={() => onQuestionClick(q.id, sIdx)}
                       className={`h-7 w-full rounded text-[11px] font-bold border transition-all duration-100 hover:scale-105 active:scale-95 ${
                         isAnswered
-                          ? "bg-emerald-500 text-white border-emerald-600"
+                          ? "bg-primary/10 border-primary/20 text-primary"
                           : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-primary"
                       }`}
                     >
@@ -138,12 +138,12 @@ export function NavigationSidebar({
       {/* Legend */}
       <div className="flex-shrink-0 px-3 py-2 border-t border-border/60 bg-muted/20 flex gap-3">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />
-          <span className="text-[9px] text-muted-foreground font-medium">Đã làm</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-primary/10 border border-primary/20 inline-block" />
+          <span className="text-[9px] text-muted-foreground font-medium">Answered</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-background border border-border inline-block" />
-          <span className="text-[9px] text-muted-foreground font-medium">Chưa làm</span>
+          <span className="text-[9px] text-muted-foreground font-medium">Unanswered</span>
         </div>
       </div>
     </aside>

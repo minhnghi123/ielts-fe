@@ -1,6 +1,6 @@
 <div align="center">
 
-# IELTS Master — Frontend
+# IELTS-MN — Frontend
 
 **An AI-powered IELTS practice platform with instant feedback and personalized analytics**
 
@@ -15,7 +15,7 @@
 
 ## About the Project
 
-**IELTS Master** is the graduation thesis project of **Nghi Minh Nguyen** — a full-stack online IELTS practice platform powered by large language models.
+**IELTS-MN** is the graduation thesis project of **Nghi Minh Nguyen** — a full-stack online IELTS practice platform powered by large language models.
 
 ### Background & Motivation
 

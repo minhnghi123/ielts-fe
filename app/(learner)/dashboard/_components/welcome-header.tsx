@@ -10,17 +10,17 @@ export function WelcomeHeader({ userName }: Props) {
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good Morning" :
-    hour < 17 ? "Good Afternoon" :
-                "Good Evening";
+      hour < 17 ? "Good Afternoon" :
+        "Good Evening";
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap justify-between items-end gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-            {greeting}, {firstName} 👋
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            {greeting}, {firstName}
           </h1>
-          <p className="text-muted-foreground text-base">
+          <p className="font-body text-sm text-muted-foreground">
             Ready to improve your band score today? Choose a module to begin practice.
           </p>
         </div>

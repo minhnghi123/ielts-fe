@@ -31,30 +31,30 @@ const SKILL_CONFIG: Record<string, {
   reading: {
     icon: BookOpen,
     label: 'Reading',
-    gradient: 'from-blue-500 to-indigo-600',
-    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-    iconBg: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-  },
-  listening: {
-    icon: Headphones,
-    label: 'Listening',
-    gradient: 'from-purple-500 to-violet-600',
-    badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
-    iconBg: 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400',
-  },
-  writing: {
-    icon: PenTool,
-    label: 'Writing',
     gradient: 'from-emerald-500 to-teal-600',
     badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     iconBg: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
   },
+  listening: {
+    icon: Headphones,
+    label: 'Listening',
+    gradient: 'from-blue-500 to-indigo-600',
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
+  },
+  writing: {
+    icon: PenTool,
+    label: 'Writing',
+    gradient: 'from-amber-500 to-orange-500',
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
+  },
   speaking: {
     icon: Mic,
     label: 'Speaking',
-    gradient: 'from-orange-500 to-rose-500',
-    badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
-    iconBg: 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400',
+    gradient: 'from-violet-500 to-purple-600',
+    badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+    iconBg: 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400',
   },
 };
 
@@ -121,7 +121,7 @@ export default function TestsPage() {
             <Sparkles className="h-5 w-5 text-yellow-300" />
             <span className="text-blue-200 text-sm font-medium">IELTS Practice Hub</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black mb-2">Test Library</h1>
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2">Test Library</h1>
           <p className="text-blue-100 text-lg">
             {total > 0 ? `${total} tests available` : 'Explore our collection'} — choose a skill and start practicing today.
           </p>
@@ -152,8 +152,8 @@ export default function TestsPage() {
                 key={s}
                 onClick={() => { setSkill(s); setPage(1); }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${isActive
-                  ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
-                  : 'bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                  ? 'bg-primary/10 text-primary border-primary/20'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'
                   }`}
               >
                 {Icon && <Icon className="h-3.5 w-3.5" />}
@@ -168,7 +168,7 @@ export default function TestsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-card rounded-2xl border border-border animate-pulse overflow-hidden">
+            <div key={i} className="bg-card rounded-xl border border-border animate-pulse overflow-hidden">
               <div className="h-2 bg-muted w-full" />
               <div className="p-6 space-y-3">
                 <div className="h-5 bg-muted rounded-lg w-3/4" />
@@ -207,7 +207,7 @@ export default function TestsPage() {
             return (
               <div
                 key={test.id}
-                className="group bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden flex flex-col"
+                className="group bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
               >
                 {/* Top gradient stripe */}
                 <div className={`h-1.5 w-full bg-gradient-to-r ${config.gradient}`} />
@@ -230,7 +230,7 @@ export default function TestsPage() {
 
                   {/* Title */}
                   <div className="flex-1">
-                    <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                    <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
                       {test.title}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">

@@ -24,10 +24,10 @@ const API_BASE = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_
 const SKILL_TABS = ["all", "reading", "listening", "writing", "speaking"];
 
 const SKILL_COLORS: Record<string, string> = {
-    reading: "bg-blue-100 text-blue-700",
-    listening: "bg-purple-100 text-purple-700",
-    writing: "bg-green-100 text-green-700",
-    speaking: "bg-orange-100 text-orange-700",
+    listening: "bg-blue-100 text-blue-700",
+    reading: "bg-emerald-100 text-emerald-700",
+    writing: "bg-amber-100 text-amber-700",
+    speaking: "bg-violet-100 text-violet-700",
 };
 
 export default function TestsManagementPage({ searchParams }: { searchParams?: { skill?: string } }) {
@@ -118,12 +118,12 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
         : `/admin/tests/add?skill=${activeSkill}`;
 
     return (
-        <div className="p-6 md:p-10 max-w-[1400px] mx-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-800">Test Management</h1>
-                    <p className="text-sm text-slate-500 mt-1">Manage and organize IELTS practice tests</p>
+                    <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Test Management</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Manage and organize IELTS practice tests</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link
@@ -136,7 +136,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                     </Link>
                     <Link
                         href="/admin/tests/import"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-card text-foreground border border-border rounded-lg font-semibold hover:bg-muted transition-colors shadow-sm"
                     >
                         <span className="material-symbols-outlined text-[18px]">upload_file</span>
                         Import DOCX
@@ -147,9 +147,9 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Left Sidebar */}
                 <div className="w-full lg:w-64 flex-shrink-0">
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden sticky top-8">
-                        <div className="p-4 border-b border-slate-100 bg-slate-50">
-                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Test Categories</h2>
+                    <div className="bg-card rounded-xl border border-border overflow-hidden sticky top-8">
+                        <div className="p-4 border-b border-border bg-muted/50">
+                            <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">Test Categories</h2>
                         </div>
                         <nav className="p-2 space-y-1">
                             {SKILL_TABS.map((tab) => {
@@ -158,14 +158,14 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                     <button
                                         key={tab}
                                         onClick={() => handleSkillChange(tab)}
-                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                                            ? "bg-blue-50 text-blue-700 font-semibold"
-                                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+                                            ? "bg-primary/10 text-primary font-semibold"
+                                            : "text-muted-foreground hover:bg-accent hover:text-foreground"
                                             }`}
                                     >
                                         <span className="capitalize">{tab}</span>
                                         {isActive && (
-                                            <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">
+                                            <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full font-bold">
                                                 Active
                                             </span>
                                         )}
@@ -178,17 +178,17 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
 
                 {/* Main Content Area */}
                 <div className="flex-1">
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h2 className="font-semibold text-slate-800 capitalize">
+                    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30">
+                            <h2 className="font-display font-semibold text-foreground capitalize">
                                 {activeSkill === 'all' ? 'All Tests' : `${activeSkill} Tests`}
-                                <span className="ml-3 text-sm font-normal text-slate-500 bg-slate-200/50 px-2.5 py-1 rounded-full">{total} items</span>
+                                <span className="ml-3 text-sm font-normal text-muted-foreground bg-muted px-2.5 py-1 rounded-full">{total} items</span>
                             </h2>
                         </div>
 
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200">
+                                <thead className="bg-muted/50 text-muted-foreground border-b border-border">
                                     <tr>
                                         <th className="text-left px-6 py-4 font-semibold">Title</th>
                                         <th className="text-left px-6 py-4 font-semibold">Skill</th>
@@ -197,7 +197,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                         <th className="text-right px-6 py-4 font-semibold">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-border">
                                     {loading ? (
                                         <tr>
                                             <td colSpan={5} className="text-center py-16">
@@ -211,10 +211,10 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                         <tr>
                                             <td colSpan={5} className="text-center py-20 text-slate-500">
                                                 <div className="flex flex-col items-center justify-center gap-3">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-2">
-                                                        <span className="material-symbols-outlined text-3xl text-slate-400">inbox</span>
+                                                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-2">
+                                                        <span className="material-symbols-outlined text-3xl text-muted-foreground">inbox</span>
                                                     </div>
-                                                    <p className="font-medium text-slate-700">No tests found for this category</p>
+                                                    <p className="font-medium text-foreground">No tests found for this category</p>
                                                     <Link
                                                         href={addLinkHref}
                                                         className="text-blue-600 font-medium hover:underline text-sm"
@@ -226,9 +226,9 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                         </tr>
                                     ) : (
                                         tests.map((test) => (
-                                            <tr key={test.id} className="hover:bg-slate-50/80 transition-colors group">
+                                            <tr key={test.id} className="hover:bg-muted/30 transition-colors group">
                                                 <td className="px-6 py-4">
-                                                    <Link href={`/admin/tests/${test.id}`} className="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">
+                                                    <Link href={`/admin/tests/${test.id}`} className="font-semibold text-foreground group-hover:text-primary transition-colors">
                                                         {test.title}
                                                     </Link>
                                                 </td>
@@ -242,14 +242,14 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                                         {test.isMock ? "MOCK" : "PRACTICE"}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-500">
+                                                <td className="px-6 py-4 text-muted-foreground">
                                                     {new Date(test.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Link
                                                             href={`/admin/tests/${test.id}`}
-                                                            className="p-2 rounded-lg bg-white shadow-sm border border-slate-200 hover:border-blue-300 hover:text-blue-600 transition-all text-slate-500"
+                                                            className="p-2 rounded-lg bg-card shadow-sm border border-border hover:border-primary/40 hover:text-primary transition-all text-muted-foreground"
                                                             title="Edit"
                                                         >
                                                             <span className="material-symbols-outlined text-[18px] block">edit</span>
@@ -257,7 +257,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                                         <button
                                                             onClick={() => handleDelete(test.id, test.title)}
                                                             disabled={deleting === test.id}
-                                                            className="p-2 rounded-lg bg-white shadow-sm border border-slate-200 hover:border-red-300 hover:text-red-600 transition-all text-slate-500 disabled:opacity-50"
+                                                            className="p-2 rounded-lg bg-card shadow-sm border border-border hover:border-rose-300 hover:text-rose-600 transition-all text-muted-foreground disabled:opacity-50"
                                                             title="Delete"
                                                         >
                                                             {deleting === test.id
@@ -275,22 +275,22 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-sm">
-                                <span className="text-slate-500 font-medium">
+                            <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground font-medium">
                                     Page {page} of {totalPages}
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-colors"
+                                        className="px-4 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
                                     >
                                         Previous
                                     </button>
                                     <button
                                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
-                                        className="px-4 py-2 bg-white border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-colors"
+                                        className="px-4 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
                                     >
                                         Next
                                     </button>

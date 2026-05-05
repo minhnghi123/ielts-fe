@@ -161,12 +161,12 @@ function AnalysisTable({
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800 text-[11px] text-muted-foreground uppercase tracking-wide">
+                <thead className="bg-muted/50 text-[11px] text-muted-foreground uppercase tracking-wide">
                     <tr>
                         <th className="text-left px-4 py-2.5 font-semibold">Question Type</th>
                         <th className="text-center px-3 py-2.5 font-semibold text-emerald-600">Correct</th>
-                        <th className="text-center px-3 py-2.5 font-semibold text-red-500">Incorrect</th>
-                        <th className="text-center px-3 py-2.5 font-semibold text-slate-400">Skipped</th>
+                        <th className="text-center px-3 py-2.5 font-semibold text-rose-600">Incorrect</th>
+                        <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Skipped</th>
                         <th className="text-center px-3 py-2.5 font-semibold">Accuracy</th>
                         <th className="text-left px-3 py-2.5 font-semibold min-w-[140px]">Questions</th>
                     </tr>
@@ -176,11 +176,11 @@ function AnalysisTable({
                         const total = stats.correct + stats.wrong + stats.skipped;
                         const acc = total > 0 ? ((stats.correct / total) * 100).toFixed(1) + "%" : "—";
                         return (
-                            <tr key={label} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                            <tr key={label} className="hover:bg-muted/30 transition-colors">
                                 <td className="px-4 py-3 text-xs font-medium">{label}</td>
                                 <td className="px-3 py-3 text-center font-bold text-emerald-600">{stats.correct}</td>
-                                <td className="px-3 py-3 text-center font-bold text-red-500">{stats.wrong}</td>
-                                <td className="px-3 py-3 text-center font-bold text-slate-400">{stats.skipped}</td>
+                                <td className="px-3 py-3 text-center font-bold text-rose-600">{stats.wrong}</td>
+                                <td className="px-3 py-3 text-center font-bold text-muted-foreground">{stats.skipped}</td>
                                 <td className="px-3 py-3 text-center text-xs font-semibold">{acc}</td>
                                 <td className="px-3 py-3">
                                     <div className="flex flex-wrap gap-1">
@@ -195,7 +195,7 @@ function AnalysisTable({
                                                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                                                             : hasAnswer
                                                                 ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
-                                                                : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                                                                : "bg-muted text-muted-foreground"
                                                         }`}
                                                 >
                                                     {n}
@@ -208,11 +208,11 @@ function AnalysisTable({
                         );
                     })}
                     {/* Total row */}
-                    <tr className="bg-slate-50 dark:bg-slate-800/60 text-xs font-bold border-t-2 border-border">
+                    <tr className="bg-muted/50 text-xs font-bold border-t-2 border-border">
                         <td className="px-4 py-3">Total</td>
                         <td className="px-3 py-3 text-center text-emerald-600">{totalC}</td>
-                        <td className="px-3 py-3 text-center text-red-500">{totalW}</td>
-                        <td className="px-3 py-3 text-center text-slate-400">{totalS}</td>
+                        <td className="px-3 py-3 text-center text-rose-600">{totalW}</td>
+                        <td className="px-3 py-3 text-center text-muted-foreground">{totalS}</td>
                         <td className="px-3 py-3 text-center">{totalAcc}</td>
                         <td />
                     </tr>
@@ -241,15 +241,15 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors ${isCorrect
                                 ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/20"
                                 : isSkipped
-                                    ? "bg-slate-50 dark:bg-slate-800/20 border-slate-100 dark:border-slate-700/30"
-                                    : "bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-800/20"
+                                    ? "bg-muted/50 border-border"
+                                    : "bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-800/20"
                             }`}
                     >
                         {/* Number badge */}
                         <span className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-[10px] font-extrabold ${isCorrect
                                 ? "bg-emerald-200 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-200"
                                 : isSkipped
-                                    ? "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                                    ? "bg-muted text-muted-foreground"
                                     : "bg-red-200 text-red-600 dark:bg-red-800 dark:text-red-200"
                             }`}>
                             {displayNum}
@@ -262,7 +262,7 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                             ) : (
                                 <span className={`font-mono text-xs ${isCorrect
                                         ? "font-bold text-emerald-700 dark:text-emerald-300"
-                                        : "line-through text-red-400"
+                                        : "line-through text-rose-400"
                                     }`}>
                                     {qa.answer}
                                 </span>
@@ -287,8 +287,8 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                             {isCorrect
                                 ? <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                                 : isSkipped
-                                    ? <SkipForward className="h-4 w-4 text-slate-400" />
-                                    : <XCircle className="h-4 w-4 text-red-500" />
+                                    ? <SkipForward className="h-4 w-4 text-muted-foreground" />
+                                    : <XCircle className="h-4 w-4 text-rose-600" />
                             }
                         </div>
                     </div>
@@ -606,7 +606,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
                 <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
                 <p className="text-muted-foreground font-medium">Loading results…</p>
             </div>
@@ -635,7 +635,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     // Writing test but grading data could not be found
     if ((skillParam === "writing" || skillFromLoaded === "writing") && !gradingData && !isLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950 px-4">
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background px-4">
                 <FileText className="h-12 w-12 text-muted-foreground" />
                 <p className="font-semibold text-foreground text-center">Writing feedback not available</p>
                 <p className="text-sm text-muted-foreground text-center max-w-sm">
@@ -648,7 +648,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
     if (error || !attempt) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
                 <AlertCircle className="h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">{error ?? "Result not found."}</p>
                 <Link href="/tests"><Button variant="outline">Back to Tests</Button></Link>
@@ -719,10 +719,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         : qaEnriched.filter(qa => qa.sectionIdx === activeTab - 1);
 
     return (
-        <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
+        <div className="h-full overflow-y-auto bg-background">
 
             {/* ── Sticky Header ──────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-slate-900 border-b border-border sticky top-0 z-20 shadow-sm">
+            <div className="bg-card border-b border-border sticky top-0 z-20 shadow-sm">
                 <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
                     {/* Title + section badges */}
                     <div className="flex flex-wrap items-center gap-2 min-w-0">
@@ -768,8 +768,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             value: totalQ > 0 ? `${correctQ}/${totalQ}` : "—",
                             sub: "correct",
                             icon: FileText,
-                            color: "text-slate-600",
-                            bg: "bg-slate-100 dark:bg-slate-800",
+                            color: "text-muted-foreground",
+                            bg: "bg-muted",
                         },
                         {
                             label: "Accuracy",
@@ -788,7 +788,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             bg: "bg-amber-50 dark:bg-amber-900/20",
                         },
                     ].map(s => (
-                        <Card key={s.label} className="bg-white dark:bg-slate-900 shadow-sm border">
+                        <Card key={s.label} className="bg-card shadow-sm border">
                             <CardContent className="p-4 flex items-center gap-3">
                                 <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>
                                     <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -820,20 +820,20 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             label: "Incorrect",
                             value: wrongQ,
                             icon: XCircle,
-                            color: "text-red-500",
-                            bg: "bg-red-50 dark:bg-red-900/20",
-                            border: "border-red-100 dark:border-red-800/30",
+                            color: "text-rose-600",
+                            bg: "bg-rose-50 dark:bg-rose-900/20",
+                            border: "border-rose-100 dark:border-rose-800/30",
                         },
                         {
                             label: "Skipped",
                             value: skippedQ,
                             icon: SkipForward,
-                            color: "text-slate-500",
-                            bg: "bg-slate-50 dark:bg-slate-800/50",
-                            border: "border-slate-200 dark:border-slate-700",
+                            color: "text-muted-foreground",
+                            bg: "bg-muted",
+                            border: "border-border",
                         },
                     ].map(s => (
-                        <Card key={s.label} className={`bg-white dark:bg-slate-900 shadow-sm border ${s.border}`}>
+                        <Card key={s.label} className={`bg-card shadow-sm border ${s.border}`}>
                             <CardContent className="p-4 text-center space-y-1.5">
                                 <div className={`h-10 w-10 rounded-full mx-auto flex items-center justify-center ${s.bg}`}>
                                     <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -848,14 +848,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
                 {/* ── Band Score — only for Writing / Speaking (AI-assessed) ── */}
                 {!isAutoGraded && (
-                    <Card className="bg-white dark:bg-slate-900 shadow-sm border">
+                    <Card className="bg-card shadow-sm border">
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="flex-shrink-0 text-center min-w-[80px]">
                                 <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-bold mb-1">Band Score</p>
-                                <p className={`text-5xl font-black leading-none tabular-nums ${bandScore >= 7 ? "text-emerald-600 dark:text-emerald-400"
-                                        : bandScore >= 5 ? "text-amber-500"
-                                            : bandScore > 0 ? "text-red-500"
-                                                : "text-muted-foreground"
+                                <p className={`text-5xl font-black leading-none tabular-nums ${bandScore >= 7.5 ? "text-emerald-600 dark:text-emerald-400"
+                                        : bandScore >= 6 ? "text-blue-600 dark:text-blue-400"
+                                            : bandScore >= 4.5 ? "text-amber-600"
+                                                : bandScore > 0 ? "text-rose-600"
+                                                    : "text-muted-foreground"
                                     }`}>
                                     {bandScore > 0 ? bandScore.toFixed(1) : "—"}
                                 </p>
@@ -887,7 +888,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 )}
 
                 {/* ── Detailed Analysis ───────────────────────────────────── */}
-                <Card className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
+                <Card className="bg-card shadow-sm border overflow-hidden">
                     <CardContent className="p-0">
                         {/* Header */}
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center gap-2">
@@ -903,8 +904,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                         key={i}
                                         onClick={() => setActiveTab(i)}
                                         className={`px-4 py-1.5 text-xs font-bold rounded-t border border-b-0 transition-colors -mb-px ${activeTab === i
-                                                ? "bg-white dark:bg-slate-900 border-border text-primary"
-                                                : "bg-slate-50 dark:bg-slate-800 border-transparent text-muted-foreground hover:text-foreground"
+                                                ? "bg-card border-border text-primary"
+                                                : "bg-muted border-transparent text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
                                         {label}
@@ -918,7 +919,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 </Card>
 
                 {/* ── Answer Review ───────────────────────────────────────── */}
-                <Card className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
+                <Card className="bg-card shadow-sm border overflow-hidden">
                     <CardContent className="p-0">
                         {/* Header */}
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center justify-between flex-wrap gap-3">

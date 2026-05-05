@@ -134,7 +134,7 @@ export function TestInstructions({
                         </h3>
                         <p className="text-sm text-muted-foreground">Choose how long you want to practice:</p>
                         <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-                            <SelectTrigger className="w-full bg-white dark:bg-slate-950 h-11">
+                            <SelectTrigger className="w-full bg-background h-11">
                                 <SelectValue placeholder="Select duration" />
                             </SelectTrigger>
                             <SelectContent>
@@ -178,7 +178,7 @@ export function TestInstructions({
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground pb-4">
-                    © 2024 IELTS Master — Official Practice Portal
+                    © 2024 IELTS-MN — Official Practice Portal
                 </p>
             </div>
         </div>

@@ -33,15 +33,16 @@ function skillIcon(skill: string) {
 function skillBadgeClass(skill: string) {
     if (skill === "listening") return "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200";
     if (skill === "reading") return "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200";
-    return "bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200";
+    if (skill === "writing") return "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200";
+    if (skill === "speaking") return "bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-violet-200";
+    return "bg-muted text-muted-foreground border-border";
 }
 
 function bandColor(band: number) {
-    if (band >= 8) return "text-emerald-600 dark:text-emerald-400";
-    if (band >= 7) return "text-blue-600 dark:text-blue-400";
-    if (band >= 6) return "text-amber-500";
-    if (band >= 5) return "text-orange-500";
-    if (band > 0) return "text-red-500";
+    if (band >= 7.5) return "text-emerald-600";
+    if (band >= 6) return "text-blue-600";
+    if (band >= 4.5) return "text-amber-600";
+    if (band > 0) return "text-rose-600";
     return "text-muted-foreground";
 }
 
@@ -110,7 +111,7 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                     { label: "Completed", value: completed.length, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
                     { label: "Average Band", value: avgBand > 0 ? avgBand.toFixed(1) : "—", icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
                 ].map(s => (
-                    <Card key={s.label} className="bg-white dark:bg-slate-900 shadow-sm">
+                    <Card key={s.label} className="bg-card shadow-sm">
                         <CardContent className="p-4 flex items-center gap-3">
                             <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>
                                 <s.icon className={`h-4 w-4 ${s.color}`} />
@@ -125,11 +126,11 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
             </div>
 
             {/* Attempts table */}
-            <Card className="bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+            <Card className="bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-0">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-slate-50 dark:bg-slate-800 text-xs text-muted-foreground uppercase tracking-wide">
+                            <thead className="bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide">
                                 <tr>
                                     <th className="text-left px-4 py-3 font-semibold">Test</th>
                                     <th className="text-center px-3 py-3 font-semibold">Skill</th>
@@ -168,7 +169,7 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                                     : `/practice/${testId}/result?attemptId=${a.id}`;
 
                                     return (
-                                        <tr key={a.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                                        <tr key={a.id} className="hover:bg-muted/30 transition-colors">
                                             <td className="px-4 py-3">
                                                 <p className="font-semibold text-sm text-foreground line-clamp-1">{title}</p>
                                             </td>
@@ -297,18 +298,18 @@ export default function UserProfilePage() {
     const learnerId = (user as any).profileId || user.id;
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="bg-background">
             {/* Sticky header */}
-            <div className="bg-white dark:bg-slate-900 border-b border-border sticky top-0 z-20 shadow-sm">
+            <div className="bg-card border-b border-border sticky top-0 z-20 shadow-sm">
                 <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center gap-3">
-                    <h1 className="text-base font-bold">My Account</h1>
+                    <h1 className="font-display text-base font-bold text-foreground">My Account</h1>
                 </div>
             </div>
 
             <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-5">
 
                 {/* User info strip */}
-                <Card className="bg-white dark:bg-slate-900 shadow-sm">
+                <Card className="bg-card shadow-sm">
                     <CardContent className="p-5 flex items-center gap-4">
                         <div className="flex-shrink-0">
                             <AvatarUpload
@@ -354,7 +355,7 @@ export default function UserProfilePage() {
 
                 {/* Personal Info tab */}
                 {activeSection === "profile" && (
-                    <Card className="bg-white dark:bg-slate-900 shadow-sm">
+                    <Card className="bg-card shadow-sm">
                         <CardHeader>
                             <CardTitle className="text-base">Personal Information</CardTitle>
                             <CardDescription className="text-xs">Update your display name and profile picture.</CardDescription>

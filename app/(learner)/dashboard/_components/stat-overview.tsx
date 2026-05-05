@@ -44,16 +44,16 @@ export function StatOverview({ attempts, loading }: Props) {
       value: loading ? "…" : String(completed.length),
       trend: attempts.length > completed.length ? `+${attempts.length - completed.length} in progress` : "All done",
       icon: "assignment_turned_in",
-      iconColor: "text-purple-600 dark:text-purple-400",
-      iconBg: "bg-purple-50 dark:bg-purple-900/20",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg: "bg-emerald-50 dark:bg-emerald-900/20",
     },
     {
       title: "Average Band Score",
       value: loading ? "…" : avgBand > 0 ? avgBand.toFixed(1) : "—",
       trend: avgBand > 0 ? (avgBand >= 7 ? "Great progress!" : "Keep practising") : "Submit a test",
       icon: "grade",
-      iconColor: "text-orange-600 dark:text-orange-400",
-      iconBg: "bg-orange-50 dark:bg-orange-900/20",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      iconBg: "bg-amber-50 dark:bg-amber-900/20",
     },
     {
       title: "Highest Band Score",
@@ -66,20 +66,20 @@ export function StatOverview({ attempts, loading }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-5">
+        <Card key={index} className="rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+          <CardContent className="p-6">
             <div className="flex justify-between items-start">
-              <div className={`p-2 rounded-lg ${stat.iconBg} ${stat.iconColor}`}>
+              <div className={`p-2.5 rounded-xl ${stat.iconBg} ${stat.iconColor}`}>
                 <span className="material-symbols-outlined">{stat.icon}</span>
               </div>
-              <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground">
+              <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground">
                 {stat.trend}
               </span>
             </div>
             <p className="text-muted-foreground text-sm font-medium mt-3">{stat.title}</p>
-            <p className="text-2xl font-bold mt-1">{stat.value}</p>
+            <p className="font-display text-2xl font-bold tabular-nums text-foreground mt-1">{stat.value}</p>
           </CardContent>
         </Card>
       ))}

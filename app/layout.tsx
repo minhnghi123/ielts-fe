@@ -26,7 +26,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "IELTS Master Platform",
+  title: "IELTS-MN Platform",
   description: "Comprehensive IELTS preparation tools",
   icons: {
     icon: "/ielts_logo.jpg",
@@ -49,7 +49,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background font-display text-foreground antialiased">
+      <body className="bg-background font-body text-foreground antialiased">
         {/* TanStack Query client + devtools */}
         <QueryProvider>
           {/* Hydrates Zustand auth store from the session cookie on first render */}

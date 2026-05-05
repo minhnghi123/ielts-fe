@@ -16,7 +16,7 @@ export default function HomeLayout({
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-[#151c2a] border-t border-border py-10 mt-auto">
+      <footer className="bg-card border-t border-border py-10 mt-auto">
         <div className="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="text-primary h-6 w-6 flex items-center justify-center bg-primary/10 rounded">
@@ -24,7 +24,7 @@ export default function HomeLayout({
                 school
               </span>
             </div>
-            <span className="font-bold">IELTS Master</span>
+            <span className="font-bold">IELTS-MN</span>
           </div>
           <div className="flex gap-8 text-sm text-muted-foreground">
             <a href="#" className="hover:text-primary">
@@ -37,7 +37,7 @@ export default function HomeLayout({
               Privacy
             </a>
           </div>
-          <p className="text-sm text-muted-foreground">© 2024 IELTS Master</p>
+          <p className="text-sm text-muted-foreground">© 2024 IELTS-MN</p>
         </div>
       </footer>
     </div>

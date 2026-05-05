@@ -31,7 +31,7 @@ function GradingOverlay({ step, error }: { step: GradingStep; error?: string }) 
 
     return (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-border">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-5">
                     <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ function GradingOverlay({ step, error }: { step: GradingStep; error?: string }) 
                                         }`}
                                 >
                                     <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center ${isDone ? "bg-emerald-100 dark:bg-emerald-900/40" :
-                                        isActive ? "bg-violet-100 dark:bg-violet-900/40" : "bg-slate-100 dark:bg-slate-800"
+                                        isActive ? "bg-violet-100 dark:bg-violet-900/40" : "bg-muted"
                                         }`}>
                                         {isDone ? (
                                             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
@@ -226,7 +226,7 @@ export function WritingTestInterface({
 
             <div className="h-full flex flex-col overflow-hidden bg-background">
                 {/* Top Bar */}
-                <div className="border-b bg-white dark:bg-slate-900 p-4 flex items-center justify-between shadow-sm z-10">
+                <div className="border-b bg-card p-4 flex items-center justify-between shadow-sm z-10">
                     <div className="flex items-center gap-4">
                         <Badge variant="outline" className={`text-base py-1.5 px-3.5 flex items-center gap-2 ${timeLeft !== null && timeLeft < 300_000 ? "bg-red-50 text-red-600 border-red-200" : ""}`}>
                             <Timer className={`w-4 h-4 ${timeLeft !== null && timeLeft < 300_000 ? "animate-pulse" : ""}`} />
@@ -269,14 +269,14 @@ export function WritingTestInterface({
                                 className="absolute inset-0 flex flex-col md:flex-row bg-background animate-in fade-in duration-300"
                             >
                                 {/* Left Side: Prompt Area */}
-                                <div className="w-full md:w-[45%] p-6 md:p-8 border-r border-border overflow-y-auto bg-slate-50/80 dark:bg-slate-900/40">
+                                <div className="w-full md:w-[45%] p-6 md:p-8 border-r border-border overflow-y-auto bg-muted/20">
                                     <div className="max-w-2xl mx-auto space-y-6">
                                         <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none px-3 py-1 shadow-sm">
                                             Writing Task {task.taskNumber}
                                         </Badge>
 
                                         <div className="prose prose-slate dark:prose-invert max-w-none">
-                                            <div className="p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                            <div className="p-6 bg-card rounded-xl shadow-sm border border-border">
                                                 <h3 className="text-lg font-medium leading-relaxed whitespace-pre-line text-slate-800 dark:text-slate-100 mt-0">
                                                     {task.prompt}
                                                 </h3>
@@ -284,7 +284,7 @@ export function WritingTestInterface({
                                         </div>
 
                                         {task.config?.mediaUrl && (
-                                            <Card className="p-2 overflow-hidden bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
+                                            <Card className="p-2 overflow-hidden bg-card border-border shadow-sm transition-all hover:shadow-md">
                                                 <img
                                                     src={task.config.mediaUrl}
                                                     alt={`Task ${task.taskNumber} Reference`}
@@ -303,13 +303,13 @@ export function WritingTestInterface({
                                 </div>
 
                                 {/* Right Side: Typing Area */}
-                                <div className="w-full md:w-[55%] bg-white dark:bg-slate-950 flex flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-10 relative">
+                                <div className="w-full md:w-[55%] bg-background flex flex-col shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] z-10 relative">
                                     {/* Typing Area Header */}
-                                    <div className="px-6 py-3 border-b border-border flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20">
-                                        <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-sm uppercase tracking-wide">
+                                    <div className="px-6 py-3 border-b border-border flex justify-between items-center bg-muted/20 backdrop-blur-sm sticky top-0 z-20">
+                                        <h4 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
                                             Your Response
                                         </h4>
-                                        <div className={`text-sm font-bold px-3 py-1.5 rounded-full transition-colors flex items-center gap-2 shadow-sm ${currentWordCount < minWords ? 'bg-orange-100 text-orange-700 border border-orange-200/50 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800/50' : 'bg-green-100 text-green-700 border border-green-200/50 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800/50'}`}>
+                                        <div className={`text-sm font-bold px-3 py-1.5 rounded-full transition-colors flex items-center gap-2 shadow-sm ${currentWordCount < minWords ? 'bg-amber-100 text-amber-700 border border-amber-200/50 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800/50' : 'bg-emerald-100 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/50'}`}>
                                             <span>{currentWordCount} words</span>
                                             {currentWordCount < minWords && (
                                                 <span className="text-xs font-medium opacity-75">

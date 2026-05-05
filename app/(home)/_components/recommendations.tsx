@@ -77,7 +77,7 @@ function RecommendCard({ icon, color, title, desc, tag, onClick }: any) {
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-[#151c2a] p-5 rounded-xl border border-border shadow-sm hover:border-primary transition-colors cursor-pointer group"
+      className="bg-card p-5 rounded-xl border border-border shadow-sm hover:border-primary transition-colors cursor-pointer group"
     >
       <div className="flex items-start gap-4">
         <div

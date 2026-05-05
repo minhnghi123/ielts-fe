@@ -80,7 +80,7 @@ export default function UsersManagementPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">User Management</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">{total} accounts registered</p>
                 </div>
 
@@ -94,7 +94,7 @@ export default function UsersManagementPage() {
                             placeholder="Search by email..."
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                            className="pl-9 pr-4 py-2 border rounded-xl text-sm w-full focus:outline-none focus:ring-1 focus:ring-orange-500"
+                            className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary bg-background"
                         />
                     </div>
                 </div>
@@ -118,7 +118,7 @@ export default function UsersManagementPage() {
                             <tr>
                                 <td colSpan={6} className="text-center py-12 text-muted-foreground">
                                     <div className="flex items-center justify-center gap-2">
-                                        <span className="inline-block w-4 h-4 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+                                        <span className="inline-block w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                         Loading users...
                                     </div>
                                 </td>
@@ -136,7 +136,7 @@ export default function UsersManagementPage() {
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-8 w-8">
-                                                <AvatarFallback className="bg-orange-100 text-orange-600 font-medium text-xs">
+                                                <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
                                                     {user.email.charAt(0).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
@@ -144,7 +144,7 @@ export default function UsersManagementPage() {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${user.role === 'admin' ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${user.role === 'admin' ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"
                                             }`}>
                                             {user.role}
                                         </span>

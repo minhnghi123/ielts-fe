@@ -462,12 +462,12 @@ export function SpeakingTestInterface({
         <div className="relative h-full flex flex-col overflow-hidden">
 
             {/* Header */}
-            <header className="shrink-0 flex items-center gap-3 px-5 py-3 bg-slate-900 text-white border-b border-white/10">
+            <header className="shrink-0 flex items-center gap-3 px-5 py-3 bg-card text-foreground border-b border-border">
                 <div>
                     <p className="text-sm font-semibold leading-none">IELTS Examiner · Sarah</p>
-                    <p className="text-xs text-white/50 mt-0.5">Part {currentPart} — {partLabel}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Part {currentPart} — {partLabel}</p>
                 </div>
-                <Badge variant="outline" className="ml-auto border-white/20 text-white/60 text-xs">
+                <Badge variant="outline" className="ml-auto border-border text-muted-foreground text-xs">
                     Part {currentPart} / 3
                 </Badge>
             </header>
@@ -605,12 +605,12 @@ export function SpeakingTestInterface({
                             {showHistory ? 'Hide' : 'Show'} conversation ({history.length} messages)
                         </button>
                         {showHistory && (
-                            <div className="mt-2 max-h-36 overflow-y-auto space-y-1.5 bg-slate-900/60 rounded-lg p-3">
+                            <div className="mt-2 max-h-36 overflow-y-auto space-y-1.5 bg-muted/50 rounded-xl border border-border p-3">
                                 {history.map((msg, i) => (
                                     <p key={i} className={`text-xs leading-relaxed ${
                                         msg.role === 'examiner'
-                                            ? 'text-blue-300'
-                                            : 'text-white/50 text-right'
+                                            ? 'text-blue-600 dark:text-blue-400'
+                                            : 'text-muted-foreground text-right'
                                     }`}>
                                         <span className="font-medium">
                                             {msg.role === 'examiner' ? 'Examiner: ' : 'You: '}

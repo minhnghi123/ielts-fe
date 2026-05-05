@@ -46,7 +46,7 @@ function PracticeHeader() {
     };
 
     return (
-        <header className="h-12 border-b border-border/60 bg-white dark:bg-slate-900 px-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <header className="h-12 border-b border-border bg-background/95 backdrop-blur-sm px-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
             {/* Left: Test title */}
             <div className="flex items-center gap-2 min-w-0">
                 <GraduationCap className="h-4 w-4 text-primary flex-shrink-0" />
@@ -65,7 +65,7 @@ function PracticeHeader() {
                     onClick={handleExit}
                 >
                     <X className="h-3.5 w-3.5" />
-                    Thoát
+                    Exit
                 </Button>
             ) : (
                 /* During an active test: show confirmation dialog */
@@ -77,7 +77,7 @@ function PracticeHeader() {
                             className="gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 px-3 text-xs font-semibold"
                         >
                             <X className="h-3.5 w-3.5" />
-                            Thoát
+                            Exit
                         </Button>
                     </AlertDialogTrigger>
 

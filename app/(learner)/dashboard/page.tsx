@@ -34,11 +34,11 @@ function bandColor(band: number | null | undefined): string {
 }
 
 function bandTextColor(band: number | null | undefined): string {
-  if (!band) return "text-slate-400";
+  if (!band) return "text-muted-foreground";
   if (band >= 7.5) return "text-emerald-600";
   if (band >= 6) return "text-blue-600";
-  if (band >= 4.5) return "text-amber-500";
-  return "text-rose-500";
+  if (band >= 4.5) return "text-amber-600";
+  return "text-rose-600";
 }
 
 // ─── Skill Progress Panel ──────────────────────────────────────────────────────
@@ -60,9 +60,9 @@ function SkillProgressPanel({
   loading: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-6">
+    <div className="bg-card border border-border rounded-xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-bold">Skill Progress</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Skill Progress</h2>
         <Link href="/analysis" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
           Full Analysis <ArrowRight className="h-3.5 w-3.5" />
         </Link>
@@ -82,7 +82,7 @@ function SkillProgressPanel({
                 </div>
                 <div className="flex items-center gap-2">
                   {loading ? (
-                    <div className="h-4 w-8 bg-slate-200 rounded animate-pulse" />
+                    <div className="h-4 w-8 bg-muted rounded animate-pulse" />
                   ) : band ? (
                     <span className={`text-sm font-black tabular-nums ${bandTextColor(band)}`}>{band.toFixed(1)}</span>
                   ) : (
@@ -90,7 +90,7 @@ function SkillProgressPanel({
                   )}
                 </div>
               </div>
-              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
                 {!loading && (
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${bandColor(band)}`}
@@ -119,15 +119,15 @@ function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number
   const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
 
   return (
-    <div className="bg-white dark:bg-card border rounded-2xl shadow-sm p-6 flex flex-col items-center gap-3 text-center">
+    <div className="bg-card border border-border rounded-xl shadow-sm p-6 flex flex-col items-center gap-3 text-center">
       <div className="flex items-center gap-2 w-full justify-between mb-1">
-        <h2 className="text-base font-bold">Exam Readiness</h2>
+        <h2 className="font-display text-base font-semibold text-foreground">Exam Readiness</h2>
         <Link href="/analysis" className="text-xs text-primary font-medium flex items-center gap-1 hover:underline">
           Details <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
       {loading ? (
-        <div className="h-24 w-24 rounded-full bg-slate-100 animate-pulse mx-auto" />
+        <div className="h-24 w-24 rounded-full bg-muted animate-pulse mx-auto" />
       ) : (
         <div className="relative">
           <svg width="96" height="96" viewBox="0 0 96 96">
@@ -165,7 +165,7 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
   if (!loading && !topTask) return null;
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/40 rounded-2xl p-5">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800/40 rounded-xl p-5">
       <div className="flex items-center gap-2 mb-2">
         <Target className="h-4 w-4 text-blue-600" />
         <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
@@ -203,10 +203,10 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
 }
 
 function skillColors(skill: string) {
-  if (skill === "listening") return { bg: "bg-blue-100 dark:bg-blue-900/20", text: "text-blue-600 dark:text-blue-400" };
-  if (skill === "reading") return { bg: "bg-emerald-100 dark:bg-emerald-900/20", text: "text-emerald-600 dark:text-emerald-400" };
-  if (skill === "writing") return { bg: "bg-orange-100 dark:bg-orange-900/20", text: "text-orange-600 dark:text-orange-400" };
-  return { bg: "bg-purple-100 dark:bg-purple-900/20", text: "text-purple-600 dark:text-purple-400" };
+  if (skill === "listening") return { bg: "bg-blue-100 dark:bg-blue-900/20", text: "text-blue-700 dark:text-blue-400" };
+  if (skill === "reading") return { bg: "bg-emerald-100 dark:bg-emerald-900/20", text: "text-emerald-700 dark:text-emerald-400" };
+  if (skill === "writing") return { bg: "bg-amber-100 dark:bg-amber-900/20", text: "text-amber-700 dark:text-amber-400" };
+  return { bg: "bg-violet-100 dark:bg-violet-900/20", text: "text-violet-700 dark:text-violet-400" };
 }
 
 function timeAgo(dateStr: string): string {
@@ -266,7 +266,7 @@ export default function DashboardPage() {
   const tip = tips[weakestSkill as keyof typeof tips] ?? tips.reading;
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto w-full flex flex-col gap-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       <WelcomeHeader userName={user?.fullName || user?.email || ""} />
 
@@ -282,17 +282,17 @@ export default function DashboardPage() {
 
       {/* ── Module Grid ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-6">
-        <h2 className="text-xl font-bold">Select Test Module</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Select Test Module</h2>
         <ModuleGrid testCounts={testCounts} attempts={attempts} loading={isLoading} />
       </div>
 
       {/* ── Bottom Grid ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* ── Recent Activity ──────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Recent Activity</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">Recent Activity</h2>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="text-sm text-primary font-medium gap-1">
                 View All <ArrowRight className="h-3.5 w-3.5" />
@@ -305,7 +305,7 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
             </div>
           ) : recentAttempts.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-card border rounded-xl shadow-sm">
+            <div className="text-center py-12 bg-card border border-border rounded-xl shadow-sm">
               <FileText className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground font-medium">No activity yet — take your first test!</p>
               <Link href="/practice">
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                 const testId = a.testId ?? (a.test as any)?.id;
 
                 return (
-                  <div key={a.id} className="flex items-center justify-between p-4 bg-white dark:bg-card border rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                  <div key={a.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className={`h-10 w-10 rounded-lg ${bg} ${text} flex items-center justify-center flex-shrink-0`}>
                         {skillIcon(skill)}
@@ -373,7 +373,7 @@ export default function DashboardPage() {
           <StudyPriorityCard summary={summary} loading={isLoading} />
 
           {/* AI Advisor CTA */}
-          <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white shadow-lg">
+          <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-5 text-white shadow-lg">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-[20px]">smart_toy</span>
               <span className="font-bold uppercase tracking-wider text-xs opacity-80">AI Study Coach</span>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Daily Tip */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-2xl">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-xl">
             <div className="flex items-center gap-2 mb-3 text-amber-700 dark:text-amber-500">
               <span className="material-symbols-outlined text-[18px]">lightbulb</span>
               <span className="font-bold uppercase tracking-wider text-xs capitalize">

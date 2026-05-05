@@ -62,10 +62,10 @@ export function SpeakingResult({ gradings, bandScore, testTitle, testId }: Speak
         : bandScore;
 
     return (
-        <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
+        <div className="h-full overflow-y-auto bg-background">
 
             {/* ── Sticky Header ──────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-slate-900 border-b border-border sticky top-0 z-20 shadow-sm">
+            <div className="bg-card border-b border-border sticky top-0 z-20 shadow-sm">
                 <div className="max-w-4xl mx-auto px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
                         <Mic className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -86,7 +86,7 @@ export function SpeakingResult({ gradings, bandScore, testTitle, testId }: Speak
             <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 space-y-5">
 
                 {/* ── Overall Band ──────────────────────────────────────── */}
-                <Card className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
+                <Card className="bg-card shadow-sm border overflow-hidden">
                     <CardContent className="p-5 flex items-center gap-6">
                         <div className="h-24 w-24 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex flex-col items-center justify-center flex-shrink-0 border border-blue-100 dark:border-blue-800/30">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-1">Band</p>
@@ -122,7 +122,7 @@ export function SpeakingResult({ gradings, bandScore, testTitle, testId }: Speak
 
                 {/* ── No Gradings Fallback ──────────────────────────────── */}
                 {!gradings && (
-                    <Card className="bg-white dark:bg-slate-900 shadow-sm border">
+                    <Card className="bg-card shadow-sm border">
                         <CardContent className="p-5 flex items-start gap-3">
                             <Info className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                             <div>
@@ -137,7 +137,7 @@ export function SpeakingResult({ gradings, bandScore, testTitle, testId }: Speak
 
                 {/* ── Per-Part Grading Cards ────────────────────────────── */}
                 {gradings && gradings.map(g => (
-                    <Card key={g.partNumber} className="bg-white dark:bg-slate-900 shadow-sm border overflow-hidden">
+                    <Card key={g.partNumber} className="bg-card shadow-sm border overflow-hidden">
                         <CardContent className="p-0">
                             {/* Part header */}
                             <div className="px-5 pt-4 pb-3 border-b border-border flex items-center justify-between flex-wrap gap-2">

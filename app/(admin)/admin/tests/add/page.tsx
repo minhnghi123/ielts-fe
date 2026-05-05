@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -23,6 +23,16 @@ export function AddTestPageSuspense() {
       | "listening"
       | "writing"
       | "speaking") || "reading";
+
+  // Redirect writing/speaking to their dedicated pages immediately
+  useEffect(() => {
+    if (initialSkill === "writing") {
+      router.replace("/admin/tests/add/writing");
+    } else if (initialSkill === "speaking") {
+      router.replace("/admin/tests/add/speaking");
+    }
+  }, [initialSkill, router]);
+
   const [isSkillLocked] = useState(!!searchParams.get("skill"));
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,18 +44,27 @@ export function AddTestPageSuspense() {
   });
 
   const [testData, setTestData] = useState<CreateManualTestRequest>({
-    skill: initialSkill,
+    skill: initialSkill === "writing" || initialSkill === "speaking" ? "reading" : initialSkill,
     title: "",
     isMock: false,
     createdBy,
     sections: Array.from({
-      length: initialSkill === "reading" || initialSkill === "listening" ? 3 : 1,
+      length: initialSkill === "reading" || initialSkill === "listening" ? 3 : 3,
     }).map((_, i) => makeInitialSection(i + 1)),
   });
 
   // ─── Test-level Handlers ──────────────────────────────────────────────────
 
   const handleTestChange = (field: keyof CreateManualTestRequest, value: unknown) => {
+    // Redirect to dedicated pages for writing/speaking
+    if (field === "skill" && value === "writing") {
+      router.push("/admin/tests/add/writing");
+      return;
+    }
+    if (field === "skill" && value === "speaking") {
+      router.push("/admin/tests/add/speaking");
+      return;
+    }
     setTestData((prev) => {
       const next = { ...prev, [field]: value };
       if (field === "skill" && (value === "listening" || value === "reading")) {
@@ -395,8 +414,8 @@ export function AddTestPageSuspense() {
                   >
                     <option value="reading">Reading</option>
                     <option value="listening">Listening</option>
-                    <option value="writing">Writing</option>
-                    <option value="speaking">Speaking</option>
+                    <option value="writing">Writing ↗</option>
+                    <option value="speaking">Speaking ↗</option>
                   </select>
                   {isSkillLocked && (
                     <div

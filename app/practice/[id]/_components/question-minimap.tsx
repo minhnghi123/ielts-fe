@@ -39,7 +39,7 @@ export function QuestionMinimap({
 
   return (
     <aside
-      className={`h-full w-[68px] flex-shrink-0 bg-white dark:bg-slate-900 border-l border-border flex flex-col overflow-hidden ${className}`}
+      className={`h-full w-[68px] flex-shrink-0 bg-card border-l border-border flex flex-col overflow-hidden ${className}`}
     >
       {/* Progress header */}
       <div className="flex-shrink-0 px-2 py-2.5 border-b border-border bg-muted/20 flex flex-col items-center gap-1">

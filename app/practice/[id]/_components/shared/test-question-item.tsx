@@ -33,7 +33,7 @@ export function QuestionGroupBlock({
   return (
     <div className="space-y-2.5">
       {/* Group header */}
-      <div className="rounded-lg border border-border bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
+      <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
         <div className="flex items-center justify-between px-3.5 py-2 border-b border-border/60">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-primary/80">
             {rangeLabel}
@@ -113,7 +113,7 @@ export function QuestionItem({
   return (
     <div
       id={`q-container-${id}`}
-      className="bg-white dark:bg-slate-900 border border-border rounded-lg px-4 py-3 shadow-sm hover:border-primary/30 transition-all duration-200"
+      className="bg-card border border-border rounded-lg px-4 py-3 shadow-sm hover:border-primary/30 transition-all duration-200"
     >
       {isInline ? (
         /* Inline fill-in-blank */
@@ -126,7 +126,7 @@ export function QuestionItem({
             value={answer}
             placeholder="Your answer…"
             onChange={(e) => onAnswerChange(id, e.target.value)}
-            className="flex-1 h-9 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
+            className="flex-1 h-9 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
           />
         </div>
       ) : (
@@ -145,7 +145,7 @@ export function QuestionItem({
             {/* If there's an image in the question config, display it */}
             {config?.imageUrl && (
               <div className="mt-3 w-full max-w-md">
-                <img src={config.imageUrl} alt="Question reference" className="rounded-md border border-slate-200" />
+                <img src={config.imageUrl} alt="Question reference" className="rounded-lg border border-border" />
               </div>
             )}
           </div>
@@ -164,7 +164,7 @@ export function QuestionItem({
                   return (
                     <label
                       key={i}
-                      className={`flex items-start gap-2.5 px-3 py-2 rounded-md cursor-pointer border transition-all text-[0.8125rem] ${
+                      className={`flex items-start gap-2.5 px-3 py-2 rounded-lg cursor-pointer border transition-all text-[0.8125rem] ${
                         isSelected
                           ? "bg-primary/10 border-primary/40"
                           : "bg-background border-border hover:bg-muted/50"
@@ -195,7 +195,7 @@ export function QuestionItem({
                 <select
                   value={answer}
                   onChange={(e) => onAnswerChange(id, e.target.value)}
-                  className="w-full max-w-[260px] h-9 rounded-md border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
+                  className="w-full max-w-[260px] h-9 rounded-lg border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
                 >
                   <option value="" disabled>— Select —</option>
                   {dropdownOptions.map((opt, i) => {
@@ -221,7 +221,7 @@ export function QuestionItem({
                 <select
                   value={answer}
                   onChange={(e) => onAnswerChange(id, e.target.value)}
-                  className="w-full max-w-[280px] h-9 rounded-md border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
+                  className="w-full max-w-[280px] h-9 rounded-lg border border-border bg-background px-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
                 >
                   <option value="" disabled>— Select a heading —</option>
                   {headingOptions.map((opt, i) => {
@@ -248,7 +248,7 @@ export function QuestionItem({
                 value={answer}
                 placeholder="Your answer…"
                 onChange={(e) => onAnswerChange(id, e.target.value)}
-                className="w-full h-9 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
+                className="w-full h-9 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
               />
             )}
           </div>

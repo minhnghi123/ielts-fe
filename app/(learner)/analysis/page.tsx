@@ -45,15 +45,15 @@ function avgBand(attempts: TestAttempt[], skill?: string): number | null {
 }
 
 function bandColor(b: number | null): string {
-  if (!b) return "text-slate-400";
+  if (!b) return "text-muted-foreground";
   if (b >= 7.5) return "text-emerald-600";
   if (b >= 6)   return "text-blue-600";
-  if (b >= 4.5) return "text-amber-500";
-  return "text-rose-500";
+  if (b >= 4.5) return "text-amber-600";
+  return "text-rose-600";
 }
 
 function bandBg(b: number | null): string {
-  if (!b) return "bg-slate-300";
+  if (!b) return "bg-muted";
   if (b >= 7.5) return "bg-emerald-500";
   if (b >= 6)   return "bg-blue-500";
   if (b >= 4.5) return "bg-amber-500";
@@ -72,8 +72,8 @@ function bandLabel(b: number | null): string {
 const SKILLS = [
   { id: "listening", label: "Listening", Icon: Headphones, accent: "blue" },
   { id: "reading",   label: "Reading",   Icon: BookOpen,   accent: "emerald" },
-  { id: "writing",   label: "Writing",   Icon: PenLine,    accent: "orange" },
-  { id: "speaking",  label: "Speaking",  Icon: Mic,        accent: "purple" },
+  { id: "writing",   label: "Writing",   Icon: PenLine,    accent: "amber" },
+  { id: "speaking",  label: "Speaking",  Icon: Mic,        accent: "violet" },
 ];
 
 // ─── Exam Readiness Gauge ────────────────────────────────────────────────────
@@ -192,10 +192,10 @@ function SkillBandCard({
 }) {
   const pct = band ? Math.round((band / 9) * 100) : 0;
   const accentMap: Record<string, string> = {
-    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
-    emerald: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400",
-    orange: "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400",
-    purple: "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400",
+    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400",
+    emerald: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400",
+    amber: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400",
+    violet: "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400",
   };
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -212,7 +212,7 @@ function SkillBandCard({
           </div>
           <div className="ml-auto text-right">
             {loading ? (
-              <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+              <div className="h-6 w-12 bg-muted rounded animate-pulse" />
             ) : band ? (
               <>
                 <p className={`text-xl font-black leading-none tabular-nums ${bandColor(band)}`}>
@@ -225,7 +225,7 @@ function SkillBandCard({
             )}
           </div>
         </div>
-        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
           {!loading && (
             <div
               className={`h-full rounded-full transition-all duration-700 ${bandBg(band)}`}
@@ -265,12 +265,12 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   const skillColors: Record<string, string> = {
     listening: "bg-blue-100 text-blue-600",
     reading:   "bg-emerald-100 text-emerald-600",
-    writing:   "bg-orange-100 text-orange-600",
-    speaking:  "bg-purple-100 text-purple-600",
+    writing:   "bg-amber-100 text-amber-700",
+    speaking:  "bg-violet-100 text-violet-700",
   };
 
   return (
-    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors border-b border-border last:border-0">
+    <tr className="hover:bg-muted/30 transition-colors border-b border-border last:border-0">
       <td className="px-4 py-3 text-sm font-medium max-w-[200px] truncate">
         {attempt.test?.title ?? "Practice Test"}
       </td>
@@ -471,12 +471,12 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl mx-auto w-full flex flex-col gap-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Performance Analysis</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Performance Analysis</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
             Your IELTS progress across all tests — powered by real data.
           </p>
@@ -504,7 +504,7 @@ export default function AnalysisPage() {
 
       {/* ── Overall Banner + Exam Readiness ─────────────────────────────────── */}
       {!loading && overall !== null && (
-        <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">
@@ -528,7 +528,7 @@ export default function AnalysisPage() {
       {/* ── Progress History Chart ────────────────────────────────────────────── */}
       {!loading && summary?.progressHistory && summary.progressHistory.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
             Progress Over Time
           </h2>
@@ -546,7 +546,7 @@ export default function AnalysisPage() {
                   const last = Number(summary.progressHistory[summary.progressHistory.length - 1].overallBand);
                   const delta = last - first;
                   return (
-                    <Badge className={`text-xs border-0 ${delta > 0 ? "bg-emerald-100 text-emerald-700" : delta < 0 ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700"}`}>
+                    <Badge className={`text-xs border-0 ${delta > 0 ? "bg-emerald-100 text-emerald-700" : delta < 0 ? "bg-rose-100 text-rose-700" : "bg-muted text-muted-foreground"}`}>
                       {delta > 0 ? "+" : ""}{delta.toFixed(1)} since start
                     </Badge>
                   );
@@ -560,7 +560,7 @@ export default function AnalysisPage() {
 
       {/* ── Skill Breakdown ──────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+        <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
           Skill Breakdown
         </h2>
@@ -585,7 +585,7 @@ export default function AnalysisPage() {
       {/* ── Adaptive Study Plan ──────────────────────────────────────────────── */}
       {!loading && summary?.adaptiveStudyPlan && summary.adaptiveStudyPlan.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
             Adaptive Study Plan
           </h2>
@@ -621,7 +621,7 @@ export default function AnalysisPage() {
       {/* ── Question-type Mastery ────────────────────────────────────────────── */}
       {!loading && summary?.questionTypeMastery && summary.questionTypeMastery.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
             Question-type Mastery
           </h2>
@@ -632,13 +632,13 @@ export default function AnalysisPage() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium">{item.questionType}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-slate-100 text-slate-700 border-0 text-[10px]">
+                      <Badge className="bg-muted text-muted-foreground border-0 text-[10px]">
                         {item.masteryLevel}
                       </Badge>
                       <span className="text-xs font-semibold tabular-nums">{item.accuracy.toFixed(1)}%</span>
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
                         item.accuracy >= 85 ? "bg-emerald-500"
@@ -662,7 +662,7 @@ export default function AnalysisPage() {
       {/* ── Writing/Speaking Rubric Breakdown ─────────────────────────────────── */}
       {!loading && (summary?.rubricBreakdown?.writing || summary?.rubricBreakdown?.speaking) && (
         <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Writing & Speaking Rubric Breakdown
           </h2>
@@ -706,7 +706,7 @@ export default function AnalysisPage() {
       {/* ── Attempt History Table ────────────────────────────────────────────── */}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
             Test History
           </h2>
@@ -746,7 +746,7 @@ export default function AnalysisPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800 text-[11px] text-muted-foreground uppercase tracking-wide border-b border-border">
+                  <thead className="bg-muted/50 text-[11px] text-muted-foreground uppercase tracking-wide border-b border-border">
                     <tr>
                       <th className="text-left px-4 py-2.5 font-semibold">Test</th>
                       <th className="text-left px-4 py-2.5 font-semibold">Skill</th>
@@ -780,7 +780,7 @@ export default function AnalysisPage() {
       </div>
 
       {/* ── AI Coach CTA ────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="h-5 w-5 opacity-80" />
@@ -793,7 +793,7 @@ export default function AnalysisPage() {
         </div>
         <Link
           href="/ai-advisor"
-          className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-purple-700 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-purple-50 transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-purple-700 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-purple-50 transition-colors"
         >
           Chat Now <ArrowRight className="h-4 w-4" />
         </Link>

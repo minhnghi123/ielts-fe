@@ -70,7 +70,7 @@ function BandDistributionBars({ data }: { data: Array<{ range: string; count: nu
         return (
           <div key={d.range} className="flex items-center gap-3 text-sm">
             <span className="w-14 text-xs font-medium text-muted-foreground">{d.range}</span>
-            <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${pct}%`, backgroundColor: d.color }}
@@ -92,8 +92,8 @@ function SkillBreakdownRow({ data }: { data: AdminGlobalStats["skillBreakdown"] 
   const COLORS: Record<string, string> = {
     listening: "bg-blue-100 text-blue-700",
     reading: "bg-emerald-100 text-emerald-700",
-    writing: "bg-orange-100 text-orange-700",
-    speaking: "bg-purple-100 text-purple-700",
+    writing: "bg-amber-100 text-amber-700",
+    speaking: "bg-violet-100 text-violet-700",
   };
   if (!data?.length) return <p className="text-xs text-muted-foreground">No data yet</p>;
   return (
@@ -173,12 +173,12 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto w-full flex flex-col gap-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Admin Dashboard</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Admin Dashboard</h1>
           <p className="text-muted-foreground">Real-time platform analytics powered by analytics-service</p>
         </div>
 
@@ -197,7 +197,7 @@ export default function AdminDashboardPage() {
 
           {/* Admin Profile */}
           {user && (
-            <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-2xl border border-muted">
+            <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-border">
               <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
                 <AvatarImage src={user.avatarUrl} alt={user.fullName || user.email} />
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -294,7 +294,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="pt-2 pb-4">
             {loading ? (
-              <div className="h-16 bg-slate-100 rounded animate-pulse" />
+              <div className="h-16 bg-muted rounded animate-pulse" />
             ) : (
               <div className="pb-5">
                 <MiniBarChart data={stats?.attemptsPerDay ?? []} />
@@ -314,7 +314,7 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="space-y-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-4 bg-slate-100 rounded animate-pulse" />
+                  <div key={i} className="h-4 bg-muted rounded animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -335,7 +335,7 @@ export default function AdminDashboardPage() {
         <CardContent>
           {loading ? (
             <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
             </div>
           ) : (
             <SkillBreakdownRow data={stats?.skillBreakdown ?? []} />
@@ -355,7 +355,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
+                {[1, 2, 3].map((i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
               </div>
             ) : !stats?.topLearners?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No graded learners yet</p>
@@ -397,7 +397,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}
+                {[1, 2, 3, 4].map((i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
               </div>
             ) : !stats?.recentActivity?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
@@ -451,9 +451,9 @@ function StatCard({
 }) {
   const colors = {
     blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-    green: "bg-green-50 dark:bg-green-900/20 text-green-600",
-    purple: "bg-purple-50 dark:bg-purple-900/20 text-purple-600",
-    orange: "bg-orange-50 dark:bg-orange-900/20 text-orange-600",
+    green: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
+    purple: "bg-violet-50 dark:bg-violet-900/20 text-violet-600",
+    orange: "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
   };
 
   return (
@@ -463,7 +463,7 @@ function StatCard({
           <div className={`p-2 rounded-xl ${colors[color]}`}>{icon}</div>
         </div>
         <p className="text-muted-foreground text-sm">{title}</p>
-        <p className="text-3xl font-bold mt-1 tabular-nums">{value}</p>
+        <p className="font-display text-3xl font-bold mt-1 tabular-nums text-foreground">{value}</p>
         {subtext && <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>}
       </CardContent>
     </Card>

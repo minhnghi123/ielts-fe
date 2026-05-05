@@ -40,7 +40,7 @@ export function RecentActivity() {
         )}
       </div>
 
-      <Card className="overflow-hidden border-border bg-white dark:bg-[#151c2a]">
+      <Card className="overflow-hidden border-border bg-card">
         {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
