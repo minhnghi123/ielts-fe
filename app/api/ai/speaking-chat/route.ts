@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
                     { role: 'user', content: userMessage },
                 ],
                 temperature: action === 'grade_part' ? 0.2 : 0.7,
+
                 max_tokens: action === 'grade_part' ? 1024 : 512,
                 response_format: { type: 'json_object' },
             }),
