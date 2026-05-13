@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   createSpeakingTest,
   CreateSpeakingTestRequest,
@@ -103,6 +104,12 @@ function SpeakingFormInner() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
+      <Breadcrumb className="mb-6" items={[
+        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        { label: 'Add Speaking Test', icon: 'record_voice_over' },
+      ]} />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

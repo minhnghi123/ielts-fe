@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import { updateSpeakingTest, CreateSpeakingTestRequest } from "@/lib/api.tests";
 import api from "@/lib/api";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
     SpeakingPart1Card,
     SpeakingPart2Card,
@@ -131,6 +132,11 @@ export default function EditSpeakingFormInner({ params }: { params: { id: string
 
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
+            <Breadcrumb className="mb-6" items={[
+                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                { label: title || 'Edit Speaking Test', icon: 'record_voice_over' },
+            ]} />
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <button

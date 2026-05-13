@@ -17,6 +17,7 @@ import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt, Test, Section, QuestionAttempt, PartGrading } from "@/lib/types";
 import { WritingResult } from "./_components/writing-result";
 import { SpeakingResult } from "./_components/speaking-result";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -759,6 +760,13 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             </div>
 
             <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-5">
+
+                {/* ── Breadcrumb ──────────────────────────────────────────── */}
+                <Breadcrumb items={[
+                    { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+                    { label: 'Analysis', href: '/analysis', icon: 'analytics' },
+                    { label: testTitle, icon: 'assignment_turned_in' },
+                ]} />
 
                 {/* ── Summary Row ────────────────────────────────────────── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

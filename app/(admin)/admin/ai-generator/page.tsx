@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 import { createManualTest, CreateManualTestRequest } from "@/lib/api.tests";
 
@@ -225,6 +226,12 @@ export default function AIGeneratorPage() {
   return (
     <div className="bg-background p-6 md:p-10 min-h-screen">
       <div className="max-w-4xl mx-auto">
+        <Breadcrumb className="mb-6" items={[
+          { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+          { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+          { label: 'AI Generator', icon: 'auto_awesome' },
+        ]} />
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,14 +89,18 @@ export function LoginFormContent() {
   const isLoading = loginMutation.isPending || googleLoading;
 
   return (
-    <Card className="w-full max-w-[420px] border-none shadow-none bg-transparent relative z-10">
-      <CardHeader className="space-y-1 mb-4 px-0">
-        {/* Mobile-only Logo (hidden on lg) */}
-        <div className="flex lg:hidden items-center gap-2 mb-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="material-symbols-outlined">school</span>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+    <Card className="w-full max-w-[420px] border border-zinc-200 shadow-sm bg-card">
+      <CardHeader className="space-y-1 mb-4">
+        <div className="flex items-center gap-2.5 mb-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50">
+            <span className="material-symbols-outlined text-[20px]">school</span>
           </div>
-          <span className="text-xl font-bold">IELTS-MN</span>
+          <span className="font-display text-lg font-bold">IELTS-MN</span>
         </div>
 
         <CardTitle className="text-3xl font-bold tracking-tight">Welcome back</CardTitle>
@@ -103,9 +108,9 @@ export function LoginFormContent() {
           Enter your email to access your account
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent>
         {registered && (
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-xl text-sm mb-6 flex items-center gap-2">
+          <div className="bg-zinc-100 border border-zinc-300 text-zinc-700 px-4 py-3 rounded-lg text-sm mb-6 flex items-center gap-2">
             <span className="material-symbols-outlined text-lg">check_circle</span>
             Registration successful! Please sign in.
           </div>
@@ -136,7 +141,7 @@ export function LoginFormContent() {
               <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <Link
                 href="/forgot-password"
-                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                className="text-xs font-medium text-zinc-500 hover:text-zinc-700 transition-colors duration-150"
               >
                 Forgot password?
               </Link>
@@ -153,7 +158,7 @@ export function LoginFormContent() {
 
           <Button
             type="submit"
-            className="w-full h-11 rounded-lg text-base font-medium shadow-md hover:shadow-lg transition-all"
+            className="w-full h-11 rounded-lg text-base font-medium"
             disabled={isLoading}
           >
             {loginMutation.isPending ? (
@@ -197,12 +202,13 @@ export function LoginFormContent() {
 
         <div className="text-center text-sm pt-4">
           <span className="text-muted-foreground">Don&apos;t have an account? </span>
-          <Link href="/register" className="text-primary font-bold hover:underline transition-all">
+          <Link href="/register" className="text-zinc-900 font-bold hover:underline transition-all duration-150">
             Create Account
           </Link>
         </div>
       </CardFooter>
     </Card>
+    </motion.div>
   );
 }
 

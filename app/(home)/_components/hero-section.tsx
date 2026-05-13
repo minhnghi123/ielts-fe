@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 
 export function HeroSection() {
@@ -13,13 +13,15 @@ export function HeroSection() {
   if (loading) {
     return (
       <section className="mb-10">
-        <Card className="overflow-hidden border-border shadow-sm">
-          <div className="flex flex-col md:flex-row min-h-[240px] animate-pulse">
-            <div className="w-full md:w-1/2 bg-muted min-h-[200px]" />
-            <div className="w-full md:w-1/2 p-8 flex flex-col gap-4">
-              <div className="h-8 bg-muted rounded w-3/4" />
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-4 bg-muted rounded w-2/3" />
+        <Card className="overflow-hidden border-zinc-200">
+          <div className="px-10 py-12 flex flex-col gap-4 animate-pulse max-w-2xl">
+            <div className="h-3 bg-zinc-100 rounded w-1/4 mb-2" />
+            <div className="h-8 bg-zinc-100 rounded w-3/4" />
+            <div className="h-4 bg-zinc-100 rounded w-full" />
+            <div className="h-4 bg-zinc-100 rounded w-2/3" />
+            <div className="flex gap-3 mt-2">
+              <div className="h-10 bg-zinc-100 rounded w-32" />
+              <div className="h-10 bg-zinc-100 rounded w-28" />
             </div>
           </div>
         </Card>
@@ -29,99 +31,77 @@ export function HeroSection() {
 
   return (
     <section className="mb-10">
-      <Card className="overflow-hidden border-border shadow-sm">
-        <div className="flex flex-col md:flex-row">
-          {/* Image */}
-          <div
-            className="w-full md:w-1/2 bg-cover bg-center min-h-[250px]"
-            style={{
-              backgroundImage:
-                'url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1771&auto=format&fit=crop")',
-            }}
-          />
-
-          {/* Content */}
-          <div className="w-full md:w-1/2 p-8 flex flex-col justify-center gap-6 bg-card">
-            {isLoggedIn ? (
-              /* ── Logged-in hero ─────────────────────────────── */
-              <>
-                <div>
-                  <Badge className="mb-3 bg-primary/10 text-primary border-primary/20">
-                    Welcome back 👋
-                  </Badge>
-                  <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-foreground mb-3">
-                    Ready to practise,{" "}
-                    <span className="text-primary">
-                      {user?.email.split("@")[0]}
-                    </span>
-                    ?
-                  </h1>
-                  <p className="text-muted-foreground text-lg leading-relaxed">
-                    Keep the momentum going. Every session brings you closer to
-                    your target band score.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  <Button
-                    onClick={() => router.push("/tests")}
-                    className="bg-primary hover:bg-primary/90 font-bold px-8 py-6 text-base shadow-md shadow-primary/20"
-                  >
-                    <span className="material-symbols-outlined mr-2">
-                      play_arrow
-                    </span>
-                    Start Practice
-                  </Button>
-                  <Button
-                    onClick={() => router.push("/analysis")}
-                    variant="secondary"
-                    className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-8 py-6 text-base"
-                  >
-                    <span className="material-symbols-outlined mr-2">
-                      analytics
-                    </span>
-                    View Progress
-                  </Button>
-                </div>
-              </>
-            ) : (
-              /* ── Guest hero ──────────────────────────────────── */
-              <>
-                <div>
-                  <Badge className="mb-3 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0">
-                    Trusted by 10,000+ students
-                  </Badge>
-                  <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-foreground mb-3">
-                    Achieve your{" "}
-                    <span className="text-primary">target IELTS band</span>{" "}
-                    score.
-                  </h1>
-                  <p className="text-muted-foreground text-lg leading-relaxed">
-                    Practice with real test materials, get instant scores, and
-                    track your improvement across all four skills.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  <Button
-                    onClick={() => router.push("/register")}
-                    className="bg-primary hover:bg-primary/90 font-bold px-8 py-6 text-base shadow-md shadow-primary/20"
-                  >
-                    <span className="material-symbols-outlined mr-2">
-                      rocket_launch
-                    </span>
-                    Start for Free
-                  </Button>
-                  <Button
-                    onClick={() => router.push("/tests")}
-                    variant="secondary"
-                    className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-8 py-6 text-base"
-                  >
-                    Browse Tests
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      <Card className="overflow-hidden border-zinc-200">
+        <motion.div
+          className="px-10 py-12 flex flex-col gap-6 bg-card max-w-2xl"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          {isLoggedIn ? (
+            <>
+              <div>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">
+                  Welcome back
+                </p>
+                <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-zinc-950 mb-3">
+                  Ready to practise,{" "}
+                  <span>{user?.email.split("@")[0]}</span>?
+                </h1>
+                <p className="text-zinc-500 text-base leading-relaxed">
+                  Keep the momentum going. Every session brings you closer to your target band score.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => router.push("/tests")}
+                  className="px-6 py-5 text-sm font-semibold"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[18px]">play_arrow</span>
+                  Start Practice
+                </Button>
+                <Button
+                  onClick={() => router.push("/analysis")}
+                  variant="outline"
+                  className="px-6 py-5 text-sm font-semibold"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[18px]">analytics</span>
+                  View Progress
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">
+                  Trusted by 10,000+ students
+                </p>
+                <h1 className="font-display text-3xl font-bold tracking-tight leading-tight text-zinc-950 mb-3">
+                  Achieve your target IELTS band score.
+                </h1>
+                <p className="text-zinc-500 text-base leading-relaxed">
+                  Practice with real test materials, get instant scores, and track your improvement across all four skills.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => router.push("/register")}
+                  className="px-6 py-5 text-sm font-semibold"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[18px]">rocket_launch</span>
+                  Start for Free
+                </Button>
+                <Button
+                  onClick={() => router.push("/tests")}
+                  variant="outline"
+                  className="px-6 py-5 text-sm font-semibold"
+                >
+                  Browse Tests
+                </Button>
+              </div>
+            </>
+          )}
+        </motion.div>
       </Card>
     </section>
   );

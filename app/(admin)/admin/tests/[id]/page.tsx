@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { testsApi } from "@/lib/api/tests";
 import RichTextEditor from "@/app/(admin)/_components/RichTextEditor";
 import { PlusCircle, Trash2, ArrowLeft, Save, GripVertical, Lock, BookOpen, Layers } from 'lucide-react';
@@ -374,6 +375,12 @@ export default function EditTestPage() {
 
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
+            <Breadcrumb className="mb-6" items={[
+                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                { label: testData.title || 'Edit Test', icon: 'edit' },
+            ]} />
+
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">

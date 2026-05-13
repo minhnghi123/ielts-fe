@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,20 +77,25 @@ export function RegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-[440px] border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
-            <span className="material-symbols-outlined">school</span>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+    <Card className="w-full max-w-[440px] border border-zinc-200 shadow-sm bg-card">
+      <CardHeader>
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50">
+            <span className="material-symbols-outlined text-[20px]">school</span>
           </div>
-          <span className="text-xl font-bold">IELTS Prep</span>
+          <span className="font-display text-lg font-bold">IELTS-MN</span>
         </div>
         <CardTitle className="text-3xl font-black">Create Account</CardTitle>
         <CardDescription>
           Enter your details to create your account.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent>
         <form onSubmit={onSubmit} className="space-y-6">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
@@ -191,7 +197,7 @@ export function RegisterForm() {
             </span>
             <Link
               href="/login"
-              className="text-primary font-semibold hover:underline"
+              className="text-zinc-900 font-semibold hover:underline"
             >
               Sign In
             </Link>
@@ -199,5 +205,6 @@ export function RegisterForm() {
         </form>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }

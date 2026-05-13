@@ -13,9 +13,9 @@ const config: Config = {
     extend: {
       colors: {
         primary: "#135bec",
-        "primary-hover": "#0f4bc4",
-        "background-light": "#f6f6f8",
-        "background-dark": "#101622",
+        "primary-hover": "#0d4dd4",
+        "background-light": "#ffffff",
+        "background-dark": "#0f172a",
       },
       fontFamily: {
         display: ["var(--font-lexend)", "sans-serif"],

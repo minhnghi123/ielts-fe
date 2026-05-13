@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +119,12 @@ export default function ImportTestPage() {
 
     return (
         <div className="p-6 md:p-10 max-w-4xl mx-auto flex flex-col gap-8">
+            <Breadcrumb items={[
+                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                { label: 'Import DOCX', icon: 'upload_file' },
+            ]} />
+
             {/* Header */}
             <div className="flex items-center gap-3">
                 <Link

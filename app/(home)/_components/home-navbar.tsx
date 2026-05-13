@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +37,12 @@ export function HomeNavbar() {
       : "?";
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border">
+    <motion.header
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border"
+    >
       <div className="max-w-[1200px] mx-auto flex items-center justify-between px-6 py-3">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-10">
@@ -54,9 +60,9 @@ export function HomeNavbar() {
                 <Link
                   key={href}
                   href={href}
-                  className={`text-sm font-medium transition-colors pb-1 ${isActive
+                  className={`text-sm font-medium transition-all duration-150 pb-1 ${isActive
                     ? "text-primary border-b-2 border-primary"
-                    : "text-muted-foreground hover:text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   {label}
@@ -66,30 +72,15 @@ export function HomeNavbar() {
           </nav>
         </div>
 
-        {/* Right: Search + Auth */}
+        {/* Right: Auth */}
         <div className="flex items-center gap-4">
-          {/* {pathname === "/tests" && (
-            <div className="hidden sm:flex items-center bg-muted rounded-lg px-3 py-1.5 w-56">
-              <span className="material-symbols-outlined text-muted-foreground text-[20px]">search</span>
-              <input
-                className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-muted-foreground ml-2 text-foreground"
-                placeholder="Search tests..."
-                type="text"
-              />
-            </div>
-          )} */}
-
-          {/* Auth area */}
           {loading ? (
-            <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
+            <div className="h-9 w-9 rounded-full bg-zinc-100 animate-pulse" />
           ) : isLoggedIn ? (
             <div className="flex items-center gap-3">
-              {/* <button className="text-muted-foreground hover:text-primary transition-colors">
-                <span className="material-symbols-outlined">notifications</span>
-              </button> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Avatar className="h-9 w-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all">
+                  <Avatar className="h-9 w-9 border-2 border-primary/30 cursor-pointer hover:border-primary transition-all duration-150">
                     <AvatarImage src={user?.avatarUrl} alt={user?.fullName || user?.email} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                       {initials}
@@ -129,6 +120,6 @@ export function HomeNavbar() {
           )}
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

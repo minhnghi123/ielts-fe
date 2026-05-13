@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { PlusCircle, ArrowLeft, Save, Lock } from "lucide-react";
 import { Suspense } from "react";
 import SectionCard from "./_components/SectionCard";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export function AddTestPageSuspense() {
   const router = useRouter();
@@ -319,6 +320,12 @@ export function AddTestPageSuspense() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
+      <Breadcrumb className="mb-6" items={[
+        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        { label: 'Add Test', icon: 'add_circle' },
+      ]} />
+
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

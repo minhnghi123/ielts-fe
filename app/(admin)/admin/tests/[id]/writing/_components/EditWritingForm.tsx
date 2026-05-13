@@ -7,6 +7,7 @@ import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 import { updateWritingTest, WritingTaskItem } from "@/lib/api.tests";
 import api from "@/lib/api";
 import WritingTaskCard, { WritingTaskData } from "@/app/(admin)/admin/tests/add/_components/WritingTaskCard";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 
 function makTask(n: number): WritingTaskData {
@@ -109,6 +110,11 @@ export default function EditWritingFormInner({ testId }: { testId: string }) {
 
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
+            <Breadcrumb className="mb-6" items={[
+                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                { label: title || 'Edit Writing Test', icon: 'edit_note' },
+            ]} />
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <button

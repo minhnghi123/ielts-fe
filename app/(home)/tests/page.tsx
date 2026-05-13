@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,8 @@ import {
 import Link from 'next/link';
 import { testsApi } from '@/lib/api/tests';
 import type { Test } from '@/lib/types';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { TestCardSkeleton } from '@/components/ui/skeleton';
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
@@ -109,7 +112,17 @@ export default function TestsPage() {
     : tests;
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      className="space-y-8"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+    >
+      <Breadcrumb items={[
+        { label: 'Home', href: '/', icon: 'home' },
+        { label: 'Tests', icon: 'assignment' },
+      ]} />
+
       {/* Page Header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-8 text-white">
         <div className="absolute inset-0 opacity-10">
@@ -168,14 +181,7 @@ export default function TestsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-card rounded-xl border border-border animate-pulse overflow-hidden">
-              <div className="h-2 bg-muted w-full" />
-              <div className="p-6 space-y-3">
-                <div className="h-5 bg-muted rounded-lg w-3/4" />
-                <div className="h-4 bg-muted rounded-lg w-1/2" />
-                <div className="h-10 bg-muted rounded-lg mt-4" />
-              </div>
-            </div>
+            <TestCardSkeleton key={i} />
           ))}
         </div>
       ) : error ? (
@@ -195,7 +201,12 @@ export default function TestsPage() {
           <p className="text-muted-foreground text-sm">Try a different skill or search term</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          initial="hidden"
+          animate="visible"
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+        >
           {filtered.map((test) => {
             const config = SKILL_CONFIG[test.skill] ?? SKILL_CONFIG.reading;
             const Icon = config.icon;
@@ -205,9 +216,11 @@ export default function TestsPage() {
             const sectionCount = test.sections?.length || 0;
 
             return (
-              <div
+              <motion.div
                 key={test.id}
-                className="group bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } } }}
+                whileHover={{ y: -2, transition: { duration: 0.15 } }}
+                className="group bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col"
               >
                 {/* Top gradient stripe */}
                 <div className={`h-1.5 w-full bg-gradient-to-r ${config.gradient}`} />
@@ -268,10 +281,10 @@ export default function TestsPage() {
                     </Button>
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       {/* Pagination */}
@@ -302,6 +315,6 @@ export default function TestsPage() {
           </Button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

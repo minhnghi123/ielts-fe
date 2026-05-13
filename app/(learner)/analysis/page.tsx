@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
 import { analyticsApi } from "@/lib/api/analytics";
@@ -17,6 +18,8 @@ import {
   BarChart3, PlayCircle, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -76,6 +79,16 @@ const SKILLS = [
   { id: "speaking",  label: "Speaking",  Icon: Mic,        accent: "violet" },
 ];
 
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: "easeOut" } },
+};
+
 // ─── Exam Readiness Gauge ────────────────────────────────────────────────────
 
 function ExamReadinessGauge({ pct }: { pct: number }) {
@@ -102,7 +115,7 @@ function ExamReadinessGauge({ pct }: { pct: number }) {
         <text x="64" y="60" textAnchor="middle" fontSize="22" fontWeight="800" fill="currentColor">
           {pct}%
         </text>
-        <text x="64" y="78" textAnchor="middle" fontSize="10" fill="#6b7280">
+        <text x="64" y="78" textAnchor="middle" fontSize="10" fill="#71717a">
           readiness
         </text>
       </svg>
@@ -136,8 +149,6 @@ function ProgressHistoryChart({ snapshots }: { snapshots: LearnerProgressSnapsho
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   const polyline = pts.join(" ");
-
-  // gradient area
   const areaPath = `M${pts[0]} ${pts.join(" L")} L${(snapshots.length > 1 ? W : W / 2).toFixed(1)},${H} L0,${H} Z`;
 
   return (
@@ -192,10 +203,10 @@ function SkillBandCard({
 }) {
   const pct = band ? Math.round((band / 9) * 100) : 0;
   const accentMap: Record<string, string> = {
-    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400",
-    emerald: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400",
-    amber: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400",
-    violet: "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400",
+    blue:    "bg-blue-50 text-blue-700",
+    emerald: "bg-emerald-50 text-emerald-700",
+    amber:   "bg-amber-50 text-amber-700",
+    violet:  "bg-violet-50 text-violet-700",
   };
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -212,7 +223,7 @@ function SkillBandCard({
           </div>
           <div className="ml-auto text-right">
             {loading ? (
-              <div className="h-6 w-12 bg-muted rounded animate-pulse" />
+              <Skeleton className="h-6 w-12 rounded" />
             ) : band ? (
               <>
                 <p className={`text-xl font-black leading-none tabular-nums ${bandColor(band)}`}>
@@ -262,7 +273,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   const session = !isSubmitted && testId ? getLocalSession(testId) : null;
   const hasTimeLeft = session ? session.remainingMs > 0 : false;
 
-  const skillColors: Record<string, string> = {
+  const skillBadge: Record<string, string> = {
     listening: "bg-blue-100 text-blue-600",
     reading:   "bg-emerald-100 text-emerald-600",
     writing:   "bg-amber-100 text-amber-700",
@@ -275,7 +286,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
         {attempt.test?.title ?? "Practice Test"}
       </td>
       <td className="px-4 py-3">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold capitalize ${skillColors[skill] ?? "bg-slate-100 text-slate-600"}`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold capitalize ${skillBadge[skill] ?? "bg-muted text-muted-foreground"}`}>
           {skill}
         </span>
       </td>
@@ -310,7 +321,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
       <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(attempt.startedAt)}</td>
       <td className="px-4 py-3 text-center">
         {hasAiFeedback ? (
-          <span className="inline-flex items-center gap-0.5 text-violet-600 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-0.5 text-zinc-700 text-[11px] font-bold">
             <Sparkles className="h-3 w-3" /> Yes
           </span>
         ) : (
@@ -326,15 +337,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
           </Link>
         ) : testId && (hasTimeLeft || session?.hasSession) ? (
           <Link href={`/practice/${testId}`}>
-            <Button
-              variant="outline"
-              size="sm"
-              className={`h-7 text-xs px-2.5 gap-1 ${
-                session?.hasSession && !hasTimeLeft
-                  ? "border-rose-300 text-rose-600 hover:bg-rose-50"
-                  : "border-amber-300 text-amber-700 hover:bg-amber-50"
-              }`}
-            >
+            <Button variant="outline" size="sm" className="h-7 text-xs px-2.5 gap-1">
               <PlayCircle className="h-3 w-3" />
               {session?.hasSession && !hasTimeLeft ? "Submit Results" : "Resume"}
             </Button>
@@ -471,9 +474,21 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <motion.div
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
 
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-3">
+        <Breadcrumb items={[
+          { label: "Home", href: "/", icon: "home" },
+          { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
+          { label: "Analysis", icon: "analytics" },
+        ]} />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Performance Analysis</h1>
@@ -529,10 +544,10 @@ export default function AnalysisPage() {
       {!loading && summary?.progressHistory && summary.progressHistory.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
+            <TrendingUp className="h-5 w-5 text-zinc-400" />
             Progress Over Time
           </h2>
-          <Card className="shadow-sm">
+          <Card className="border-zinc-200">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -546,9 +561,9 @@ export default function AnalysisPage() {
                   const last = Number(summary.progressHistory[summary.progressHistory.length - 1].overallBand);
                   const delta = last - first;
                   return (
-                    <Badge className={`text-xs border-0 ${delta > 0 ? "bg-emerald-100 text-emerald-700" : delta < 0 ? "bg-rose-100 text-rose-700" : "bg-muted text-muted-foreground"}`}>
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600">
                       {delta > 0 ? "+" : ""}{delta.toFixed(1)} since start
-                    </Badge>
+                    </span>
                   );
                 })()}
               </div>
@@ -561,37 +576,43 @@ export default function AnalysisPage() {
       {/* ── Skill Breakdown ──────────────────────────────────────────────────── */}
       <div>
         <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
+          <Target className="h-5 w-5 text-zinc-400" />
           Skill Breakdown
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+          variants={container}
+          initial="hidden"
+          animate="visible"
+        >
           {SKILLS.map(({ id, label, Icon, accent }) => {
             const count = completed.filter(a => (a.test as any)?.skill === id).length;
             return (
-              <SkillBandCard
-                key={id}
-                label={label}
-                Icon={Icon}
-                accent={accent}
-                band={avgBand(completed, id)}
-                count={count}
-                loading={loading}
-              />
+              <motion.div key={id} variants={item}>
+                <SkillBandCard
+                  label={label}
+                  Icon={Icon}
+                  accent={accent}
+                  band={avgBand(completed, id)}
+                  count={count}
+                  loading={loading}
+                />
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Adaptive Study Plan ──────────────────────────────────────────────── */}
       {!loading && summary?.adaptiveStudyPlan && summary.adaptiveStudyPlan.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
+            <Target className="h-5 w-5 text-zinc-400" />
             Adaptive Study Plan
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {summary.adaptiveStudyPlan.slice(0, 4).map((task, idx) => (
-              <Card key={`${task.title}-${idx}`} className="shadow-sm">
+              <Card key={`${task.title}-${idx}`} className="border-zinc-200 hover:border-zinc-300 transition-all duration-150">
                 <CardContent className="p-4 flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-sm">{task.title}</p>
@@ -622,29 +643,29 @@ export default function AnalysisPage() {
       {!loading && summary?.questionTypeMastery && summary.questionTypeMastery.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
+            <BarChart3 className="h-5 w-5 text-zinc-400" />
             Question-type Mastery
           </h2>
-          <Card className="shadow-sm">
+          <Card className="border-zinc-200">
             <CardContent className="p-4 space-y-3">
               {summary.questionTypeMastery.slice(0, 8).map((item) => (
                 <div key={item.questionType} className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium">{item.questionType}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-muted text-muted-foreground border-0 text-[10px]">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
                         {item.masteryLevel}
-                      </Badge>
+                      </span>
                       <span className="text-xs font-semibold tabular-nums">{item.accuracy.toFixed(1)}%</span>
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        item.accuracy >= 85 ? "bg-emerald-500"
-                          : item.accuracy >= 70 ? "bg-blue-500"
-                          : item.accuracy >= 50 ? "bg-amber-500"
-                          : "bg-rose-500"
+                        item.accuracy >= 85 ? "bg-zinc-900"
+                          : item.accuracy >= 70 ? "bg-zinc-700"
+                          : item.accuracy >= 50 ? "bg-zinc-500"
+                          : "bg-zinc-300"
                       }`}
                       style={{ width: `${item.accuracy}%` }}
                     />
@@ -663,7 +684,7 @@ export default function AnalysisPage() {
       {!loading && (summary?.rubricBreakdown?.writing || summary?.rubricBreakdown?.speaking) && (
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-zinc-400" />
             Writing & Speaking Rubric Breakdown
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -671,13 +692,13 @@ export default function AnalysisPage() {
               const data = summary?.rubricBreakdown?.[mode];
               if (!data) return null;
               return (
-                <Card key={mode} className="shadow-sm">
+                <Card key={mode} className="border-zinc-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-bold capitalize">{mode}</p>
-                      <Badge className="bg-primary/10 text-primary border-0">
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-700">
                         Overall {data.overallBand?.toFixed(1) ?? "—"}
-                      </Badge>
+                      </span>
                     </div>
                     <div className="space-y-2">
                       {data.criteria.map((c) => (
@@ -707,7 +728,7 @@ export default function AnalysisPage() {
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
+            <TrendingUp className="h-5 w-5 text-zinc-400" />
             Test History
           </h2>
           <div className="flex flex-wrap gap-1">
@@ -715,7 +736,7 @@ export default function AnalysisPage() {
               <button
                 key={f}
                 onClick={() => setSkillFilter(f)}
-                className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all duration-150 ${
                   skillFilter === f
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-background border-border text-muted-foreground hover:text-foreground"
@@ -727,11 +748,11 @@ export default function AnalysisPage() {
           </div>
         </div>
 
-        <Card className="shadow-sm overflow-hidden">
+        <Card className="border-zinc-200 overflow-hidden">
           <CardContent className="p-0">
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                <div className="h-8 w-8 rounded-full border-4 border-zinc-900 border-t-transparent animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">
@@ -746,7 +767,7 @@ export default function AnalysisPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted/50 text-[11px] text-muted-foreground uppercase tracking-wide border-b border-border">
+                  <thead className="bg-zinc-50 text-[11px] text-muted-foreground uppercase tracking-wide border-b border-zinc-200">
                     <tr>
                       <th className="text-left px-4 py-2.5 font-semibold">Test</th>
                       <th className="text-left px-4 py-2.5 font-semibold">Skill</th>
@@ -799,6 +820,6 @@ export default function AnalysisPage() {
         </Link>
       </div>
 
-    </div>
+    </motion.div>
   );
 }

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 import { createWritingTest, CreateWritingTestRequest, WritingTaskItem } from "@/lib/api.tests";
 import WritingTaskCard, { WritingTaskData } from "../_components/WritingTaskCard";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 
 function makTask(n: number): WritingTaskData {
@@ -75,6 +76,11 @@ function WritingFormInner() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
+      <Breadcrumb className="mb-6" items={[
+        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        { label: 'Add Writing Test', icon: 'edit_note' },
+      ]} />
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

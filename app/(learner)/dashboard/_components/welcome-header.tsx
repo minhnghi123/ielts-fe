@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 interface Props {
   userName: string;
 }
@@ -14,27 +16,18 @@ export function WelcomeHeader({ userName }: Props) {
         "Good Evening";
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-wrap justify-between items-end gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            {greeting}, {firstName}
-          </h1>
-          <p className="font-body text-sm text-muted-foreground">
-            Ready to improve your band score today? Choose a module to begin practice.
-          </p>
-        </div>
-
-        {/* Target Score Badge */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-background px-4 py-2 rounded-full border shadow-sm">
-          <span className="material-symbols-outlined text-yellow-500 text-[20px]">
-            emoji_events
-          </span>
-          <span>
-            Target Score: <span className="font-bold text-foreground">8.0</span>
-          </span>
-        </div>
-      </div>
-    </div>
+    <motion.div
+      className="flex flex-col gap-2"
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        {greeting}, {firstName}
+      </h1>
+      <p className="font-body text-sm text-muted-foreground">
+        Ready to improve your band score today? Choose a module to begin practice.
+      </p>
+    </motion.div>
   );
 }

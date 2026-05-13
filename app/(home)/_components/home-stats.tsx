@@ -1,18 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
 import { analyticsApi } from "@/lib/api/analytics";
 import type { DashboardSummary } from "@/lib/types";
 
-// Static numbers shown to guests
 const GUEST_STATS = [
   { title: "Students Enrolled", value: "10,000+", badge: "Growing fast" },
   { title: "Practice Tests", value: "500+", badge: "Updated weekly" },
   { title: "Avg Band Improvement", value: "+1.5", badge: "In 3 months" },
 ];
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
+};
 
 export function HomeStats() {
   const { user, isLoggedIn, loading: authLoading } = useAuth();
@@ -36,89 +47,74 @@ export function HomeStats() {
   return (
     <section className="mb-10">
       <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary">analytics</span>
+        <span className="material-symbols-outlined text-zinc-400">analytics</span>
         {isLoggedIn ? "Your Stats" : "Platform Stats"}
       </h2>
 
       {isLoggedIn ? (
-        /* ── Real learner stats ─────────────────────────────── */
         statsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="p-6 animate-pulse">
-                <div className="h-4 bg-muted rounded w-1/2 mb-4" />
-                <div className="h-8 bg-muted rounded w-1/3" />
+              <Card key={i} className="p-6 space-y-3">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-1/3" />
               </Card>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              title="Tests Completed"
-              value={String(summary?.totalAttempts ?? 0)}
-              badge="Total attempts"
-            />
-            <StatCard
-              title="Avg. Band Score"
-              value={
-                summary?.averageBand ? summary.averageBand.toFixed(1) : "—"
-              }
-              badge="Overall band"
-              isPrimary
-            />
-            <StatCard
-              title="Practice Hours"
-              value={summary?.practiceHours ? `${summary.practiceHours}h` : "—"}
-              badge="Time invested"
-            />
-            <Card className="p-6 border-border shadow-sm bg-card">
-              <p className="text-muted-foreground text-sm font-medium mb-1">
-                Exam Readiness
-              </p>
-              <div className="flex flex-col gap-2 mt-2">
-                <div className="flex justify-between items-end">
-                  <p className="text-3xl font-bold">
-                    {summary?.examReadiness ?? 0}%
-                  </p>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            variants={container}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={item}>
+              <StatCard title="Tests Completed" value={String(summary?.totalAttempts ?? 0)} badge="Total attempts" />
+            </motion.div>
+            <motion.div variants={item}>
+              <StatCard title="Avg. Band Score" value={summary?.averageBand ? summary.averageBand.toFixed(1) : "—"} badge="Overall band" />
+            </motion.div>
+            <motion.div variants={item}>
+              <StatCard title="Practice Hours" value={summary?.practiceHours ? `${summary.practiceHours}h` : "—"} badge="Time invested" />
+            </motion.div>
+            <motion.div variants={item}>
+              <Card className="p-6 border-zinc-200 hover:border-zinc-300 transition-colors duration-150 bg-card">
+                <p className="text-muted-foreground text-sm font-medium mb-1">Exam Readiness</p>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex justify-between items-end">
+                    <p className="text-3xl font-bold tabular-nums">{summary?.examReadiness ?? 0}%</p>
+                  </div>
+                  <Progress value={summary?.examReadiness ?? 0} className="h-1.5" />
                 </div>
-                <Progress value={summary?.examReadiness ?? 0} className="h-2" />
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </motion.div>
+          </motion.div>
         )
       ) : (
-        /* ── Guest marketing stats ──────────────────────────── */
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          variants={container}
+          initial="hidden"
+          animate="visible"
+        >
           {GUEST_STATS.map((s) => (
-            <StatCard key={s.title} title={s.title} value={s.value} badge={s.badge} />
+            <motion.div key={s.title} variants={item}>
+              <StatCard title={s.title} value={s.value} badge={s.badge} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </section>
   );
 }
 
-function StatCard({
-  title,
-  value,
-  badge,
-  isPrimary,
-}: {
-  title: string;
-  value: string;
-  badge: string;
-  isPrimary?: boolean;
-}) {
+function StatCard({ title, value, badge }: { title: string; value: string; badge: string }) {
   return (
-    <Card className="p-6 border-border shadow-sm bg-card">
+    <Card className="p-6 border-zinc-200 hover:border-zinc-300 transition-colors duration-150 bg-card">
       <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
       <div className="flex items-end justify-between mt-1">
-        <p className={`font-display text-3xl font-bold tabular-nums ${isPrimary ? "text-primary" : "text-foreground"}`}>
-          {value}
-        </p>
-        <span className="text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">
-          {badge}
-        </span>
+        <p className="font-display text-3xl font-bold tabular-nums text-zinc-950">{value}</p>
+        <p className="text-xs text-zinc-400">{badge}</p>
       </div>
     </Card>
   );

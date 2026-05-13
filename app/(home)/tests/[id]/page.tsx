@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { testsApi } from "@/lib/api/tests";
 import type { Test } from "@/lib/types";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
@@ -147,6 +148,11 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="max-w-[1000px] mx-auto space-y-6">
+      <Breadcrumb items={[
+        { label: 'Home', href: '/', icon: 'home' },
+        { label: 'Tests', href: '/tests', icon: 'assignment' },
+        { label: test.title, icon: 'description' },
+      ]} />
       {/* Breadcrumb */}
       <Link
         href="/tests"

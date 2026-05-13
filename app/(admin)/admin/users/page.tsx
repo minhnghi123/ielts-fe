@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 interface User {
     id: string;
@@ -77,6 +78,11 @@ export default function UsersManagementPage() {
 
     return (
         <div className="p-6 md:p-10 max-w-7xl mx-auto flex flex-col gap-6 w-full">
+            <Breadcrumb items={[
+                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'User Management', icon: 'group' },
+            ]} />
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

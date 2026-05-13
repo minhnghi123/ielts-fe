@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { TableRowSkeleton } from "@/components/ui/skeleton";
 
 interface Test {
     id: string;
@@ -118,7 +121,19 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
         : `/admin/tests/add?skill=${activeSkill}`;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+        >
+            <Breadcrumb
+                className="mb-6"
+                items={[
+                    { label: "Admin", href: "/admin/dashboard", icon: "admin_panel_settings" },
+                    { label: "Test Management", icon: "assignment" },
+                ]}
+            />
             {/* Header */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                 <div>
@@ -199,14 +214,11 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {loading ? (
-                                        <tr>
-                                            <td colSpan={5} className="text-center py-16">
-                                                <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
-                                                    <span className="inline-block w-6 h-6 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                                                    <span>Loading tests...</span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <>
+                                          {Array.from({ length: 6 }).map((_, i) => (
+                                            <TableRowSkeleton key={i} cols={5} />
+                                          ))}
+                                        </>
                                     ) : tests.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="text-center py-20 text-slate-500">
@@ -300,6 +312,6 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

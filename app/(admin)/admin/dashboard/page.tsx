@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useAdminGlobalStats, useSyncAll } from "@/lib/hooks/use-analytics";
 import { useTests } from "@/lib/hooks/use-tests";
@@ -22,6 +24,7 @@ import {
   Users, BookOpen, TrendingUp, BarChart3,
   RefreshCw, Award, Activity, Target,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const AUTH_API = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
@@ -173,7 +176,17 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <motion.div
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
+    >
+
+      <Breadcrumb items={[
+        { label: "Admin", icon: "admin_panel_settings" },
+        { label: "Dashboard", icon: "dashboard" },
+      ]} />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -294,7 +307,11 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="pt-2 pb-4">
             {loading ? (
-              <div className="h-16 bg-muted rounded animate-pulse" />
+              <div className="flex items-end gap-0.5 h-16 w-full">
+                {[35, 55, 40, 70, 45, 80, 60, 50, 65, 30, 75, 55, 45, 90].map((h, i) => (
+                  <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${h}%` }} />
+                ))}
+              </div>
             ) : (
               <div className="pb-5">
                 <MiniBarChart data={stats?.attemptsPerDay ?? []} />
@@ -312,9 +329,13 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="pt-2">
             {loading ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-4 bg-muted rounded animate-pulse" />
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-3 w-12 rounded" />
+                    <Skeleton className="h-2 flex-1 rounded-full" />
+                    <Skeleton className="h-3 w-8 rounded" />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -334,8 +355,14 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="rounded-xl p-3 bg-muted space-y-1.5">
+                  <Skeleton className="h-3 w-14" />
+                  <Skeleton className="h-7 w-10" />
+                  <Skeleton className="h-2.5 w-16" />
+                </div>
+              ))}
             </div>
           ) : (
             <SkillBreakdownRow data={stats?.skillBreakdown ?? []} />
@@ -355,7 +382,14 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-4 w-5 rounded" />
+                    <Skeleton className="h-7 w-7 rounded-full flex-shrink-0" />
+                    <Skeleton className="h-4 flex-1 rounded" />
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                  </div>
+                ))}
               </div>
             ) : !stats?.topLearners?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No graded learners yet</p>
@@ -397,7 +431,16 @@ export default function AdminDashboardPage() {
           <CardContent>
             {loading ? (
               <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-7 w-7 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-3.5 w-32 rounded" />
+                      <Skeleton className="h-3 w-44 rounded" />
+                    </div>
+                    <Skeleton className="h-5 w-8 rounded" />
+                  </div>
+                ))}
               </div>
             ) : !stats?.recentActivity?.length ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
@@ -434,7 +477,7 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-    </div>
+    </motion.div>
   );
 }
 
@@ -455,6 +498,7 @@ function StatCard({
     purple: "bg-violet-50 dark:bg-violet-900/20 text-violet-600",
     orange: "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
   };
+  const isLoading = value === "…";
 
   return (
     <Card>
@@ -463,8 +507,17 @@ function StatCard({
           <div className={`p-2 rounded-xl ${colors[color]}`}>{icon}</div>
         </div>
         <p className="text-muted-foreground text-sm">{title}</p>
-        <p className="font-display text-3xl font-bold mt-1 tabular-nums text-foreground">{value}</p>
-        {subtext && <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>}
+        {isLoading ? (
+          <>
+            <Skeleton className="h-9 w-20 mt-1 rounded" />
+            <Skeleton className="h-3 w-32 mt-2 rounded" />
+          </>
+        ) : (
+          <>
+            <p className="font-display text-3xl font-bold mt-1 tabular-nums text-foreground">{value}</p>
+            {subtext && <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>}
+          </>
+        )}
       </CardContent>
     </Card>
   );

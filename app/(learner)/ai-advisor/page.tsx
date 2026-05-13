@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt } from "@/lib/types";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -360,6 +361,14 @@ export default function AIAdvisorPage() {
 
   return (
     <div className="flex flex-col h-full bg-background">
+
+      {/* Breadcrumb */}
+      <div className="shrink-0 px-6 pt-4 pb-1">
+        <Breadcrumb items={[
+          { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+          { label: 'AI Study Coach', icon: 'smart_toy' },
+        ]} />
+      </div>
 
       {/* Top bar */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-3.5 border-b bg-card shadow-sm">

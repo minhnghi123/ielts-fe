@@ -19,6 +19,7 @@ import {
     RotateCcw, Eye, Headphones, BookOpen, FileText,
     TrendingUp, Calendar, Trophy,
 } from "lucide-react";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const AUTH_API = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
@@ -307,6 +308,11 @@ export default function UserProfilePage() {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-5">
+
+                <Breadcrumb items={[
+                    { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+                    { label: 'Profile', icon: 'manage_accounts' },
+                ]} />
 
                 {/* User info strip */}
                 <Card className="bg-card shadow-sm">
