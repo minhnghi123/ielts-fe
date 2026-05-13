@@ -18,7 +18,7 @@ const container = {
 const item = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: "easeOut" } },
-};
+} as const;
 
 export function StatOverview({ attempts, loading }: Props) {
   const completed = attempts.filter(a => !!a.submittedAt);
@@ -36,9 +36,9 @@ export function StatOverview({ attempts, loading }: Props) {
 
   const readiness =
     gradedAttempts.length === 0 ? "—" :
-    avgBand >= 7 ? "High" :
-    avgBand >= 5 ? "Good" :
-                  "Developing";
+      avgBand >= 7 ? "High" :
+        avgBand >= 5 ? "Good" :
+          "Developing";
 
   const stats = [
     {

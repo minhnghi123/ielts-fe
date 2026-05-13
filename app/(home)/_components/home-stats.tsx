@@ -23,7 +23,7 @@ const container = {
 const item = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
-};
+} as const;
 
 export function HomeStats() {
   const { user, isLoggedIn, loading: authLoading } = useAuth();

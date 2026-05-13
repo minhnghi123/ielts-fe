@@ -21,7 +21,7 @@ const container = {
 const cardVariant = {
   hidden: { opacity: 0, scale: 0.97 },
   visible: { opacity: 1, scale: 1, transition: { duration: 0.25, ease: "easeOut" } },
-};
+} as const;
 
 const themeConfig: Record<string, {
   iconBg: string; iconColor: string; progressBg: string; badgeColor: string;

@@ -50,7 +50,7 @@ function avgBand(attempts: TestAttempt[], skill?: string): number | null {
 function bandColor(b: number | null): string {
   if (!b) return "text-muted-foreground";
   if (b >= 7.5) return "text-emerald-600";
-  if (b >= 6)   return "text-blue-600";
+  if (b >= 6) return "text-blue-600";
   if (b >= 4.5) return "text-amber-600";
   return "text-rose-600";
 }
@@ -58,7 +58,7 @@ function bandColor(b: number | null): string {
 function bandBg(b: number | null): string {
   if (!b) return "bg-muted";
   if (b >= 7.5) return "bg-emerald-500";
-  if (b >= 6)   return "bg-blue-500";
+  if (b >= 6) return "bg-blue-500";
   if (b >= 4.5) return "bg-amber-500";
   return "bg-rose-500";
 }
@@ -74,9 +74,9 @@ function bandLabel(b: number | null): string {
 
 const SKILLS = [
   { id: "listening", label: "Listening", Icon: Headphones, accent: "blue" },
-  { id: "reading",   label: "Reading",   Icon: BookOpen,   accent: "emerald" },
-  { id: "writing",   label: "Writing",   Icon: PenLine,    accent: "amber" },
-  { id: "speaking",  label: "Speaking",  Icon: Mic,        accent: "violet" },
+  { id: "reading", label: "Reading", Icon: BookOpen, accent: "emerald" },
+  { id: "writing", label: "Writing", Icon: PenLine, accent: "amber" },
+  { id: "speaking", label: "Speaking", Icon: Mic, accent: "violet" },
 ];
 
 const container = {
@@ -87,7 +87,7 @@ const container = {
 const item = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: "easeOut" } },
-};
+} as const;
 
 // ─── Exam Readiness Gauge ────────────────────────────────────────────────────
 
@@ -203,10 +203,10 @@ function SkillBandCard({
 }) {
   const pct = band ? Math.round((band / 9) * 100) : 0;
   const accentMap: Record<string, string> = {
-    blue:    "bg-blue-50 text-blue-700",
+    blue: "bg-blue-50 text-blue-700",
     emerald: "bg-emerald-50 text-emerald-700",
-    amber:   "bg-amber-50 text-amber-700",
-    violet:  "bg-violet-50 text-violet-700",
+    amber: "bg-amber-50 text-amber-700",
+    violet: "bg-violet-50 text-violet-700",
   };
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -265,7 +265,7 @@ function getLocalSession(testId: string): { hasSession: boolean; remainingMs: nu
 
 function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   const skill = (attempt.test as any)?.skill ?? "reading";
-  const band  = Number(attempt.bandScore ?? 0);
+  const band = Number(attempt.bandScore ?? 0);
   const testId = attempt.testId ?? (attempt.test as any)?.id;
   const hasAiFeedback = !!(attempt as any).aiFeedback;
   const isSubmitted = !!attempt.submittedAt;
@@ -275,9 +275,9 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
 
   const skillBadge: Record<string, string> = {
     listening: "bg-blue-100 text-blue-600",
-    reading:   "bg-emerald-100 text-emerald-600",
-    writing:   "bg-amber-100 text-amber-700",
-    speaking:  "bg-violet-100 text-violet-700",
+    reading: "bg-emerald-100 text-emerald-600",
+    writing: "bg-amber-100 text-amber-700",
+    speaking: "bg-violet-100 text-violet-700",
   };
 
   return (
@@ -467,7 +467,7 @@ export default function AnalysisPage() {
       .sort((a, b) => (toUtcMs(b.startedAt) ?? 0) - (toUtcMs(a.startedAt) ?? 0));
     if (graded.length < 4) return null;
     const recent = graded.slice(0, 3).reduce((s, a) => s + Number(a.bandScore), 0) / 3;
-    const older  = graded.slice(3, 6).reduce((s, a) => s + Number(a.bandScore), 0) / Math.min(3, graded.slice(3, 6).length);
+    const older = graded.slice(3, 6).reduce((s, a) => s + Number(a.bandScore), 0) / Math.min(3, graded.slice(3, 6).length);
     if (recent > older + 0.2) return "up";
     if (recent < older - 0.2) return "down";
     return "flat";
@@ -661,12 +661,11 @@ export default function AnalysisPage() {
                   </div>
                   <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${
-                        item.accuracy >= 85 ? "bg-zinc-900"
+                      className={`h-full rounded-full ${item.accuracy >= 85 ? "bg-zinc-900"
                           : item.accuracy >= 70 ? "bg-zinc-700"
-                          : item.accuracy >= 50 ? "bg-zinc-500"
-                          : "bg-zinc-300"
-                      }`}
+                            : item.accuracy >= 50 ? "bg-zinc-500"
+                              : "bg-zinc-300"
+                        }`}
                       style={{ width: `${item.accuracy}%` }}
                     />
                   </div>
@@ -736,11 +735,10 @@ export default function AnalysisPage() {
               <button
                 key={f}
                 onClick={() => setSkillFilter(f)}
-                className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all duration-150 ${
-                  skillFilter === f
+                className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all duration-150 ${skillFilter === f
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-background border-border text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 {f === "all" ? "All Skills" : f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
