@@ -14,6 +14,7 @@ import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { testsApi } from "@/lib/api/tests";
+import { attemptsApi } from "@/lib/api/attempts";
 import type { TestAttempt, Test, Section, QuestionAttempt, PartGrading } from "@/lib/types";
 import { WritingResult } from "./_components/writing-result";
 import { SpeakingResult } from "./_components/speaking-result";
@@ -237,8 +238,8 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                 const correctDisplay = qa.correctAnswers[0] ?? "—";
 
                 return (
+                    <div key={qa.id}>
                     <div
-                        key={qa.id}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors ${isCorrect
                                 ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/20"
                                 : isSkipped
@@ -292,6 +293,12 @@ function AnswerList({ qas }: { qas: QAEnriched[] }) {
                                     : <XCircle className="h-4 w-4 text-rose-600" />
                             }
                         </div>
+                        </div>
+                        {qa.question?.explanation && (
+                            <div className="ml-9 -mt-0.5 mb-1 rounded-md bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/30 px-3 py-2 text-xs text-sky-900 dark:text-sky-100 leading-relaxed">
+                                <span className="font-semibold">Why: </span>{qa.question.explanation}
+                            </div>
+                        )}
                     </div>
                 );
             })}
@@ -417,17 +424,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     const aiTriggeredRef = useRef(false); // prevent double-trigger in StrictMode
 
     useEffect(() => {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
         // ── Fast path: writing result redirected here with a gradingId ────────────
         if (skillParam === "writing" && gradingId) {
-            fetch(`${baseUrl}/api/writing-gradings/${gradingId}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Failed to fetch");
-                    return res.json();
-                })
+            attemptsApi.getWritingGrading(gradingId)
                 .then(data => {
-                    setGradingData(data);
+                    setGradingData({ data });
                     setIsLoading(false);
                 })
                 .catch(err => {
@@ -468,11 +469,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
                     if (storedGradingId) {
                         try {
-                            const res = await fetch(`${baseUrl}/api/writing-gradings/${storedGradingId}`);
-                            if (res.ok) {
-                                const data = await res.json();
-                                setGradingData(data);
-                            }
+                            const data = await attemptsApi.getWritingGrading(storedGradingId);
+                            setGradingData({ data });
                         } catch { /* fall through */ }
                     } else {
                         // 2. Fallback: find via writing submissions (cross-device)
@@ -480,22 +478,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         const taskIds: string[] = (testData as any)?.writingTasks?.map((t: any) => t.id) ?? [];
                         if (learnerId && taskIds.length > 0) {
                             try {
-                                const subsRes = await fetch(`${baseUrl}/api/learners/${learnerId}/writing-submissions`);
-                                if (subsRes.ok) {
-                                    const subsJson = await subsRes.json();
-                                    const subs: any[] = subsJson.data ?? [];
-                                    const matching = subs
-                                        .filter((s: any) => taskIds.includes(s.writingTaskId))
-                                        .sort((a: any, b: any) =>
-                                            new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-                                        );
-                                    if (matching.length > 0) {
-                                        const gradingRes = await fetch(`${baseUrl}/api/writing-gradings/by-submission/${matching[0].id}`);
-                                        if (gradingRes.ok) {
-                                            const gradingJson = await gradingRes.json();
-                                            setGradingData(gradingJson);
-                                        }
-                                    }
+                                const subs: any[] = await attemptsApi.getWritingSubmissionsByLearner(learnerId);
+                                const matching = subs
+                                    .filter((s: any) => taskIds.includes(s.writingTaskId))
+                                    .sort((a: any, b: any) =>
+                                        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+                                    );
+                                if (matching.length > 0) {
+                                    const grading = await attemptsApi.getWritingGradingBySubmission(matching[0].id);
+                                    if (grading) setGradingData({ data: grading });
                                 }
                             } catch { /* no grading available */ }
                         }
@@ -640,7 +631,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 <FileText className="h-12 w-12 text-muted-foreground" />
                 <p className="font-semibold text-foreground text-center">Writing feedback not available</p>
                 <p className="text-sm text-muted-foreground text-center max-w-sm">
-                    Detailed essay feedback is only accessible on the device where the test was completed.
+                    The AI examiner has not returned feedback for this attempt yet. Your band score (if any) is still saved in your history.
                 </p>
                 <Link href="/tests"><Button variant="outline">Back to Tests</Button></Link>
             </div>

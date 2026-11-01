@@ -5,6 +5,7 @@ import type {
     LearnerMistake,
     DashboardSummary,
     AdminGlobalStats,
+    LeaderboardEntry,
     ApiResponse,
 } from '../types';
 
@@ -62,6 +63,11 @@ export const analyticsApi = {
     syncAll: () =>
         apiClient
             .post<ApiResponse<{ synced: number }>>('/api/analytics/sync-all')
+            .then((r) => r.data.data),
+
+    getLeaderboard: (limit = 50) =>
+        apiClient
+            .get<ApiResponse<LeaderboardEntry[]>>('/api/analytics/leaderboard', { params: { limit } })
             .then((r) => r.data.data),
 
     getAdminGlobalStats: () =>

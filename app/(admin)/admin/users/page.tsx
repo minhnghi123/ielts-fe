@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { toast } from "sonner";
+import { authApi } from "@/lib/api/auth";
 
 interface User {
     id: string;
@@ -21,7 +23,6 @@ interface UsersPage {
     limit: number
 }
 
-const API_BASE = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 export default function UsersManagementPage() {
     const [users, setUsers] = useState<User[]>([]);
@@ -35,17 +36,13 @@ export default function UsersManagementPage() {
     const fetchUsers = async (p: number, s: string) => {
         setLoading(true);
         try {
-            const params = new URLSearchParams({ page: String(p), limit: "15" });
-            if (s) params.set("search", s);
-            const res = await fetch(`${API_BASE}/auth/users?${params}`);
-            // data.data is an array of users
-            const data: UsersPage = (await res.json()).data;
+            const data: UsersPage = await authApi.getUsers({ page: p, limit: 15, search: s || undefined });
             setUsers(data.data ?? []);
             setTotal(data.total ?? 0);
             setTotalPages(data.totalPages ?? 1);
-
         } catch {
             setUsers([]);
+            toast.error("Could not load users. Admin access is required.");
         } finally {
             setLoading(false);
         }
@@ -59,18 +56,15 @@ export default function UsersManagementPage() {
     }, [page, search]);
 
     const toggleStatus = async (user: User) => {
-        // Only implemented toggling active/banned status in backend if available
-        // But for layout purposes, keeping the UI intact
-        const newStatus = user.status === "active" ? "banned" : "active";
-        if (!confirm(`${newStatus === "banned" ? "Ban" : "Activate"} ${user.email}?`)) return;
+        const newStatus = user.status === "active" ? "suspended" : "active";
+        if (!confirm(`${newStatus === "suspended" ? "Suspend" : "Re-activate"} ${user.email}?`)) return;
         setTogglingId(user.id);
         try {
-            await fetch(`${API_BASE}/accounts/${user.id}/status`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus }),
-            });
+            await authApi.updateUserStatus(user.id, newStatus);
+            toast.success(`${user.email} is now ${newStatus}`);
             fetchUsers(page, search);
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message ?? "Could not update user status");
         } finally {
             setTogglingId(null);
         }
@@ -182,7 +176,7 @@ export default function UsersManagementPage() {
                                         >
                                             {togglingId === user.id
                                                 ? "…"
-                                                : user.status === "active" ? "Ban" : "Activate"}
+                                                : user.status === "active" ? "Suspend" : "Activate"}
                                         </button>
                                     </td>
                                 </tr>

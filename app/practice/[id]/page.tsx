@@ -1,13 +1,13 @@
 "use client";
 
 import { use, useEffect } from "react";
-import { useTestSession, getRemainingMs, type PracticeSession } from "./hooks/use-test-session";
+import { useTestSession, getRemainingMs, type PracticeSession, type SaveState } from "./hooks/use-test-session";
 import { TestInstructions } from "./_components/test-instructions";
 import { ReadingTestInterface } from "./_components/reading-test-interface";
 import { ListeningTestInterface } from "./_components/listening-test-interface";
 import { WritingTestInterface } from "./_components/writing-test-interface";
 import { SpeakingTestInterface } from "./_components/speaking-test-interface";
-import { RotateCcw, PlayCircle, Clock, BookOpen, Loader2 } from "lucide-react";
+import { RotateCcw, PlayCircle, Clock, BookOpen, Loader2, CloudCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // ─── Per-skill metadata ────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ const SKILL_DEFAULTS: Record<string, { title: string; duration: number }> = {
     reading: { title: "IELTS Academic Reading Test", duration: 60 },
     listening: { title: "IELTS Academic Listening Test", duration: 30 },
     writing: { title: "IELTS Academic Writing Test", duration: 60 },
-    speaking: { title: "IELTS Academic Speaking Test", duration: 15 },
+    speaking: { title: "IELTS Academic Speaking Test", duration: 14 },
 };
 
 // ─── Loading / error screens ───────────────────────────────────────────────────
@@ -132,12 +132,34 @@ function ResumePrompt({ testTitle, session, onResume, onStartFresh }: ResumeProm
                             Discard & start fresh
                         </Button>
                         <p className="text-[11px] text-center text-muted-foreground">
-                            Starting fresh will discard your saved answers and create a new attempt.
+                            Starting fresh submits the unfinished attempt as-is (it stays in your history) and creates a new one.
                         </p>
                     </div>
                 </div>
             </div>
         </div>
+    );
+}
+
+// ─── Autosave indicator ────────────────────────────────────────────────────────
+
+function AutosaveIndicator({ state, lastSavedAt }: { state: SaveState; lastSavedAt: Date | null }) {
+    const label =
+        state === "saving" ? "Saving…"
+            : state === "offline" ? "Offline — answers kept on this device"
+                : state === "saved" && lastSavedAt
+                    ? `Saved ${lastSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                    : "Autosave on";
+    const tone = state === "offline" ? "text-amber-600" : state === "saving" ? "text-muted-foreground" : "text-emerald-600";
+    return (
+        <span
+            role="status"
+            aria-live="polite"
+            className={`fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 rounded-full bg-card/95 border border-border px-3 py-1 text-[11px] font-medium shadow-sm ${tone}`}
+        >
+            {state === "saving" ? <Loader2 className="h-3 w-3 animate-spin" /> : <CloudCheck className="h-3 w-3" />}
+            {label}
+        </span>
     );
 }
 
@@ -150,6 +172,8 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
         test,
         testState,
         isStarting,
+        saveState,
+        lastSavedAt,
         resumeSession,
         answersRef,
         handleAnswerUpdate,
@@ -204,7 +228,9 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
             <div className="h-full overflow-y-auto bg-background">
                 <TestInstructions
                     title={test.title || defaults.title}
-                    defaultDuration={defaults.duration}
+                    defaultDuration={test.durationMinutes ?? defaults.duration}
+                    isMock={test.isMock}
+                    skill={skill}
                     sectionCount={sectionCount}
                     questionCount={questionCount}
                     isStarting={isStarting}
@@ -215,8 +241,12 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
     }
 
     // ── Active test screens ──────────────────────────────────────────────────
+    const saveIndicator = <AutosaveIndicator state={saveState} lastSavedAt={lastSavedAt} />;
+
     if (skill === "reading") {
         return (
+            <>
+            {saveIndicator}
             <ReadingTestInterface
                 testId={id}
                 test={test}
@@ -224,42 +254,56 @@ export default function PracticePage({ params }: { params: Promise<{ id: string 
                 onAnswerUpdate={handleAnswerUpdate}
                 onFinish={(answers) => handleFinishTest(answers)}
             />
+            </>
         );
     }
 
     if (skill === "listening") {
         return (
+            <>
+            {saveIndicator}
             <ListeningTestInterface
                 testId={id}
                 test={test}
+                initialAnswers={answersRef.current}
+                examMode={!!test.isMock && !resumeSession?.isPractice}
                 onAnswerUpdate={handleAnswerUpdate}
                 onFinish={(answers) => { void handleFinishTest(answers); }}
             />
+            </>
         );
     }
 
     if (skill === "writing") {
         return (
+            <>
+            {saveIndicator}
             <WritingTestInterface
                 testId={id}
                 test={test}
-                onFinish={(answers?, gradingId?, bandScore?) => { void handleFinishTest(answers ?? answersRef.current, undefined, gradingId, bandScore); }}
+                initialAnswers={answersRef.current}
+                onAnswerUpdate={handleAnswerUpdate}
+                onFinish={(answers?, gradingId?) => { void handleFinishTest(answers ?? answersRef.current, undefined, gradingId); }}
             />
+            </>
         );
     }
 
     if (skill === "speaking") {
         return (
+            <>
+            {saveIndicator}
             <SpeakingTestInterface
                 testId={id}
                 test={test}
-                onFinish={(gradings, bandScore) => {
+                onFinish={(gradings) => {
                     try {
                         sessionStorage.setItem(`speaking_result_${id}`, JSON.stringify(gradings));
                     } catch { /* storage unavailable */ }
-                    void handleFinishTest(answersRef.current, undefined, undefined, bandScore);
+                    void handleFinishTest(answersRef.current);
                 }}
             />
+            </>
         );
     }
 

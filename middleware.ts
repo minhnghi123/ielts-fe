@@ -23,11 +23,15 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/practice") ||
     pathname.startsWith("/analysis") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/ai-advisor") ||
     pathname.startsWith("/schedule");
 
   // Redirect to login if accessing protected pages without token
   if ((isAdminPage || isLearnerProtectedPage) && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname);
+    return NextResponse.redirect(login);
   }
 
   // Redirect authenticated users away from auth pages
@@ -54,7 +58,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    // "/practice/:path*",
+    "/practice/:path*",
+    "/profile/:path*",
+    "/ai-advisor/:path*",
     "/analysis/:path*",
     "/schedule/:path*",
     "/admin/:path*",

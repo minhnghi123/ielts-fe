@@ -127,8 +127,8 @@ export function useDeleteTest() {
 /** Start a test attempt. */
 export function useStartAttempt() {
     return useMutation({
-        mutationFn: ({ testId, learnerId }: { testId: string; learnerId: string }) =>
-            testsApi.startAttempt(testId, learnerId),
+        mutationFn: ({ testId, durationMinutes }: { testId: string; durationMinutes?: number }) =>
+            testsApi.startAttempt(testId, durationMinutes ? { durationMinutes } : undefined),
     });
 }
 

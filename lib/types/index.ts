@@ -1,6 +1,17 @@
 // ─── Skill Types ──────────────────────────────────────────────────────────────
 export type Skill = 'reading' | 'listening' | 'writing' | 'speaking';
 export type GradingStatus = 'pending' | 'ai_graded' | 'human_reviewed';
+export type TestDifficulty = 'easy' | 'medium' | 'hard';
+export type TestStatus = 'draft' | 'published' | 'archived';
+export type AttemptStatus = 'in_progress' | 'submitted' | 'expired';
+
+/** Official IELTS Academic timings in minutes (used when the server doesn't send one). */
+export const SKILL_DURATION_MINUTES: Record<Skill, number> = {
+    listening: 30,
+    reading: 60,
+    writing: 60,
+    speaking: 14,
+};
 
 // ─── Test Service ─────────────────────────────────────────────────────────────
 
@@ -11,6 +22,11 @@ export interface Test {
     isMock: boolean;
     createdBy: string;
     createdAt: string;
+    difficulty?: TestDifficulty;
+    status?: TestStatus;
+    description?: string | null;
+    /** Resolved by the server: admin override or official timing */
+    durationMinutes?: number;
     sections?: Section[];
     writingTasks?: WritingTask[];
     speakingParts?: SpeakingPart[];
@@ -106,11 +122,32 @@ export interface TestAttempt {
     learnerId: string;
     testId: string;
     startedAt: string;
-    submittedAt?: string;
+    submittedAt?: string | null;
+    status?: AttemptStatus;
+    durationSeconds?: number | null;
+    /** Server-side deadline (ISO). The client timer only mirrors this. */
+    expiresAt?: string | null;
+    /** Seconds left, computed by the server at response time */
+    remainingSeconds?: number | null;
+    draftAnswers?: Record<string, string>;
+    lastSavedAt?: string | null;
+    isPractice?: boolean;
     rawScore?: number;
     bandScore?: number;
+    aiFeedback?: string | null;
     test?: Test;
     questionAttempts?: QuestionAttempt[];
+}
+
+export interface LeaderboardEntry {
+    rank: number;
+    learnerId: string;
+    displayName: string;
+    avatarUrl?: string | null;
+    avgBand: number;
+    bestBand: number;
+    totalAttempts: number;
+    isMe?: boolean;
 }
 
 export interface QuestionAttempt {

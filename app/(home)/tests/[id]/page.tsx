@@ -138,7 +138,9 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
 
   const config = SKILL_CONFIG[test.skill] ?? SKILL_CONFIG.reading;
   const Icon = config.icon;
-  const durConfig = DURATION_MAP[test.skill] || { text: "N/A", mins: 60 };
+  const durConfig = test.durationMinutes
+    ? { text: `${test.durationMinutes} minutes`, mins: test.durationMinutes }
+    : DURATION_MAP[test.skill] || { text: "N/A", mins: 60 };
   const instructions = SKILL_INSTRUCTIONS[test.skill] ?? [];
 
   const questionCount = test.sections?.reduce((acc, sec) =>

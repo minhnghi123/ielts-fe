@@ -18,19 +18,52 @@ interface TestInstructionsProps {
     defaultDuration: number;
     questionCount: number;
     sectionCount: number;
+    /** Mock tests always run on the official clock; practice tests may be shortened. */
+    isMock?: boolean;
+    skill?: string;
     isStarting?: boolean;
     onStart: (duration: number | "full") => void;
 }
+
+const SKILL_RULES: Record<string, { title: string; desc: string }[]> = {
+    listening: [
+        { title: "Audio plays once", desc: "Exactly like the real exam: each recording plays a single time and cannot be paused or replayed in mock mode." },
+        { title: "Spelling counts", desc: "Answers with spelling mistakes are marked wrong. Check them before the next recording starts." },
+        { title: "Write as you listen", desc: "Type your answers while the audio plays — there is no separate transfer time on the computer-delivered test." },
+        { title: "40 questions, 4 parts", desc: "Each correct answer is one mark; the raw score is converted to a band using the official table." },
+    ],
+    reading: [
+        { title: "3 passages, 40 questions", desc: "About 20 minutes per passage. No extra time is given to transfer answers." },
+        { title: "Words from the passage", desc: "Respect the word limit in each instruction (e.g. NO MORE THAN TWO WORDS)." },
+        { title: "No penalty for guessing", desc: "Never leave a blank — an unanswered question is simply a lost mark." },
+        { title: "Review freely", desc: "You can move between passages and change answers until time runs out." },
+    ],
+    writing: [
+        { title: "Task 1 ≥ 150 words, Task 2 ≥ 250 words", desc: "Under-length responses are penalised on Task Achievement / Task Response." },
+        { title: "Task 2 counts double", desc: "Spend about 20 minutes on Task 1 and 40 minutes on Task 2." },
+        { title: "Answer the question asked", desc: "The AI examiner reads the prompt too — off-topic or memorised text is capped at Band 4–5." },
+        { title: "Four criteria", desc: "Task Achievement/Response, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy." },
+    ],
+    speaking: [
+        { title: "Three parts, 11–14 minutes", desc: "Part 1 interview, Part 2 long turn (1 min prep + 2 min talk), Part 3 discussion." },
+        { title: "Your voice is transcribed", desc: "Recordings are transcribed with Whisper and graded on Fluency, Lexical Resource, Grammar and Pronunciation." },
+        { title: "Speak until the examiner stops you", desc: "Longer, developed answers score higher than one-word replies." },
+        { title: "Quiet room, working microphone", desc: "Allow microphone access when prompted." },
+    ],
+};
 
 export function TestInstructions({
     title,
     defaultDuration,
     questionCount,
     sectionCount,
+    isMock = false,
+    skill = "reading",
     isStarting,
     onStart,
 }: TestInstructionsProps) {
     const [selectedDuration, setSelectedDuration] = useState<string>("full");
+    const rules = SKILL_RULES[skill] ?? SKILL_RULES.reading;
 
     return (
         <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -45,7 +78,7 @@ export function TestInstructions({
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-3">
                             <Badge className="bg-white/20 text-white border-none text-xs">
-                                IELTS Official Practice
+                                {isMock ? "Full Mock Test · Official timing" : "Practice Mode"}
                             </Badge>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-black leading-snug mb-3">{title}</h1>
@@ -73,37 +106,28 @@ export function TestInstructions({
                     <div>
                         <p className="font-semibold text-sm">Please read before starting</p>
                         <p className="text-sm opacity-85 mt-0.5">
-                            Once you click Start, the timer will begin. Make sure you are in a quiet environment.
+                            The timer starts on the server when you click Start and keeps running even if you close this tab.
+                            Your answers are saved automatically every few seconds.
                         </p>
                     </div>
                 </div>
 
-                {/* 2-column instructions grid */}
+                {/* Skill-specific exam rules */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <InstructionCard
-                        icon={ListChecks}
-                        color="text-blue-600 bg-blue-50 dark:bg-blue-900/30"
-                        title="Answer All Questions"
-                        desc="There's no penalty for wrong answers. Attempt every question — even a guess could earn a mark."
-                    />
-                    <InstructionCard
-                        icon={RefreshCw}
-                        color="text-violet-600 bg-violet-50 dark:bg-violet-900/30"
-                        title="Review Your Answers"
-                        desc="You can go back and change answers at any time before the test ends."
-                    />
-                    <InstructionCard
-                        icon={BookOpen}
-                        color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30"
-                        title="Read Carefully"
-                        desc="Read questions and passages thoroughly. Skimming can cause you to miss key details."
-                    />
-                    <InstructionCard
-                        icon={Timer}
-                        color="text-orange-600 bg-orange-50 dark:bg-orange-900/30"
-                        title="Manage Your Time"
-                        desc="Keep an eye on the timer. Avoid spending too long on any single question."
-                    />
+                    {rules.map((r, i) => (
+                        <InstructionCard
+                            key={r.title}
+                            icon={[ListChecks, RefreshCw, BookOpen, Timer][i % 4]}
+                            color={[
+                                "text-blue-600 bg-blue-50 dark:bg-blue-900/30",
+                                "text-violet-600 bg-violet-50 dark:bg-violet-900/30",
+                                "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30",
+                                "text-orange-600 bg-orange-50 dark:bg-orange-900/30",
+                            ][i % 4]}
+                            title={r.title}
+                            desc={r.desc}
+                        />
+                    ))}
                 </div>
 
                 {/* Test Overview & Timer Selection */}
@@ -130,8 +154,17 @@ export function TestInstructions({
                     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-4">
                         <h3 className="font-bold flex items-center gap-2">
                             <Timer className="h-5 w-5 text-primary" />
-                            Practice Duration
+                            {isMock ? "Exam Timer" : "Practice Duration"}
                         </h3>
+                        {isMock ? (
+                            <div className="rounded-xl bg-background border border-border p-4 text-sm">
+                                <p className="font-semibold">{defaultDuration} minutes — official timing</p>
+                                <p className="text-muted-foreground text-xs mt-1">
+                                    This is a full mock test. The clock runs on the server and your answers are submitted automatically when it reaches zero.
+                                </p>
+                            </div>
+                        ) : (
+                        <>
                         <p className="text-sm text-muted-foreground">Choose how long you want to practice:</p>
                         <Select value={selectedDuration} onValueChange={setSelectedDuration}>
                             <SelectTrigger className="w-full bg-background h-11">
@@ -148,9 +181,10 @@ export function TestInstructions({
                                 <SelectItem value="20">20 Minutes</SelectItem>
                                 <SelectItem value="10">10 Minutes</SelectItem>
                                 <SelectItem value="5">5 Minutes (Quick)</SelectItem>
-                                <SelectItem value="1">1 Minute (Debug)</SelectItem>
                             </SelectContent>
                         </Select>
+                        </>
+                        )}
                     </div>
                 </div>
 
@@ -178,7 +212,7 @@ export function TestInstructions({
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground pb-4">
-                    © 2024 IELTS-MN — Official Practice Portal
+                    IELTS-MN — IELTS Academic practice platform
                 </p>
             </div>
         </div>

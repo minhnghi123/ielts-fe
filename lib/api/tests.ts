@@ -13,6 +13,9 @@ export const testsApi = {
     getTests: (params?: {
         skill?: string;
         isMock?: boolean;
+        difficulty?: string;
+        status?: string;
+        search?: string;
         page?: number;
         limit?: number;
     }) =>
@@ -54,6 +57,10 @@ export const testsApi = {
         title: string;
         isMock: boolean;
         createdBy: string;
+        difficulty?: string;
+        status?: string;
+        description?: string;
+        durationMinutes?: number;
     }) =>
         apiClient
             .post<{ data: Test }>('/api/tests', dto)
@@ -61,7 +68,7 @@ export const testsApi = {
 
     updateTest: (
         id: string,
-        dto: Partial<Pick<Test, 'title' | 'skill' | 'isMock'>>,
+        dto: Partial<Pick<Test, 'title' | 'skill' | 'isMock' | 'difficulty' | 'status' | 'description' | 'durationMinutes'>>,
     ) =>
         apiClient
             .put<{ data: Test }>(`/api/tests/${id}`, dto)
@@ -208,10 +215,33 @@ export const testsApi = {
         apiClient.delete(`/api/speaking-parts/${partId}`),
 
     // ─── Test Attempts ────────────────────────────────────────────────────────
+    //
+    // The attempt is a server-side exam session: the learner is identified by the
+    // JWT (no learnerId in the body), the deadline is `expiresAt`, answers are
+    // autosaved to `/draft`, and bands are never sent from the client.
 
-    startAttempt: (testId: string, learnerId: string) =>
+    /** Start (or resume the open) attempt. `durationMinutes` only applies to practice tests. */
+    startAttempt: (testId: string, opts?: { durationMinutes?: number }) =>
         apiClient
-            .post<{ data: TestAttempt }>(`/api/tests/${testId}/attempts`, { learnerId })
+            .post<{ data: TestAttempt }>(`/api/tests/${testId}/attempts`, opts ?? {})
+            .then((r) => r.data.data),
+
+    /** The in-progress attempt of the current learner for a test, or null. */
+    getActiveAttempt: (testId: string) =>
+        apiClient
+            .get<{ data: TestAttempt }>('/api/attempts/active', { params: { testId } })
+            .then((r) => r.data.data)
+            .catch((err) => {
+                if (err?.response?.status === 404) return null;
+                throw err;
+            }),
+
+    saveDraft: (attemptId: string, answers: Record<string, string>) =>
+        apiClient
+            .put<{ data: { savedAt: string; remainingSeconds: number | null } }>(
+                `/api/attempts/${attemptId}/draft`,
+                { answers },
+            )
             .then((r) => r.data.data),
 
     getAttemptById: (attemptId: string) =>
@@ -221,18 +251,15 @@ export const testsApi = {
 
     submitAttempt: (
         attemptId: string,
-        dto: { answers: { questionId: string; answer?: string }[]; bandScore?: number },
+        dto: { answers: { questionId: string; answer?: string }[] },
     ) =>
         apiClient
             .post<{ data: TestAttempt }>(`/api/attempts/${attemptId}/submit`, dto)
             .then((r) => r.data.data),
 
-    getAttemptsByLearnerId: (learnerId: string) =>
+    /** Attempts of the signed-in learner (admins may pass another learnerId). */
+    getAttemptsByLearnerId: (learnerId?: string) =>
         apiClient
-            .get<{ data: TestAttempt[] }>(`/api/attempts?learnerId=${learnerId}`)
+            .get<{ data: TestAttempt[] }>('/api/attempts', { params: learnerId ? { learnerId } : undefined })
             .then((r) => r.data.data),
-
-    /** Persist AI-generated feedback text back to the test_attempt row. */
-    saveAiFeedback: (attemptId: string, aiFeedback: string) =>
-        apiClient.put(`/api/attempts/${attemptId}/ai-feedback`, { aiFeedback }),
 };

@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+import { toast } from "sonner";
 import type { Test } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -111,16 +112,28 @@ function GradingOverlay({ step, error }: { step: GradingStep; error?: string }) 
 export function WritingTestInterface({
     testId,
     test,
+    initialAnswers,
+    onAnswerUpdate,
     onFinish,
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: (answers?: Record<string, string>, gradingId?: string, bandScore?: number) => void;
+    /** Autosaved answers keyed `writing_task_<n>` */
+    initialAnswers?: Record<string, string>;
+    onAnswerUpdate?: (answers: Record<string, string>) => void;
+    onFinish: (answers?: Record<string, string>, gradingId?: string) => void;
 }) {
-    const [responses, setResponses] = useState<Record<number, string>>({});
+    const [responses, setResponses] = useState<Record<number, string>>(() => {
+        const init: Record<number, string> = {};
+        for (const [k, v] of Object.entries(initialAnswers ?? {})) {
+            const m = /^writing_task_(\d+)$/.exec(k);
+            if (m) init[Number(m[1])] = v;
+        }
+        return init;
+    });
     const [gradingStep, setGradingStep] = useState<GradingStep | null>(null);
     const [gradingError, setGradingError] = useState<string | undefined>();
-    const { timeLeft } = usePractice();
+    const { timeLeft, attemptId } = usePractice();
 
     const tasks = useMemo(() => {
         const testTasks = (test as any)?.writingTasks || [];
@@ -128,27 +141,45 @@ export function WritingTestInterface({
     }, [test]);
 
     const [activeTab, setActiveTab] = useState(tasks.length > 0 ? `task${tasks[0].taskNumber}` : "task1");
+    const confirmedShortRef = useRef(false);
 
     const wordCount = (text: string) => {
         return (text || "").trim().split(/\s+/).filter((w) => w.length > 0).length;
     };
 
+    const toAnswerMap = (r: Record<number, string>) => {
+        const out: Record<string, string> = {};
+        for (const [n, text] of Object.entries(r)) out[`writing_task_${n}`] = text;
+        return out;
+    };
+
     const handleResponseChange = (taskNumber: number, text: string) => {
-        setResponses(prev => ({ ...prev, [taskNumber]: text }));
+        setResponses(prev => {
+            const next = { ...prev, [taskNumber]: text };
+            onAnswerUpdate?.(toAnswerMap(next));
+            return next;
+        });
     };
 
     const handleSubmit = async () => {
-        const user = authApi.getStoredUser();
-        if (!user) {
-            alert("Please log in to submit.");
+        if (!authApi.isAuthenticated()) {
+            toast.error("Please log in to submit.");
             return;
         }
-
-        const isValidProfileId = typeof (user as any).profileId === 'string' && (user as any).profileId !== 'undefined' && (user as any).profileId.length > 20;
-        const learnerId = isValidProfileId ? (user as any).profileId : user.id;
-        console.log("learnerId", learnerId);
         const task1 = tasks.find((t: any) => t.taskNumber === 1);
         const task2 = tasks.find((t: any) => t.taskNumber === 2);
+
+        const underLength = tasks.filter((t: any) => {
+            const min = t.taskNumber === 1 ? 150 : 250;
+            return wordCount(responses[t.taskNumber] || "") < min;
+        });
+        if (underLength.length > 0 && !confirmedShortRef.current) {
+            confirmedShortRef.current = true;
+            toast.warning(
+                `Task ${underLength.map((t: any) => t.taskNumber).join(" & ")} is under the minimum word count — this is penalised in IELTS. Click Submit again to continue.`,
+            );
+            return;
+        }
 
         setGradingError(undefined);
         setGradingStep("submitting");
@@ -162,11 +193,13 @@ export function WritingTestInterface({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     testId,
-                    learnerId,
+                    attemptId,
                     task1Content: responses[1] || "",
                     task2Content: responses[2] || "",
                     task1Id: task1?.id || "",
                     task2Id: task2?.id || null,
+                    task1Prompt: task1?.prompt || "",
+                    task2Prompt: task2?.prompt || "",
                 }),
             });
 
@@ -183,12 +216,7 @@ export function WritingTestInterface({
             setGradingStep("done");
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            const finalAnswers: Record<string, string> = {};
-            tasks.forEach((t: any) => {
-                finalAnswers[`writing_task_${t.taskNumber}`] = responses[t.taskNumber] || "";
-            });
-
-            onFinish(finalAnswers, data.gradingId, data.overallBand);
+            onFinish(toAnswerMap(responses), data.gradingId);
         } catch (err) {
             console.error("[WritingTestInterface] Grading error:", err);
             setGradingStep("error");

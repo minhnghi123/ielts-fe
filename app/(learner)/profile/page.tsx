@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
+import apiClient from "@/lib/api";
 import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt } from "@/lib/types";
 import Link from "next/link";
@@ -21,7 +22,6 @@ import {
 } from "lucide-react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
-const AUTH_API = `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                             day: "numeric", month: "short", year: "numeric",
                                         })
                                         : "—";
-                                    const dur = formatDuration(a.startedAt, a.submittedAt);
+                                    const dur = formatDuration(a.startedAt, a.submittedAt ?? undefined);
                                     const testId = a.testId;
 
                                     // Build skill-aware review URL so the result page renders correctly.
@@ -244,6 +244,69 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
     );
 }
 
+// ─── Change Password ──────────────────────────────────────────────────────────
+
+function ChangePasswordCard() {
+    const [form, setForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
+    const [saving, setSaving] = useState(false);
+    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,32}$/.test(form.newPassword);
+    const canSubmit = form.currentPassword && strong && form.newPassword === form.confirm && !saving;
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!canSubmit) return;
+        setSaving(true);
+        try {
+            await authApi.changePassword({ currentPassword: form.currentPassword, newPassword: form.newPassword });
+            toast.success("Password changed");
+            setForm({ currentPassword: "", newPassword: "", confirm: "" });
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message ?? "Could not change password");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Card className="bg-card shadow-sm">
+            <CardHeader>
+                <CardTitle className="text-base">Change Password</CardTitle>
+                <CardDescription className="text-xs">
+                    At least 8 characters with uppercase, lowercase, a number and a symbol (@$!%*?&).
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={submit} className="space-y-4 max-w-md">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="currentPassword" className="text-xs font-semibold">Current password</Label>
+                        <Input id="currentPassword" type="password" autoComplete="current-password" className="text-sm h-9"
+                            value={form.currentPassword} onChange={e => setForm({ ...form, currentPassword: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="newPassword" className="text-xs font-semibold">New password</Label>
+                        <Input id="newPassword" type="password" autoComplete="new-password" className="text-sm h-9"
+                            value={form.newPassword} onChange={e => setForm({ ...form, newPassword: e.target.value })} />
+                        {form.newPassword && !strong && (
+                            <p className="text-[11px] text-amber-600">Password does not meet the requirements yet.</p>
+                        )}
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="confirm" className="text-xs font-semibold">Confirm new password</Label>
+                        <Input id="confirm" type="password" autoComplete="new-password" className="text-sm h-9"
+                            value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} />
+                        {form.confirm && form.confirm !== form.newPassword && (
+                            <p className="text-[11px] text-rose-600">Passwords do not match.</p>
+                        )}
+                    </div>
+                    <div className="pt-3 border-t border-border flex justify-end">
+                        <Button type="submit" size="sm" disabled={!canSubmit}>{saving ? "Saving…" : "Update Password"}</Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function UserProfilePage() {
@@ -266,16 +329,8 @@ export default function UserProfilePage() {
         if (!user) return;
         setSaving(true);
         try {
-            const token = typeof document !== "undefined"
-                ? document.cookie.split("; ").find(r => r.startsWith("accessToken="))?.split("=")[1]
-                : "";
-            const res = await fetch(`${AUTH_API}/auth/profile`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify(formData),
-            });
-            if (!res.ok) throw new Error("Failed");
-            const updatedUser = (await res.json()).data;
+            const res = await apiClient.put("/api/auth/profile", formData);
+            const updatedUser = res.data.data;
             setUser(updatedUser);
             authApi.updateStoredUser(updatedUser);
             toast.success("Profile updated successfully");
@@ -361,6 +416,7 @@ export default function UserProfilePage() {
 
                 {/* Personal Info tab */}
                 {activeSection === "profile" && (
+                    <>
                     <Card className="bg-card shadow-sm">
                         <CardHeader>
                             <CardTitle className="text-base">Personal Information</CardTitle>
@@ -391,6 +447,8 @@ export default function UserProfilePage() {
                             </form>
                         </CardContent>
                     </Card>
+                    <ChangePasswordCard />
+                    </>
                 )}
             </div>
         </div>
