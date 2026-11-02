@@ -6,8 +6,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export interface AuthUser {
     id: string;
     email: string;
-    role: 'learner' | 'admin';
+    role: 'learner' | 'teacher' | 'admin';
     profileId: string;
+    teacherStatus?: 'pending' | 'approved' | 'rejected';
     fullName?: string;
     avatarUrl?: string;
 }

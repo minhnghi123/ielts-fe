@@ -21,10 +21,13 @@ export function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [role, setRole] = useState<"learner" | "teacher">("learner");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
+    fullName: "",
+    organization: "",
   });
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -44,11 +47,14 @@ export function RegisterForm() {
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
+        role,
+        fullName: formData.fullName || undefined,
+        organization: role === "teacher" ? formData.organization || undefined : undefined,
       });
 
       if (response.statusCode === 201) {
         // Registration successful, redirect to login
-        router.push("/login?registered=true");
+        router.push(role === "teacher" ? "/login?registered=teacher" : "/login?registered=true");
       }
     } catch (err: any) {
       setError(
@@ -100,6 +106,65 @@ export function RegisterForm() {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>I am a</Label>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
+              {([
+                { value: "learner", label: "Student", icon: "school", hint: "Practice & track progress" },
+                { value: "teacher", label: "Teacher", icon: "co_present", hint: "Create classes & assign tests" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={role === opt.value}
+                  onClick={() => setRole(opt.value)}
+                  className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors ${
+                    role === opt.value
+                      ? "border-zinc-900 bg-zinc-900 text-zinc-50"
+                      : "border-zinc-200 hover:bg-zinc-50"
+                  }`}
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <span className="material-symbols-outlined text-[18px]">{opt.icon}</span>
+                    {opt.label}
+                  </span>
+                  <span className={`text-xs ${role === opt.value ? "text-zinc-300" : "text-muted-foreground"}`}>
+                    {opt.hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {role === "teacher" && (
+              <p className="text-xs text-muted-foreground">
+                Teacher accounts are reviewed by an administrator before you can create classes.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full name{role === "teacher" ? "" : " (optional)"}</Label>
+            <Input
+              id="fullName"
+              placeholder="Nguyen Van A"
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              required={role === "teacher"}
+            />
+          </div>
+
+          {role === "teacher" && (
+            <div className="space-y-2">
+              <Label htmlFor="organization">School / centre (optional)</Label>
+              <Input
+                id="organization"
+                placeholder="e.g. ABC English Centre"
+                value={formData.organization}
+                onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+              />
             </div>
           )}
 

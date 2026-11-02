@@ -268,9 +268,13 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         const wantsCustom = chosenDuration !== 'full' && Number(chosenDuration) !== official;
         // Mock tests always run on the official clock; the server enforces this too.
         const durationMinutes = wantsCustom && !testData.isMock ? Number(chosenDuration) : undefined;
-        const attempt = await testsApi.startAttempt(testData.id, durationMinutes ? { durationMinutes } : undefined);
+        const assignmentId = searchParams.get('assignment') || undefined;
+        const attempt = await testsApi.startAttempt(testData.id, {
+            ...(durationMinutes ? { durationMinutes } : {}),
+            ...(assignmentId ? { assignmentId } : {}),
+        });
         return sessionFromAttempt(attempt);
-    }, []);
+    }, [searchParams]);
 
     // ── Fetch test + look for an in-progress attempt ──────────────────────────
 
@@ -290,7 +294,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 let session: PracticeSession | null = null;
                 if (authApi.isAuthenticated()) {
                     try {
-                        const active = await testsApi.getActiveAttempt(testId);
+                        const active = await testsApi.getActiveAttempt(testId, searchParams.get('assignment') || undefined);
                         if (active) {
                             const local = loadSession(testId);
                             const localAnswers = local?.attemptId === active.id ? local.answers : {};
