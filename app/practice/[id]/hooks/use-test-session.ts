@@ -193,7 +193,8 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 for (const q of group.questions ?? []) allQuestionIds.push(q.id);
             }
         }
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        // Question ids are uuids; Writing/Speaking store their texts under task keys.
+        const uuidRegex = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|writing_task_\d+|speaking_part_\d+)$/i;
         const answersArray = (allQuestionIds.length > 0
             ? allQuestionIds.map(qId => ({ questionId: qId, answer: answers[qId] ?? '' }))
             : Object.entries(answers).map(([questionId, answer]) => ({ questionId, answer }))

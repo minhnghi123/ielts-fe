@@ -37,8 +37,11 @@ export default function SubmissionReviewPage({ params }: { params: Promise<{ id:
 function SubmissionView({ classId, sub, onSaved }: { classId: string; sub: SubmissionDetail; onSaved: () => void }) {
   const skill = sub.skill ?? sub.assignment.testSnapshot?.skill;
   const rubric = RUBRICS[skill ?? ""] ?? [];
-  const [scores, setScores] = useState<Record<string, number>>(sub.teacherRubric ?? {});
-  const [band, setBand] = useState<number | "">(sub.teacherBand ?? "");
+  // Numeric columns arrive as strings from the API; coerce so <select> values match.
+  const [scores, setScores] = useState<Record<string, number>>(
+    Object.fromEntries(Object.entries(sub.teacherRubric ?? {}).map(([k, v]) => [k, Number(v)])),
+  );
+  const [band, setBand] = useState<number | "">(sub.teacherBand != null ? Number(sub.teacherBand) : "");
   const [feedback, setFeedback] = useState(sub.teacherFeedback ?? "");
   const [msg, setMsg] = useState("");
   const rubricAvg = rubric.length && rubric.every((r) => scores[r.key] !== undefined) ? roundHalf(rubric.reduce((acc, r) => acc + scores[r.key], 0) / rubric.length) : null;
