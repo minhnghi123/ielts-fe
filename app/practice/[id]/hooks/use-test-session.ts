@@ -8,6 +8,7 @@ import { authApi } from '@/lib/api/auth';
 import { usePractice } from '../practice-context';
 import type { Test, TestAttempt } from '@/lib/types';
 import { SKILL_DURATION_MINUTES } from '@/lib/types';
+import { useAuthStore } from '@/stores/auth-store';
 
 // ─── Test State ───────────────────────────────────────────────────────────────
 
@@ -29,7 +30,10 @@ export interface PracticeSession {
 }
 
 function sessionKey(testId: string) {
-    return `ielts_session_${testId}`;
+    // Scope the local mirror to the signed-in account so a shared browser never
+    // resumes another learner's draft.
+    const userId = useAuthStore.getState().user?.id ?? 'anon';
+    return `ielts_session_${userId}_${testId}`;
 }
 
 function loadSession(testId: string): PracticeSession | null {

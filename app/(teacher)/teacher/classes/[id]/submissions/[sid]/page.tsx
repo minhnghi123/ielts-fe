@@ -61,7 +61,7 @@ function SubmissionView({ classId, sub, onSaved }: { classId: string; sub: Submi
         <SubmissionStatusBadge status={sub.status} />
         <span className="text-sm">AI band <BandPill band={sub.aiBand} /></span>
         <span className="text-sm">Final <BandPill band={sub.finalBand} reviewed={!!sub.reviewedAt} /></span>
-        {sub.rawScore !== null && sub.rawScore !== undefined && <span className="text-sm text-muted-foreground">Raw score {sub.rawScore}/40</span>}
+        {sub.rawScore !== null && sub.rawScore !== undefined && <span className="text-sm text-muted-foreground">Raw score {sub.rawScore}/{sub.attempt?.questionAttempts?.length || 40}</span>}
       </div>
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3 space-y-4">
