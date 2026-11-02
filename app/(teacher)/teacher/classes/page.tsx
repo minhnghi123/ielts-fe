@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ const COLOR_CLS: Record<string, string> = {
   emerald: "bg-emerald-500", sky: "bg-sky-500", amber: "bg-amber-500", rose: "bg-rose-500", violet: "bg-violet-500", zinc: "bg-zinc-500",
 };
 
-export default function TeacherClassesPage() {
+function TeacherClassesPageInner() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -137,5 +137,13 @@ export default function TeacherClassesPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function TeacherClassesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading…</div>}>
+      <TeacherClassesPageInner />
+    </Suspense>
   );
 }
