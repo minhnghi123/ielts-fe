@@ -1,4 +1,5 @@
 "use client";
+import { contentBase } from "@/lib/content-base";
 
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
@@ -89,7 +90,7 @@ function SpeakingFormInner() {
       };
       await createSpeakingTest(payload);
       toast.success("Speaking test created successfully!");
-      router.push("/admin/tests?skill=speaking");
+      router.push(`${contentBase()}/tests?skill=speaking`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to save test");
     } finally {

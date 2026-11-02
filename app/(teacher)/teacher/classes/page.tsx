@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { EmptyState, PageHeader, PendingApprovalBanner } from "../../_components/shared";
+import { EmptyState, PageHeader, PendingApprovalBanner, errorMessage } from "../../_components/shared";
 
 const COLORS = ["emerald", "sky", "amber", "rose", "violet", "zinc"];
 const COLOR_CLS: Record<string, string> = {
@@ -41,7 +41,7 @@ export default function TeacherClassesPage() {
       setOpen(false);
       router.push(`/teacher/classes/${cls.id}?welcome=1`);
     },
-    onError: (e: any) => setError(e?.response?.data?.message || e?.response?.data?.error?.message || "Could not create class"),
+    onError: (e: unknown) => setError(errorMessage(e, "Could not create class")),
   });
 
   return (

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Test } from "@/lib/types";
-import { PageHeader, SkillBadge } from "../../../../../_components/shared";
+import { PageHeader, SkillBadge, errorMessage } from "../../../../../_components/shared";
 
 function toLocalInput(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -29,14 +29,14 @@ export default function NewAssignmentPage({ params }: { params: Promise<{ id: st
 
   const { data, isLoading } = useQuery({
     queryKey: ["tests", "picker", source, skill, search],
-    queryFn: () => testsApi.getTests({ ...(source === "mine" ? { mine: true } : {}), ...(skill ? { skill } : {}), ...(search ? { search } : {}), limit: 50 } as any),
+    queryFn: () => testsApi.getTests({ ...(source === "mine" ? { mine: true } : {}), ...(skill ? { skill } : {}), ...(search ? { search } : {}), limit: 50 }),
   });
-  const tests: Test[] = (data as any)?.data ?? (Array.isArray(data) ? (data as any) : []);
+  const tests: Test[] = data?.data ?? [];
 
   const create = useMutation({
     mutationFn: (input: CreateAssignmentInput) => classroomApi.createAssignment(id, input),
     onSuccess: (a) => router.push(`/teacher/classes/${id}/assignments/${a.id}`),
-    onError: (e: any) => setError(e?.response?.data?.message || e?.response?.data?.error?.message || "Could not create the assignment"),
+    onError: (e: unknown) => setError(errorMessage(e, "Could not create the assignment")),
   });
 
   const submit = (e: React.FormEvent) => {
@@ -103,7 +103,7 @@ export default function NewAssignmentPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Attempts</Label><select className="w-full rounded-lg border bg-background p-2 text-sm" value={form.maxAttempts} onChange={(e) => setForm({ ...form, maxAttempts: Number(e.target.value) })}><option value={1}>1 attempt</option><option value={2}>2 attempts</option><option value={3}>3 attempts</option><option value={0}>Unlimited</option></select></div>
-            <div className="space-y-1.5"><Label>Show results</Label><select className="w-full rounded-lg border bg-background p-2 text-sm" value={form.resultPolicy} onChange={(e) => setForm({ ...form, resultPolicy: e.target.value as any })}><option value="immediately">Immediately</option><option value="after_due">After due date</option><option value="manual">When I release them</option></select></div>
+            <div className="space-y-1.5"><Label>Show results</Label><select className="w-full rounded-lg border bg-background p-2 text-sm" value={form.resultPolicy} onChange={(e) => setForm({ ...form, resultPolicy: e.target.value as "immediately" | "after_due" | "manual" })}><option value="immediately">Immediately</option><option value="after_due">After due date</option><option value="manual">When I release them</option></select></div>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={!test || create.isPending}>{create.isPending ? "Assigning…" : test ? `Assign “${test.title}”` : "Pick a test to continue"}</Button>

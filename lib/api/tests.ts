@@ -18,9 +18,17 @@ export const testsApi = {
         search?: string;
         page?: number;
         limit?: number;
+        /** Teacher: only tests I authored */
+        mine?: boolean;
+        visibility?: 'public' | 'private';
     }) =>
         apiClient
             .get<{ data: PaginatedTests }>('/api/tests', { params })
+            .then((r) => r.data.data),
+
+    updateTestVisibility: (id: string, visibility: 'public' | 'private') =>
+        apiClient
+            .patch<{ data: Test }>(`/api/tests/${id}/visibility`, { visibility })
             .then((r) => r.data.data),
 
     getTestById: (id: string) =>

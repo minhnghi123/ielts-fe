@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,8 @@ const ASSIGNMENT_STATUS: Record<AssignmentStatus, { label: string; cls: string }
 };
 
 export function AssignmentStatusBadge({ status, dueAt }: { status: AssignmentStatus; dueAt?: string }) {
-  const soon = status === "open" && dueAt && new Date(dueAt).getTime() - Date.now() < 24 * 3600_000 && new Date(dueAt).getTime() > Date.now();
+  const [now] = useState(() => Date.now());
+  const soon = status === "open" && dueAt && new Date(dueAt).getTime() - now < 24 * 3600_000 && new Date(dueAt).getTime() > now;
   const meta = soon ? { label: "Due soon", cls: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" } : ASSIGNMENT_STATUS[status];
   return <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", meta.cls)}>{meta.label}</span>;
 }
@@ -98,6 +100,11 @@ export function PageHeader({ title, subtitle, actions, back }: { title: string; 
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
+}
+
+export function errorMessage(e: unknown, fallback: string): string {
+  const r = (e as { response?: { data?: { message?: string; error?: { message?: string } } } })?.response?.data;
+  return r?.message || r?.error?.message || fallback;
 }
 
 export function EmptyState({ icon, title, description, action }: { icon: string; title: string; description?: string; action?: React.ReactNode }) {

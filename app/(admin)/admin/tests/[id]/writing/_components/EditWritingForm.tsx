@@ -1,4 +1,5 @@
 "use client";
+import { contentBase } from "@/lib/content-base";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -96,7 +97,7 @@ export default function EditWritingFormInner({ testId }: { testId: string }) {
             };
             await updateWritingTest(testId, payload);
             toast.success("Writing test updated successfully!");
-            router.push("/admin/tests?skill=writing");
+            router.push(`${contentBase()}/tests?skill=writing`);
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Failed to save test");
         } finally {

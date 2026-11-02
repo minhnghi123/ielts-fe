@@ -254,7 +254,7 @@ function SettingsTab({ classId, cls }: { classId: string; cls: { name: string; d
           <div className="space-y-1.5"><Label>Max students</Label><Input type="number" min={1} value={form.maxMembers ?? ""} onChange={(e) => setForm({ ...form, maxMembers: e.target.value ? Number(e.target.value) : undefined })} /></div>
         </div>
         <div className="space-y-1.5"><Label>How students join</Label>
-          <select className="w-full rounded-lg border bg-background p-2 text-sm" value={form.joinPolicy} onChange={(e) => setForm({ ...form, joinPolicy: e.target.value as any })}>
+          <select className="w-full rounded-lg border bg-background p-2 text-sm" value={form.joinPolicy} onChange={(e) => setForm({ ...form, joinPolicy: e.target.value as "open" | "approval" | "closed" })}>
             <option value="approval">I approve each request</option><option value="open">Anyone with the code joins instantly</option><option value="closed">Closed — nobody can join</option>
           </select>
         </div>

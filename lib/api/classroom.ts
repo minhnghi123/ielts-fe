@@ -75,7 +75,10 @@ export const classroomApi = {
     updateMember: (id: string, learnerId: string, input: { status?: 'active' | 'removed'; note?: string }) =>
         apiClient.patch<ApiResponse<ClassMember>>(`/api/classes/${id}/members/${learnerId}`, input).then(unwrap),
     studentProgress: (id: string, learnerId: string) =>
-        apiClient.get<ApiResponse<any>>(`/api/classes/${id}/students/${learnerId}/progress`).then(unwrap),
+        apiClient
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- aggregated payload from classroom + analytics services
+            .get<ApiResponse<Record<string, any>>>(`/api/classes/${id}/students/${learnerId}/progress`)
+            .then(unwrap),
 
     // ── assignments ──
     listAssignments: (id: string, params?: { status?: string; skill?: string }) =>

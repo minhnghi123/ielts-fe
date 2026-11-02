@@ -1,4 +1,5 @@
 "use client";
+import { contentBase } from "@/lib/content-base";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
@@ -118,7 +119,7 @@ export default function EditSpeakingFormInner({ params }: { params: { id: string
             };
             await updateSpeakingTest(testId, payload);
             toast.success("Speaking test updated successfully!");
-            router.push("/admin/tests?skill=speaking");
+            router.push(`${contentBase()}/tests?skill=speaking`);
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Failed to save test");
         } finally {
