@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -133,7 +134,8 @@ export async function POST(req: NextRequest) {
                 'Authorization': `Bearer ${groqKey}`,
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: GROQ_CHAT_MODEL,
+                ...groqModelOptions(),
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: userMessage },

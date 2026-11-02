@@ -1,5 +1,5 @@
 "use client";
-import { contentBase } from "@/lib/content-base";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
@@ -134,8 +134,7 @@ export default function EditSpeakingFormInner({ params }: { params: { id: string
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
             <Breadcrumb className="mb-6" items={[
-                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                ...builderBreadcrumbs(),
                 { label: title || 'Edit Speaking Test', icon: 'record_voice_over' },
             ]} />
             <div className="flex items-center justify-between mb-8">

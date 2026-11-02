@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 import Groq from 'groq-sdk';
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -121,7 +122,8 @@ export async function POST(req: NextRequest) {
   const groq = new Groq({ apiKey });
 
   const stream = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: GROQ_CHAT_MODEL,
+    ...groqModelOptions(),
     stream: true,
     temperature: 0.75,
     max_tokens: 1500,

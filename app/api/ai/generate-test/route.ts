@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 import Groq from "groq-sdk";
 
 const SYSTEM_PROMPT = `You are an expert IELTS test creator. Generate a complete, realistic IELTS test in valid JSON format.
@@ -136,7 +137,8 @@ export async function POST(req: NextRequest) {
     const groq = new Groq({ apiKey });
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_CHAT_MODEL,
+      ...groqModelOptions(),
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

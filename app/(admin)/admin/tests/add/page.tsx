@@ -1,5 +1,5 @@
 "use client";
-import { contentBase } from "@/lib/content-base";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -322,8 +322,7 @@ export function AddTestPageSuspense() {
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
       <Breadcrumb className="mb-6" items={[
-        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        ...builderBreadcrumbs(),
         { label: 'Add Test', icon: 'add_circle' },
       ]} />
 

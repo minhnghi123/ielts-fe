@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BASE, backendJson, getUserToken, storeAiResult, systemHeaders, userHeaders } from '@/lib/server/backend';
+import { GROQ_API_URL, GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = process.env.GROQ_WRITING_MODEL || 'llama-3.3-70b-versatile';
+const MODEL = process.env.GROQ_WRITING_MODEL || GROQ_CHAT_MODEL;
 const PROMPT_VERSION = 'v2-prompt-aware';
 
 /**
@@ -118,12 +118,13 @@ Return the JSON evaluation.`;
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${groqKey}` },
             body: JSON.stringify({
                 model: MODEL,
+                ...groqModelOptions(MODEL),
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: userMessage },
                 ],
                 temperature: 0.2,
-                max_tokens: 6000,
+                max_tokens: 8000,
                 response_format: { type: 'json_object' },
             }),
         });
@@ -131,11 +132,16 @@ Return the JSON evaluation.`;
             console.error('[grade-writing] Groq error:', await groqRes.text());
             return NextResponse.json({ error: 'AI grading failed, please try again.' }, { status: 502 });
         }
-        const groqData = await groqRes.json() as { choices: Array<{ message: { content: string } }> };
+        const groqData = await groqRes.json() as { choices: Array<{ message: { content: string }; finish_reason?: string }> };
+        if (groqData.choices[0]?.finish_reason === 'length') {
+            console.error('[grade-writing] Groq response truncated (max_tokens)');
+            return NextResponse.json({ error: 'AI response was cut off — please try again.' }, { status: 502 });
+        }
         let parsed: { task1?: TaskGrading; task2?: TaskGrading };
         try {
             parsed = JSON.parse(groqData.choices[0]?.message?.content ?? '{}');
         } catch {
+            console.error('[grade-writing] Invalid JSON from Groq:', (groqData.choices[0]?.message?.content ?? '').slice(0, 300));
             return NextResponse.json({ error: 'Invalid AI response format' }, { status: 502 });
         }
         const t1 = normalise(parsed.task1, task1Content);

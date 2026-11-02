@@ -47,6 +47,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
+  // The learner home page loads learner-only data; send staff to their own area
+  if (pathname === "/" && user?.role === "teacher") {
+    return NextResponse.redirect(new URL("/teacher", request.url));
+  }
+  if (pathname === "/" && user?.role === "admin") {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
   // Teacher area is for teachers (admins may inspect it too)
   if (isTeacherPage && user?.role !== "teacher" && user?.role !== "admin") {
     return NextResponse.redirect(new URL("/", request.url));
@@ -72,6 +80,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/practice/:path*",
     "/profile/:path*",

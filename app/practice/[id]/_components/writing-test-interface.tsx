@@ -241,13 +241,24 @@ export function WritingTestInterface({
                 />
             )}
             {gradingStep === "error" && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-wrap justify-center gap-2">
                     <Button
                         onClick={() => setGradingStep(null)}
                         variant="outline"
                         className="shadow-lg"
                     >
                         Dismiss & Try Again
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            // AI grading is unavailable: still hand the essays in so the attempt
+                            // closes and a teacher (or a later AI run) can grade them.
+                            setGradingStep(null);
+                            onFinish(toAnswerMap(responses));
+                        }}
+                        className="shadow-lg"
+                    >
+                        Submit without AI grading
                     </Button>
                 </div>
             )}

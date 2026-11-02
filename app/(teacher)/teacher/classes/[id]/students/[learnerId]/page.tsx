@@ -15,7 +15,13 @@ export default function StudentProgressPage({ params }: { params: Promise<{ id: 
   if (isLoading) return <div className="p-8 space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-64" /></div>;
   if (!data) return <div className="p-8"><EmptyState icon="error" title="Student not found" /></div>;
   const learner = data.learner ?? {};
-  const bands: Record<string, number | null> = data.bandBySkill ?? data.analytics?.bandBySkill ?? {};
+  const classAvg: Record<string, { avgBand: number | null } | undefined> = data.classSkillAverages ?? {};
+  const profileBands: Record<string, number | null> = Object.fromEntries(
+    ((data.analytics?.bandProfiles ?? []) as { skill: string; currentBand: number | null }[]).map((p) => [p.skill, p.currentBand]),
+  );
+  const bands: Record<string, number | null> = Object.fromEntries(
+    SKILLS.map((s) => [s, classAvg[s]?.avgBand ?? profileBands[s] ?? null]),
+  );
   const subs: any[] = data.submissions ?? [];
   const weaknesses: string[] = data.analytics?.weaknesses ?? data.weaknesses ?? [];
   const recent: any[] = data.analytics?.recentAttempts ?? [];

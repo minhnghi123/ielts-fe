@@ -159,8 +159,10 @@ export function QuestionItem({
                     typeof opt === "object"
                       ? String((opt as any).value ?? opt)
                       : opt;
-                  const isSelected = answer === optVal;
                   const optLabel = String.fromCharCode(65 + i);
+                  // Submit the option letter (like the dropdown does) so the key can stay "B".
+                  const submitVal = isTrueFalse ? optVal : optLabel;
+                  const isSelected = answer === submitVal || answer === optVal;
                   return (
                     <label
                       key={i}
@@ -173,7 +175,7 @@ export function QuestionItem({
                       <input
                         type="radio"
                         name={`q-${id}`}
-                        value={optVal}
+                        value={submitVal}
                         checked={isSelected}
                         onChange={(e) => onAnswerChange(id, e.target.value)}
                         className="mt-0.5 w-3.5 h-3.5 accent-primary flex-shrink-0"
