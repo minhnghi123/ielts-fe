@@ -583,3 +583,44 @@ export interface QuestionExplanation {
     helpfulVotes: number;
     unhelpfulVotes: number;
 }
+
+// ─── Study plan (PR4) ────────────────────────────────────────────────────────
+export type StudyTaskType = "drill" | "review" | "mock" | "writing" | "speaking" | "placement";
+
+export interface StudyTask {
+    id: string;
+    learnerId: string;
+    weekStart: string;
+    scheduledFor: string;
+    taskType: StudyTaskType;
+    skill: string | null;
+    kc: string | null;
+    refType: "test" | "drill" | "mistakes" | "words" | null;
+    refId: string | null;
+    titleVi: string;
+    reasonVi: string | null;
+    estMinutes: number;
+    priority: 1 | 2 | 3;
+    doneAt: string | null;
+    resultRef: string | null;
+    createdAt: string;
+}
+
+export interface WeekPlan {
+    weekStart: string;
+    tasks: StudyTask[];
+    generatedNow: boolean;
+    totalMinutes: number;
+    doneMinutes: number;
+}
+
+export interface TodayView {
+    date: string;
+    tasks: StudyTask[];
+    dueReviews: number;
+    streakDays: number;
+    hasGoals: boolean;
+    examDate: string | null;
+    weeksLeft: number | null;
+    bands: Array<{ skill: string; current: number | null; target: number | null; gap: number | null }>;
+}

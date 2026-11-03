@@ -10,6 +10,7 @@ import type { TestAttempt, DashboardSummary } from "@/lib/types";
 import { WelcomeHeader } from "./_components/welcome-header";
 import { StatOverview } from "./_components/stat-overview";
 import { ModuleGrid } from "./_components/module-grid";
+import { BandStrip, TodayCard } from "./_components/today-plan";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -293,6 +294,9 @@ export default function DashboardPage() {
         ]} />
         <WelcomeHeader userName={user?.fullName || user?.email || ""} />
       </div>
+
+      <TodayCard learnerId={learnerId} />
+      <BandStrip learnerId={learnerId} />
 
       <StatOverview attempts={attempts} loading={isLoading} />
 
