@@ -69,10 +69,17 @@ const DURATION_MAP: Record<string, string> = {
 };
 
 const SKILLS = ['all', 'reading', 'listening', 'writing', 'speaking'] as const;
+const DIFFICULTIES = ['all', 'easy', 'medium', 'hard'] as const;
+const DIFFICULTY_BADGE: Record<string, string> = {
+  easy: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  hard: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+};
 
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([]);
   const [skill, setSkill] = useState<string>('all');
+  const [difficulty, setDifficulty] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -83,9 +90,10 @@ export default function TestsPage() {
   const LIMIT: number = 12;
 
   useEffect(() => {
-    fetchTests();
+    const t = setTimeout(fetchTests, search ? 300 : 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skill, page]);
+  }, [skill, difficulty, page, search]);
 
   async function fetchTests() {
     setLoading(true);
@@ -93,6 +101,8 @@ export default function TestsPage() {
     try {
       const result = await testsApi.getTests({
         skill: skill === 'all' ? undefined : skill,
+        difficulty: difficulty === 'all' ? undefined : difficulty,
+        search: search.trim() || undefined,
         page,
         limit: LIMIT,
       });
@@ -107,9 +117,7 @@ export default function TestsPage() {
     }
   }
 
-  const filtered = search.trim()
-    ? tests.filter((t) => t.title.toLowerCase().includes(search.toLowerCase()))
-    : tests;
+  const filtered = tests;
 
   return (
     <motion.div
@@ -150,8 +158,24 @@ export default function TestsPage() {
             placeholder="Search tests by name..."
             className="pl-9 h-11 bg-card"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            aria-label="Search tests"
           />
+        </div>
+
+        {/* Difficulty */}
+        <div className="flex gap-1 rounded-full border border-border bg-card p-1" role="group" aria-label="Difficulty">
+          {DIFFICULTIES.map((d) => (
+            <button
+              key={d}
+              onClick={() => { setDifficulty(d); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors ${difficulty === d
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {d === 'all' ? 'Any level' : d}
+            </button>
+          ))}
         </div>
 
         {/* Skill Filter Pills */}
@@ -238,6 +262,11 @@ export default function TestsPage() {
                       {test.isMock && (
                         <Badge variant="secondary" className="text-xs">Mock</Badge>
                       )}
+                      {test.difficulty && (
+                        <Badge className={`text-xs border-none capitalize ${DIFFICULTY_BADGE[test.difficulty] ?? ''}`}>
+                          {test.difficulty}
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -255,7 +284,7 @@ export default function TestsPage() {
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      {DURATION_MAP[test.skill] || 'N/A'}
+                      {test.durationMinutes ? `${test.durationMinutes} min` : DURATION_MAP[test.skill] || 'N/A'}
                     </span>
                     {sectionCount > 0 && (
                       <span className="flex items-center gap-1">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { usePractice } from '../practice-context';
 import type { Test, ConversationMessage, PartGrading } from "@/lib/types";
 import { useUser } from "@/stores/auth-store";
 import { Badge } from "@/components/ui/badge";
@@ -105,9 +106,13 @@ export function SpeakingTestInterface({
 }: {
     testId: string;
     test?: Test | null;
-    onFinish: (gradings: Array<PartGrading & { partNumber: number }>, bandScore: number) => void;
+    onFinish: (gradings: Array<PartGrading & { partNumber: number }>) => void;
 }) {
     const user = useUser();
+    const { attemptId } = usePractice();
+    const [isFinishing, setIsFinishing] = useState(false);
+    const [transcribing, setTranscribing] = useState(false);
+    const speakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [currentPart, setCurrentPart] = useState<1 | 2 | 3>(1);
     const [phase, setPhase] = useState<Phase>('loading');
@@ -169,7 +174,8 @@ export function SpeakingTestInterface({
     // ── Part 2 prep countdown ────────────────────────────────────────────────
     useEffect(() => {
         if (phase !== 'prep') return;
-        setPrepTimeLeft(60);
+        const prepSeconds = Math.max(10, Math.round((getPartData(2)?.config?.prepTime ?? 1) * 60));
+        setPrepTimeLeft(prepSeconds);
         const id = setInterval(() => {
             setPrepTimeLeft(prev => {
                 if (prev <= 1) {
@@ -317,12 +323,35 @@ export function SpeakingTestInterface({
         analyserRef.current = null;
         setAnalyserNode(null);
 
+        if (speakTimerRef.current) { clearTimeout(speakTimerRef.current); speakTimerRef.current = null; }
+
         const blob = audioChunksRef.current.length > 0
             ? new Blob(audioChunksRef.current, { type: 'audio/webm' })
             : null;
         if (blob) partAudioChunksRef.current.push(blob);
 
-        const transcript = finalTranscriptRef.current.trim() || '(no response recorded)';
+        // Whisper (server) is the source of truth; the browser SpeechRecognition
+        // text is only a live preview / fallback when transcription fails.
+        let transcript = finalTranscriptRef.current.trim();
+        if (blob && blob.size > 2000) {
+            setTranscribing(true);
+            setPhase('processing');
+            try {
+                const form = new FormData();
+                form.append('file', blob, 'answer.webm');
+                const res = await fetch('/api/ai/transcribe', { method: 'POST', body: form });
+                if (res.ok) {
+                    const data = await res.json() as { transcript: string; wordsPerMinute: number | null };
+                    if (data.transcript?.trim()) {
+                        transcript = data.transcript.trim();
+                        if (data.wordsPerMinute) transcript += `\n[speech rate: ${data.wordsPerMinute} wpm]`;
+                    }
+                }
+            } catch { /* keep browser transcript */ } finally {
+                setTranscribing(false);
+            }
+        }
+        transcript = transcript || '(no response recorded)';
 
         setHistory(prev => {
             void callExaminer('respond', currentPartRef.current, prev, transcript);
@@ -418,18 +447,30 @@ export function SpeakingTestInterface({
         }
 
         setPhase('recording');
-    }, []);
+
+        // Part 2: the examiner stops the candidate after the long-turn limit (default 2 min)
+        if (currentPartRef.current === 2) {
+            const speakSeconds = Math.round((getPartData(2)?.config?.speakTime ?? 2) * 60);
+            speakTimerRef.current = setTimeout(() => { void doStopRecordingRef.current(); }, speakSeconds * 1000);
+        }
+    }, [getPartData]);
 
     // ── Move to next part or finish ───────────────────────────────────────────
     const handleNextPart = useCallback(async () => {
         if (currentPart === 3) {
+            setIsFinishing(true);
+            // IELTS Speaking: one band per criterion across the whole interview, then averaged.
+            const mean = (k: keyof PartGrading) =>
+                allGradings.length ? allGradings.reduce((s, g) => s + Number(g[k] ?? 0), 0) / allGradings.length : 0;
+            const criteria = { fluency: mean('fluency'), lexical: mean('lexical'), grammar: mean('grammar'), pronunciation: mean('pronunciation') };
+            const avgBand = allGradings.length
+                ? Math.round(((criteria.fluency + criteria.lexical + criteria.grammar + criteria.pronunciation) / 4) * 2) / 2
+                : 0;
             try {
                 const learnerId = user?.profileId ?? user?.id;
                 const part1 = getPartData(1);
                 if (learnerId && part1) {
-                    const allTranscript = allGradings
-                        .map(g => `Part ${g.partNumber} overall band: ${g.overall}`)
-                        .join(' | ');
+                    const allTranscript = history.map(m => `${m.role}: ${m.content}`).join('\n');
                     let audioUrl = 'https://res.cloudinary.com/placeholder/audio/upload/speaking.webm';
                     if (partAudioChunksRef.current.length > 0) {
                         const combined = new Blob(partAudioChunksRef.current, { type: 'audio/webm' });
@@ -438,9 +479,20 @@ export function SpeakingTestInterface({
                     await attemptsApi.submitSpeaking(learnerId, part1.id, audioUrl, allTranscript);
                 }
             } catch { /* non-critical */ }
-            const sum = allGradings.reduce((s, g) => s + g.overall, 0);
-            const avgBand = allGradings.length ? Math.round((sum / allGradings.length) * 2) / 2 : 0;
-            onFinish(allGradings, avgBand);
+            if (attemptId) {
+                const feedback = allGradings
+                    .map(g => `Part ${g.partNumber}: ${g.overall} — ` + g.suggestions.map(sg => `${sg.criterion}: ${sg.feedback}`).join('; '))
+                    .join('\n');
+                try {
+                    await fetch(`/api/attempts/${attemptId}/ai-feedback`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ bandScore: avgBand, aiFeedback: `Overall ${avgBand.toFixed(1)}\n${feedback}` }),
+                    });
+                } catch { /* result page falls back to session data */ }
+            }
+            setIsFinishing(false);
+            onFinish(allGradings);
             return;
         }
 
@@ -452,7 +504,7 @@ export function SpeakingTestInterface({
         partAudioChunksRef.current = [];
         setPhase('loading');
         callExaminer('start_part', nextPart, []);
-    }, [currentPart, user, getPartData, allGradings, onFinish, callExaminer]);
+    }, [currentPart, user, getPartData, allGradings, history, attemptId, onFinish, callExaminer]);
 
     // ── Render ───────────────────────────────────────────────────────────────
 
@@ -568,7 +620,7 @@ export function SpeakingTestInterface({
                                 <Loader2 className="h-9 w-9 animate-spin text-white/30" />
                             </div>
                             <p className="text-xs text-white/40">
-                                {phase === 'speaking' ? 'Examiner is speaking…' : 'Examiner is thinking…'}
+                                {phase === 'speaking' ? 'Examiner is speaking…' : transcribing ? 'Transcribing your answer…' : 'Examiner is thinking…'}
                             </p>
                         </>
                     )}

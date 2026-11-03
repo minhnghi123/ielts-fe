@@ -111,6 +111,38 @@ export const authApi = {
         return response.data;
     },
 
+    changePassword: async (dto: { currentPassword: string; newPassword: string }) => {
+        const response = await apiClient.put('/api/auth/change-password', dto);
+        return response.data as { data: { message: string } };
+    },
+
+    // ─── Admin ────────────────────────────────────────────────────────────────
+
+    getUsers: async (params: { page?: number; limit?: number; search?: string; role?: string; status?: string }) => {
+        const response = await apiClient.get('/api/auth/users', { params });
+        return response.data.data as {
+            data: Array<{
+                id: string;
+                email: string;
+                fullName?: string | null;
+                avatarUrl?: string | null;
+                status: string;
+                role: string;
+                level?: string;
+                createdAt: string;
+            }>;
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    },
+
+    updateUserStatus: async (userId: string, status: 'active' | 'suspended') => {
+        const response = await apiClient.patch(`/api/auth/users/${userId}/status`, { status });
+        return response.data;
+    },
+
     logout: () => {
         removeCookie('accessToken');
         removeCookie('user');

@@ -15,6 +15,8 @@ interface Props {
   testId: string;
   test: any;
   initialAnswers?: Record<string, string>;
+  /** Real-exam audio rules: one play per recording, no pause/replay */
+  examMode?: boolean;
   onAnswerUpdate?: (answers: Record<string, string>) => void;
   onFinish: (answers: Record<string, string>) => void;
 }
@@ -22,6 +24,7 @@ interface Props {
 export function ListeningTestInterface({
   test,
   initialAnswers,
+  examMode = false,
   onAnswerUpdate,
   onFinish,
 }: Props) {
@@ -120,7 +123,7 @@ export function ListeningTestInterface({
 
             {/* Audio Player Line */}
             <div className="px-4 py-1 bg-slate-50/50">
-              <ListeningAudioBar audioUrl={currentAudioUrl} />
+              <ListeningAudioBar audioUrl={currentAudioUrl} examMode={examMode} />
             </div>
          </div>
 
