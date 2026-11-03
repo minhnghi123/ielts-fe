@@ -7,6 +7,7 @@ import { errorCauseAdvice, errorCauseLabel } from "@/lib/error-causes";
 import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 import type { Section, QuestionAttempt } from "@/lib/types";
 import { WrongAnswerCard } from "./wrong-answer-card";
+import { drillHref } from "@/lib/api/drills";
 
 interface QA extends QuestionAttempt {
     globalOrder: number;
@@ -16,7 +17,7 @@ interface QA extends QuestionAttempt {
 }
 
 /** "Mẫu hình lỗi" — what went wrong across this attempt, with the single most useful next step. */
-export function MistakePatterns({ learnerId, attemptId, wrongCount }: { learnerId?: string; attemptId: string; wrongCount: number }) {
+export function MistakePatterns({ learnerId, attemptId, wrongCount, skill }: { learnerId?: string; attemptId: string; wrongCount: number; skill: string }) {
     const { data, isLoading } = useMistakeSummary(learnerId, attemptId);
     if (wrongCount === 0) {
         return (
@@ -59,6 +60,11 @@ export function MistakePatterns({ learnerId, attemptId, wrongCount }: { learnerI
                     <span className="font-medium">Việc cần làm tiếp: </span>
                     {errorCauseAdvice(topCause[0])}
                 </p>
+            )}
+            {(skill === "reading" || skill === "listening") && (
+                <Link href={drillHref({ skill, questionType: types[0]?.[0], errorCause: topCause?.[0] })}>
+                    <Button size="sm" className="h-8 text-xs">Luyện {types[0] ? typeLabel(types[0][0]) : "dạng này"} ngay</Button>
+                </Link>
             )}
         </div>
     );
