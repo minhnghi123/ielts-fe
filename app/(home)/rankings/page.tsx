@@ -39,7 +39,7 @@ export default function RankingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-8 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-primary p-8 text-white">
         <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Leaderboard</h1>
         <p className="text-blue-100 text-sm">
           Ranked by average band across submitted tests. Only your display name is shown to others.

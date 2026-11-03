@@ -196,7 +196,7 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl p-5">
+    <div className="bg-muted border border-blue-100 dark:border-blue-900/40 rounded-xl p-5">
       <div className="flex items-center gap-2 mb-2">
         <Target className="h-4 w-4 text-blue-600" />
         <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
@@ -393,7 +393,7 @@ export default function DashboardPage() {
           <StudyPriorityCard summary={summary} loading={isLoading} />
 
           {/* AI Advisor gradient CTA */}
-          <Link href="/ai-advisor" className="block bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-4 hover:opacity-95 transition-opacity duration-150">
+          <Link href="/ai-advisor" className="block bg-primary rounded-xl p-4 hover:opacity-95 transition-opacity duration-150">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 bg-white/20 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                 <Sparkles className="h-5 w-5" />

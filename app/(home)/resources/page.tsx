@@ -160,7 +160,7 @@ export default function ResourcesPage() {
       </div>
 
       {/* AI Coach CTA */}
-      <div className="bg-gradient-to-r from-violet-500 to-purple-700 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+      <div className="bg-primary rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
         <div>
           <div className="flex items-center gap-2 mb-1 opacity-80">
             <span className="material-symbols-outlined text-[18px]">smart_toy</span>
@@ -185,7 +185,7 @@ export default function ResourcesPage() {
         <div key={skill}>
           {/* Skill heading */}
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}>
+            <div className={`w-9 h-9 rounded-xl bg-muted text-foreground flex items-center justify-center`}>
               <span className="material-symbols-outlined text-white text-[18px]">{icon}</span>
             </div>
             <h2 className="text-lg font-bold">{skill}</h2>

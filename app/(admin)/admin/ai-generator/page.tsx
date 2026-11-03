@@ -235,7 +235,7 @@ export default function AIGeneratorPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-white text-[22px]">
                 auto_awesome
               </span>
@@ -429,7 +429,7 @@ export default function AIGeneratorPage() {
               <button
                 type="button"
                 onClick={handleGenerate}
-                className="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all"
+                className="flex items-center gap-2 bg-primary hover:from-violet-600 hover:to-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all"
               >
                 <span className="material-symbols-outlined text-[20px]">
                   auto_awesome

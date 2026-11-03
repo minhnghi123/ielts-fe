@@ -77,7 +77,7 @@ export function Recommendations() {
             </motion.div>
           ))}
           <motion.div variants={item}>
-            <div className="bg-gradient-to-br from-primary to-blue-700 rounded-xl p-5 text-white">
+            <div className="bg-primary rounded-xl p-5 text-white">
               <h4 className="font-semibold text-sm text-white mb-1">
                 {hasHistory ? "See your full study plan" : "Ready for the real exam?"}
               </h4>

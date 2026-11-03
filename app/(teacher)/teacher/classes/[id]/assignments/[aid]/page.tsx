@@ -34,7 +34,6 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
         actions={
           <>
             {a.resultPolicy === "manual" && !a.resultsReleasedAt && <Button onClick={() => release.mutate()} disabled={release.isPending}><span className="material-symbols-outlined text-[18px] mr-1">campaign</span>Release results</Button>}
-            <Button variant="outline" onClick={() => sync.mutate()} disabled={sync.isPending} title="Re-pull results from the exam engine"><span className="material-symbols-outlined text-[18px] mr-1">sync</span>Sync</Button>
             {submitted === 0 && submissions.every((s) => s.status === "missing") ? (
               <Button variant="outline" className="text-destructive" onClick={() => { if (confirm("Delete this assignment?")) remove.mutate(); }}>Delete</Button>
             ) : (

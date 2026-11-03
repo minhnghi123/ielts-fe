@@ -68,7 +68,7 @@ function renderMarkdown(text: string): string {
 function AIMessage({ content, streaming }: { content: string; streaming?: boolean }) {
   return (
     <div className="flex gap-3 items-start">
-      <div className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm mt-0.5">
+      <div className="shrink-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-sm mt-0.5">
         <span className="material-symbols-outlined text-white text-[18px]">smart_toy</span>
       </div>
       <div className="flex-1 min-w-0 bg-card border border-border rounded-xl rounded-tl-sm px-4 py-3 shadow-sm">
@@ -372,7 +372,7 @@ export default function AIAdvisorPage() {
 
       {/* Top bar */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-3.5 border-b bg-card shadow-sm">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow">
+        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow">
           <span className="material-symbols-outlined text-white text-[20px]">smart_toy</span>
         </div>
         <div>
@@ -458,7 +458,7 @@ export default function AIAdvisorPage() {
           <button
             onClick={() => doSend(input)}
             disabled={!input.trim() || streaming || loading}
-            className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            className="shrink-0 w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white shadow hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {streaming ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

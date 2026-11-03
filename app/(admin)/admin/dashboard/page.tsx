@@ -197,16 +197,6 @@ export default function AdminDashboardPage() {
 
         <div className="flex items-center gap-3">
           {/* Sync All Analytics */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncAll}
-            disabled={syncAllMutation.isPending}
-            className="gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${syncAllMutation.isPending ? "animate-spin" : ""}`} />
-            {syncAllMutation.isPending ? "Syncing…" : "Sync Analytics"}
-          </Button>
 
           {/* Admin Profile */}
           {user && (

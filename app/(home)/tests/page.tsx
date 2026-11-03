@@ -132,7 +132,7 @@ export default function TestsPage() {
       ]} />
 
       {/* Page Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-8 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-primary p-8 text-white">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -top-10 -right-10 h-60 w-60 rounded-full bg-white" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white" />
@@ -140,7 +140,7 @@ export default function TestsPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-5 w-5 text-yellow-300" />
-            <span className="text-blue-200 text-sm font-medium">IELTS Practice Hub</span>
+            <span className="text-primary-foreground/80 text-sm">Luyện tập</span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2">Test Library</h1>
           <p className="text-blue-100 text-lg">
@@ -247,7 +247,7 @@ export default function TestsPage() {
                 className="group bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col"
               >
                 {/* Top gradient stripe */}
-                <div className={`h-1.5 w-full bg-gradient-to-r ${config.gradient}`} />
+                <div className={`h-1.5 w-full bg-primary`} />
 
                 <div className="p-6 flex flex-col flex-1 gap-4">
                   {/* Header */}
@@ -303,7 +303,7 @@ export default function TestsPage() {
                   {/* CTA */}
                   <Link href={`/tests/${test.id}`} className="block mt-auto">
                     <Button
-                      className={`w-full bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 transition-opacity font-semibold shadow-md`}
+                      className={`w-full bg-primary text-white hover:opacity-90 transition-opacity font-semibold shadow-md`}
                       size="sm"
                     >
                       View Test
