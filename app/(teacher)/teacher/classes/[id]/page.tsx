@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ClassAssignment, ClassMember, Gradebook } from "@/lib/types";
+import { WeaknessTab } from "./_weakness-tab";
 import { AssignmentStatusBadge, BandPill, EmptyState, PageHeader, SkillBadge, SubmissionStatusBadge, formatDateTime, relativeDue } from "../../../_components/shared";
 
 export default function TeacherClassPage({ params }: { params: Promise<{ id: string }> }) {
@@ -59,10 +60,12 @@ export default function TeacherClassPage({ params }: { params: Promise<{ id: str
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
           <TabsTrigger value="students">Students{(cls.pendingCount ?? 0) > 0 && <span className="ml-1 rounded-full bg-amber-500 text-white text-[10px] px-1.5">{cls.pendingCount}</span>}</TabsTrigger>
           <TabsTrigger value="gradebook">Gradebook</TabsTrigger>
+          <TabsTrigger value="weakness">Điểm yếu</TabsTrigger>
           <TabsTrigger value="posts">Announcements</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         <TabsContent value="assignments"><AssignmentsTab classId={id} /></TabsContent>
+        <TabsContent value="weakness"><WeaknessTab classId={id} /></TabsContent>
         <TabsContent value="students"><StudentsTab classId={id} onChanged={() => qc.invalidateQueries({ queryKey: ["class", id] })} /></TabsContent>
         <TabsContent value="gradebook"><GradebookTab classId={id} /></TabsContent>
         <TabsContent value="posts"><PostsTab classId={id} /></TabsContent>

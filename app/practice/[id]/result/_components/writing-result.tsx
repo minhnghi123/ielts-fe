@@ -1,3 +1,4 @@
+import { writingErrorLabel, writingErrorTip } from "@/lib/writing-errors";
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,8 @@ interface WritingSuggestion {
     error_type: string;
     correction: string;
     explanation: string;
+    explanation_vi?: string | null;
+    fix_vi?: string | null;
 }
 
 interface TaskFeedback {
@@ -215,6 +218,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                             {currentTask.suggestions?.length || 0} Total
                         </Badge>
                     </div>
+                    <ErrorTags suggestions={currentTask.suggestions ?? []} />
 
                     <div className="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar space-y-4" ref={rightPaneRef}>
                         {(!currentTask.suggestions || currentTask.suggestions.length === 0) ? (
@@ -266,7 +270,8 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                             {/* Explanation */}
                                             <div className="mt-4 pt-4 border-t border-border">
                                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                                    {suggestion.explanation}
+                                                    {suggestion.explanation_vi || suggestion.explanation}
+                                                    {suggestion.fix_vi && <span className="block mt-1 text-xs text-muted-foreground"><span className="font-medium text-foreground">Lần sau: </span>{suggestion.fix_vi}</span>}
                                                 </p>
                                             </div>
                                         </div>
@@ -278,6 +283,24 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                 </div>
 
             </div>
+        </div>
+    );
+}
+
+
+/** "Thẻ lỗi": counts per error type with the single most useful Vietnamese tip. */
+function ErrorTags({ suggestions }: { suggestions: WritingSuggestion[] }) {
+    if (suggestions.length === 0) return null;
+    const counts = suggestions.reduce<Record<string, number>>((acc, s) => { acc[s.error_type] = (acc[s.error_type] ?? 0) + 1; return acc; }, {});
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return (
+        <div className="px-5 py-3 border-b border-border bg-muted/30 space-y-2 text-sm">
+            <div className="flex flex-wrap gap-1.5">
+                {sorted.map(([t, n]) => (
+                    <span key={t} className="rounded-full border border-border bg-background px-2.5 py-0.5 text-xs">{writingErrorLabel(t)} · {n}</span>
+                ))}
+            </div>
+            <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Lần sau: </span>{writingErrorTip(sorted[0][0])}</p>
         </div>
     );
 }

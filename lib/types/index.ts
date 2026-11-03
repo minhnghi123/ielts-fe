@@ -624,3 +624,20 @@ export interface TodayView {
     weeksLeft: number | null;
     bands: Array<{ skill: string; current: number | null; target: number | null; gap: number | null }>;
 }
+
+export interface HeatmapRow {
+    learnerId: string;
+    fullName: string | null;
+    email: string | null;
+    bands: Record<string, { current: number | null; target: number | null }>;
+    openMistakes: number;
+    topCauses: Array<{ key: string; count: number }>;
+    weakTypes: Array<{ key: string; count: number }>;
+    writingErrors: Array<{ key: string; count: number }>;
+}
+export interface ClassHeatmap {
+    rows: HeatmapRow[];
+    classWeakTypes: Array<{ key: string; count: number; learners: string[] }>;
+    classTopCauses: Array<{ key: string; count: number; learners: string[] }>;
+    classWritingErrors: Array<{ key: string; count: number; learners: string[] }>;
+}
