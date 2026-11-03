@@ -30,7 +30,8 @@ Variables prefixed with `NEXT_PUBLIC_` are **inlined at build time** and visible
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | Yes | API key for Groq LLM service. Used in all `app/api/ai/*.ts` routes. Model: `llama-3.3-70b-versatile`. |
+| `GROQ_API_KEY` | Yes | API key for Groq LLM service. Used in all `app/api/ai/*.ts` routes. |
+| `GROQ_MODEL` | No | Chat model for all AI routes (default `openai/gpt-oss-120b`). `GROQ_WRITING_MODEL` overrides it for Writing grading only. |
 | `CLOUDINARY_API_KEY` | Yes | Cloudinary API key for signed uploads in `app/api/upload/*.ts` routes. |
 | `CLOUDINARY_API_SECRET` | Yes | Cloudinary API secret for upload signature generation. |
 

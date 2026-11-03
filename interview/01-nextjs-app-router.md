@@ -245,7 +245,7 @@ export async function POST(request: Request) {
   const { messages, profile } = await request.json();
 
   const stream = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     stream: true,          // ← Bật streaming
     messages: [
       { role: 'system', content: buildSystemPrompt(profile) },

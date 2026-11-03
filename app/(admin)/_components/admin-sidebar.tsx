@@ -32,6 +32,7 @@ export function AdminSidebar() {
     { href: "/admin/tests", label: "Test Management", icon: "assignment", exact: false },
     { href: "/admin/ai-generator", label: "AI Generator", icon: "auto_awesome", exact: false },
     { href: "/admin/users", label: "User Management", icon: "group", exact: false },
+    { href: "/admin/teachers", label: "Teachers", icon: "co_present", exact: false },
   ];
 
   return (

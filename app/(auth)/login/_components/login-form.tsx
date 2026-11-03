@@ -44,8 +44,9 @@ export function LoginFormContent() {
         const user = response.data.user as {
           id: string;
           email: string;
-          role: "learner" | "admin";
+          role: "learner" | "teacher" | "admin";
           profileId: string;
+          teacherStatus?: "pending" | "approved" | "rejected";
         };
 
         // Zustand store is already updated by useLoginMutation's onSuccess,
@@ -54,8 +55,11 @@ export function LoginFormContent() {
 
         if (user.role === "admin") {
           router.push("/admin/dashboard");
+        } else if (user.role === "teacher") {
+          router.push("/teacher");
         } else {
-          router.push("/");
+          const next = searchParams.get("next");
+          router.push(next && next.startsWith("/") ? next : "/");
         }
       } else {
         setError("Unexpected response from server. Please try again.");

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BASE, backendJson, getUserToken, storeAiResult, systemHeaders, userHeaders } from '@/lib/server/backend';
+import { GROQ_API_URL, GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = process.env.GROQ_WRITING_MODEL || 'llama-3.3-70b-versatile';
+const MODEL = process.env.GROQ_WRITING_MODEL || GROQ_CHAT_MODEL;
 const PROMPT_VERSION = 'v2-prompt-aware';
 
 /**
@@ -113,30 +113,63 @@ ${task2Content || '(No response submitted)'}
 
 Return the JSON evaluation.`;
 
-        const groqRes = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${groqKey}` },
-            body: JSON.stringify({
-                model: MODEL,
-                messages: [
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    { role: 'user', content: userMessage },
-                ],
-                temperature: 0.2,
-                max_tokens: 6000,
-                response_format: { type: 'json_object' },
-            }),
-        });
-        if (!groqRes.ok) {
-            console.error('[grade-writing] Groq error:', await groqRes.text());
-            return NextResponse.json({ error: 'AI grading failed, please try again.' }, { status: 502 });
+        const callGroq = (jsonMode: boolean) =>
+            fetch(GROQ_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${groqKey}` },
+                body: JSON.stringify({
+                    model: MODEL,
+                    ...groqModelOptions(MODEL),
+                    messages: [
+                        { role: 'system', content: SYSTEM_PROMPT },
+                        { role: 'user', content: userMessage },
+                    ],
+                    temperature: 0.2,
+                    max_tokens: 8000,
+                    ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+                }),
+            });
+
+        // Pull the first JSON object out of a free-text answer (model may wrap it in prose/fences).
+        const extractJson = (text: string): unknown => {
+            const trimmed = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '');
+            try { return JSON.parse(trimmed); } catch { /* fall through */ }
+            const start = trimmed.indexOf('{');
+            const end = trimmed.lastIndexOf('}');
+            if (start >= 0 && end > start) return JSON.parse(trimmed.slice(start, end + 1));
+            throw new Error('no JSON object in response');
+        };
+
+        let parsed: { task1?: TaskGrading; task2?: TaskGrading } | null = null;
+        let lastError = '';
+        // Attempt 1: strict JSON mode. Attempt 2: plain text (Groq's JSON validator sometimes
+        // rejects long annotated_html strings with "json_validate_failed").
+        for (const jsonMode of [true, false]) {
+            const groqRes = await callGroq(jsonMode);
+            if (!groqRes.ok) {
+                lastError = await groqRes.text();
+                console.error(`[grade-writing] Groq error (jsonMode=${jsonMode}):`, lastError.slice(0, 500));
+                continue;
+            }
+            const groqData = await groqRes.json() as { choices: Array<{ message: { content: string }; finish_reason?: string }> };
+            if (groqData.choices[0]?.finish_reason === 'length') {
+                lastError = 'truncated';
+                console.error('[grade-writing] Groq response truncated (max_tokens)');
+                continue;
+            }
+            try {
+                parsed = extractJson(groqData.choices[0]?.message?.content ?? '') as { task1?: TaskGrading; task2?: TaskGrading };
+                break;
+            } catch (e) {
+                lastError = String(e);
+                console.error('[grade-writing] Invalid JSON from Groq:', (groqData.choices[0]?.message?.content ?? '').slice(0, 300));
+            }
         }
-        const groqData = await groqRes.json() as { choices: Array<{ message: { content: string } }> };
-        let parsed: { task1?: TaskGrading; task2?: TaskGrading };
-        try {
-            parsed = JSON.parse(groqData.choices[0]?.message?.content ?? '{}');
-        } catch {
-            return NextResponse.json({ error: 'Invalid AI response format' }, { status: 502 });
+        if (!parsed) {
+            return NextResponse.json(
+                { error: lastError === 'truncated' ? 'AI response was cut off — please try again.' : 'AI grading failed, please try again.' },
+                { status: 502 },
+            );
         }
         const t1 = normalise(parsed.task1, task1Content);
         const t2 = task2Id ? normalise(parsed.task2, task2Content) : null;

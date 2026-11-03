@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GROQ_CHAT_MODEL, groqModelOptions } from '@/lib/server/groq';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
 
@@ -113,7 +114,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_CHAT_MODEL,
+      ...groqModelOptions(),
       stream: false,
       temperature: 0.65,
       max_tokens: 700,

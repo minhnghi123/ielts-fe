@@ -4,6 +4,9 @@ export type GradingStatus = 'pending' | 'ai_graded' | 'human_reviewed';
 export type TestDifficulty = 'easy' | 'medium' | 'hard';
 export type TestStatus = 'draft' | 'published' | 'archived';
 export type AttemptStatus = 'in_progress' | 'submitted' | 'expired';
+export type UserRole = 'learner' | 'teacher' | 'admin';
+export type TeacherStatus = 'pending' | 'approved' | 'rejected';
+export type TestVisibility = 'public' | 'private';
 
 /** Official IELTS Academic timings in minutes (used when the server doesn't send one). */
 export const SKILL_DURATION_MINUTES: Record<Skill, number> = {
@@ -22,6 +25,8 @@ export interface Test {
     isMock: boolean;
     createdBy: string;
     createdAt: string;
+    visibility?: TestVisibility;
+    ownerRole?: 'admin' | 'teacher';
     difficulty?: TestDifficulty;
     status?: TestStatus;
     description?: string | null;
@@ -132,6 +137,8 @@ export interface TestAttempt {
     draftAnswers?: Record<string, string>;
     lastSavedAt?: string | null;
     isPractice?: boolean;
+    assignmentId?: string | null;
+    attemptNo?: number;
     rawScore?: number;
     bandScore?: number;
     aiFeedback?: string | null;
@@ -292,4 +299,213 @@ export interface ApiResponse<T> {
     data: T;
     statusCode: number;
     message: string;
+}
+
+// ─── Classroom (teacher role) ─────────────────────────────────────────────────
+
+export type JoinPolicy = 'open' | 'approval' | 'closed';
+export type ClassStatus = 'active' | 'archived';
+export type MemberStatus = 'pending' | 'active' | 'removed' | 'left';
+export type AssignmentMode = 'practice' | 'mock';
+export type ResultPolicy = 'immediately' | 'after_due' | 'manual';
+export type AssignmentStatus = 'scheduled' | 'open' | 'closed' | 'archived';
+export type SubmissionStatus = 'in_progress' | 'submitted' | 'late' | 'expired';
+
+export interface TeacherCard {
+    id: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+    organization: string | null;
+}
+
+export interface Classroom {
+    id: string;
+    teacherId: string;
+    name: string;
+    description: string | null;
+    targetBand: number | null;
+    joinCode?: string;
+    joinLink?: string;
+    joinPolicy: JoinPolicy;
+    maxMembers: number | null;
+    coverColor: string | null;
+    status: ClassStatus;
+    createdAt: string;
+    updatedAt: string;
+    memberCount?: number;
+    pendingCount?: number;
+    assignmentCount?: number;
+    teacher?: TeacherCard | null;
+    myMembership?: MemberStatus;
+}
+
+export interface ClassMember {
+    id: string;
+    learnerId: string;
+    status: MemberStatus;
+    joinedAt: string | null;
+    fullName: string | null;
+    avatarUrl: string | null;
+    email?: string | null;
+    currentLevel?: string | null;
+    note?: string | null;
+    requestedAt?: string;
+    stats?: { submitted: number; avgBand: number | null; lastActiveAt: string | null };
+}
+
+export interface TestSnapshot {
+    title: string;
+    skill: Skill;
+    difficulty?: TestDifficulty;
+    durationMinutes?: number;
+    isMock?: boolean;
+}
+
+export interface MySubmissionView {
+    status: SubmissionStatus | 'missing';
+    attemptsUsed: number;
+    attemptId: string | null;
+    submittedAt: string | null;
+    finalBand: number | null;
+    teacherReviewed: boolean;
+    canStart: boolean;
+    canResume: boolean;
+    cannotStartReason: string | null;
+    canViewResult: boolean;
+}
+
+export interface AssignmentStats {
+    submitted: number;
+    late: number;
+    inProgress: number;
+    missing: number;
+    avgBand: number | null;
+    pendingReview: number;
+}
+
+export interface ClassAssignment {
+    id: string;
+    classId: string;
+    testId: string;
+    testSnapshot: TestSnapshot;
+    title: string;
+    instructions: string | null;
+    mode: AssignmentMode;
+    openAt: string | null;
+    dueAt: string;
+    closeAt: string | null;
+    allowLate: boolean;
+    maxAttempts: number;
+    resultPolicy: ResultPolicy;
+    resultsReleasedAt: string | null;
+    extraTime: Record<string, number> | null;
+    status: AssignmentStatus;
+    effectiveCloseAt: string | null;
+    resultsVisible: boolean;
+    createdAt: string;
+    stats?: AssignmentStats;
+    mySubmission?: MySubmissionView;
+    className?: string;
+}
+
+export interface GradebookCell {
+    submissionId: string;
+    attemptId: string;
+    status: SubmissionStatus;
+    aiBand: number | null;
+    teacherBand: number | null;
+    finalBand: number | null;
+    rawScore: number | null;
+    reviewed: boolean;
+    submittedAt: string | null;
+}
+
+export interface Gradebook {
+    students: {
+        learnerId: string;
+        fullName: string | null;
+        email: string | null;
+        avatarUrl: string | null;
+        avgBand: number | null;
+        completed: number;
+    }[];
+    assignments: {
+        id: string;
+        title: string;
+        skill: Skill;
+        dueAt: string;
+        status: AssignmentStatus;
+        avgBand: number | null;
+        submitted: number;
+    }[];
+    cells: Record<string, Record<string, GradebookCell>>;
+    totalStudents: number;
+}
+
+export interface SubmissionRow {
+    learnerId: string;
+    fullName: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+    attempts: number;
+    status: SubmissionStatus | 'missing';
+    latest: (GradebookCell & { submissionId: string }) | null;
+}
+
+export interface SubmissionDetail {
+    id: string;
+    assignment: ClassAssignment;
+    className: string;
+    learnerId: string;
+    attemptId: string;
+    attemptNo: number;
+    status: SubmissionStatus;
+    skill: Skill | null;
+    startedAt: string | null;
+    submittedAt: string | null;
+    resultsVisible: boolean;
+    pendingMessage?: string;
+    rawScore?: number | null;
+    aiBand?: number | null;
+    teacherBand?: number | null;
+    finalBand?: number | null;
+    teacherFeedback?: string | null;
+    teacherRubric?: Record<string, number> | null;
+    reviewedAt?: string | null;
+    canReview?: boolean;
+    learner?: { fullName: string | null; email: string | null; avatarUrl: string | null };
+    attempt?: (Partial<TestAttempt> & { draftAnswers?: Record<string, string>; aiFeedback?: string | null }) | null;
+}
+
+export interface ClassPost {
+    id: string;
+    classId: string;
+    authorAccountId: string;
+    type: 'announcement' | 'material';
+    title: string | null;
+    body: string;
+    attachments: { name: string; url: string }[] | null;
+    pinned: boolean;
+    createdAt: string;
+}
+
+export interface TeacherDashboard {
+    classes: Classroom[];
+    totals: { classes: number; students: number; openAssignments: number; pendingReview: number; pendingJoinRequests: number };
+    needsAttention: { id: string; classId: string; title: string; skill: Skill; dueAt: string }[];
+}
+
+export interface TeacherAccount {
+    id: string;
+    accountId: string;
+    email?: string;
+    fullName?: string | null;
+    avatarUrl?: string | null;
+    accountStatus?: string;
+    organization: string | null;
+    bio: string | null;
+    approvalStatus: TeacherStatus;
+    approvedAt: string | null;
+    rejectionReason: string | null;
+    createdAt: string;
 }

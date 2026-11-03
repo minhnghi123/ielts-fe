@@ -18,9 +18,17 @@ export const testsApi = {
         search?: string;
         page?: number;
         limit?: number;
+        /** Teacher: only tests I authored */
+        mine?: boolean;
+        visibility?: 'public' | 'private';
     }) =>
         apiClient
             .get<{ data: PaginatedTests }>('/api/tests', { params })
+            .then((r) => r.data.data),
+
+    updateTestVisibility: (id: string, visibility: 'public' | 'private') =>
+        apiClient
+            .patch<{ data: Test }>(`/api/tests/${id}/visibility`, { visibility })
             .then((r) => r.data.data),
 
     getTestById: (id: string) =>
@@ -221,15 +229,15 @@ export const testsApi = {
     // autosaved to `/draft`, and bands are never sent from the client.
 
     /** Start (or resume the open) attempt. `durationMinutes` only applies to practice tests. */
-    startAttempt: (testId: string, opts?: { durationMinutes?: number }) =>
+    startAttempt: (testId: string, opts?: { durationMinutes?: number; assignmentId?: string }) =>
         apiClient
             .post<{ data: TestAttempt }>(`/api/tests/${testId}/attempts`, opts ?? {})
             .then((r) => r.data.data),
 
     /** The in-progress attempt of the current learner for a test, or null. */
-    getActiveAttempt: (testId: string) =>
+    getActiveAttempt: (testId: string, assignmentId?: string) =>
         apiClient
-            .get<{ data: TestAttempt }>('/api/attempts/active', { params: { testId } })
+            .get<{ data: TestAttempt }>('/api/attempts/active', { params: assignmentId ? { testId, assignmentId } : { testId } })
             .then((r) => r.data.data)
             .catch((err) => {
                 if (err?.response?.status === 404) return null;

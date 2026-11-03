@@ -26,6 +26,9 @@ export interface RegisterDto {
     email: string;
     password: string;
     confirmPassword: string;
+    role?: 'learner' | 'teacher';
+    fullName?: string;
+    organization?: string;
 }
 
 export interface LoginDto {
@@ -43,6 +46,7 @@ export interface AuthResponse {
             email: string;
             role: string;
             profileId: string;
+            teacherStatus?: 'pending' | 'approved' | 'rejected';
         };
     };
 }
@@ -66,6 +70,9 @@ export interface ProfileResponse {
         email: string;
         role: string;
         profileId: string;
+        teacherStatus?: 'pending' | 'approved' | 'rejected';
+        fullName?: string;
+        avatarUrl?: string;
     };
 }
 
@@ -136,6 +143,34 @@ export const authApi = {
             limit: number;
             totalPages: number;
         };
+    },
+
+    updateUserRole: async (userId: string, role: 'teacher' | 'learner', organization?: string) => {
+        const response = await apiClient.patch(`/api/auth/users/${userId}/role`, { role, organization });
+        return response.data;
+    },
+
+    getTeachers: async (params: { approval?: 'pending' | 'approved' | 'rejected'; page?: number; limit?: number; search?: string }) => {
+        const response = await apiClient.get<{
+            data: {
+                data: import('../types').TeacherAccount[];
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+            };
+        }>('/api/auth/teachers', { params });
+        return response.data.data;
+    },
+
+    updateTeacherApproval: async (teacherId: string, status: 'approved' | 'rejected', reason?: string) => {
+        const response = await apiClient.patch(`/api/auth/teachers/${teacherId}/approval`, { status, reason });
+        return response.data;
+    },
+
+    updateTeacherProfile: async (dto: { organization?: string; bio?: string }) => {
+        const response = await apiClient.put('/api/auth/teacher-profile', dto);
+        return response.data;
     },
 
     updateUserStatus: async (userId: string, status: 'active' | 'suspended') => {

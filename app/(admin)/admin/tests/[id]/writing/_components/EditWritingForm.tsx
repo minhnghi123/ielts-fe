@@ -1,4 +1,5 @@
 "use client";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -96,7 +97,7 @@ export default function EditWritingFormInner({ testId }: { testId: string }) {
             };
             await updateWritingTest(testId, payload);
             toast.success("Writing test updated successfully!");
-            router.push("/admin/tests?skill=writing");
+            router.push(`${contentBase()}/tests?skill=writing`);
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : "Failed to save test");
         } finally {
@@ -111,8 +112,7 @@ export default function EditWritingFormInner({ testId }: { testId: string }) {
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
             <Breadcrumb className="mb-6" items={[
-                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                ...builderBreadcrumbs(),
                 { label: title || 'Edit Writing Test', icon: 'edit_note' },
             ]} />
             <div className="flex items-center justify-between mb-8">

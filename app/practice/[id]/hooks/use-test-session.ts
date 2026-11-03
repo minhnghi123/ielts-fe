@@ -8,6 +8,7 @@ import { authApi } from '@/lib/api/auth';
 import { usePractice } from '../practice-context';
 import type { Test, TestAttempt } from '@/lib/types';
 import { SKILL_DURATION_MINUTES } from '@/lib/types';
+import { useAuthStore } from '@/stores/auth-store';
 
 // ─── Test State ───────────────────────────────────────────────────────────────
 
@@ -29,7 +30,10 @@ export interface PracticeSession {
 }
 
 function sessionKey(testId: string) {
-    return `ielts_session_${testId}`;
+    // Scope the local mirror to the signed-in account so a shared browser never
+    // resumes another learner's draft.
+    const userId = useAuthStore.getState().user?.id ?? 'anon';
+    return `ielts_session_${userId}_${testId}`;
 }
 
 function loadSession(testId: string): PracticeSession | null {
@@ -189,7 +193,8 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 for (const q of group.questions ?? []) allQuestionIds.push(q.id);
             }
         }
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        // Question ids are uuids; Writing/Speaking store their texts under task keys.
+        const uuidRegex = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|writing_task_\d+|speaking_part_\d+)$/i;
         const answersArray = (allQuestionIds.length > 0
             ? allQuestionIds.map(qId => ({ questionId: qId, answer: answers[qId] ?? '' }))
             : Object.entries(answers).map(([questionId, answer]) => ({ questionId, answer }))
@@ -268,9 +273,13 @@ export function useTestSession(testId: string): UseTestSessionReturn {
         const wantsCustom = chosenDuration !== 'full' && Number(chosenDuration) !== official;
         // Mock tests always run on the official clock; the server enforces this too.
         const durationMinutes = wantsCustom && !testData.isMock ? Number(chosenDuration) : undefined;
-        const attempt = await testsApi.startAttempt(testData.id, durationMinutes ? { durationMinutes } : undefined);
+        const assignmentId = searchParams.get('assignment') || undefined;
+        const attempt = await testsApi.startAttempt(testData.id, {
+            ...(durationMinutes ? { durationMinutes } : {}),
+            ...(assignmentId ? { assignmentId } : {}),
+        });
         return sessionFromAttempt(attempt);
-    }, []);
+    }, [searchParams]);
 
     // ── Fetch test + look for an in-progress attempt ──────────────────────────
 
@@ -290,7 +299,7 @@ export function useTestSession(testId: string): UseTestSessionReturn {
                 let session: PracticeSession | null = null;
                 if (authApi.isAuthenticated()) {
                     try {
-                        const active = await testsApi.getActiveAttempt(testId);
+                        const active = await testsApi.getActiveAttempt(testId, searchParams.get('assignment') || undefined);
                         if (active) {
                             const local = loadSession(testId);
                             const localAnswers = local?.attemptId === active.id ? local.answers : {};

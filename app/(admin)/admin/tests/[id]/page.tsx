@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { contentBase } from "@/lib/content-base";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -102,11 +103,11 @@ export default function EditTestPage() {
             const data = await testsApi.getTestById(String(id));
 
             if (data.skill === 'writing') {
-                router.replace(`/admin/tests/${id}/writing`);
+                router.replace(`${contentBase()}/tests/${id}/writing`);
                 return;
             }
             if (data.skill === 'speaking') {
-                router.replace(`/admin/tests/${id}/speaking`);
+                router.replace(`${contentBase()}/tests/${id}/speaking`);
                 return;
             }
 
@@ -150,7 +151,7 @@ export default function EditTestPage() {
         } catch (error) {
             console.error("Failed to load test:", error);
             toast.error("Failed to load test details.");
-            router.push('/admin/tests');
+            router.push(`${contentBase()}/tests`);
         } finally {
             setLoading(false);
         }
@@ -376,8 +377,8 @@ export default function EditTestPage() {
     return (
         <div className="p-8 max-w-6xl mx-auto pb-24">
             <Breadcrumb className="mb-6" items={[
-                { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-                { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+                { label: contentBase() === '/teacher' ? 'Teacher' : 'Admin', href: contentBase() === '/teacher' ? '/teacher' : '/admin/dashboard', icon: 'admin_panel_settings' },
+                { label: 'Tests', href: `${contentBase()}/tests`, icon: 'assignment' },
                 { label: testData.title || 'Edit Test', icon: 'edit' },
             ]} />
 

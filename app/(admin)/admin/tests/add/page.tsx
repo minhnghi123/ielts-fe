@@ -1,4 +1,5 @@
 "use client";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -59,11 +60,11 @@ export function AddTestPageSuspense() {
   const handleTestChange = (field: keyof CreateManualTestRequest, value: unknown) => {
     // Redirect to dedicated pages for writing/speaking
     if (field === "skill" && value === "writing") {
-      router.push("/admin/tests/add/writing");
+      router.push(`${contentBase()}/tests/add/writing`);
       return;
     }
     if (field === "skill" && value === "speaking") {
-      router.push("/admin/tests/add/speaking");
+      router.push(`${contentBase()}/tests/add/speaking`);
       return;
     }
     setTestData((prev) => {
@@ -306,7 +307,7 @@ export function AddTestPageSuspense() {
     try {
       await createManualTest(testData);
       toast.success("Test created successfully!");
-      router.push("/admin/tests");
+      router.push(`${contentBase()}/tests`);
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save test",
@@ -321,8 +322,7 @@ export function AddTestPageSuspense() {
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
       <Breadcrumb className="mb-6" items={[
-        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        ...builderBreadcrumbs(),
         { label: 'Add Test', icon: 'add_circle' },
       ]} />
 

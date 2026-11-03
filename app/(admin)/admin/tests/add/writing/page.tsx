@@ -1,4 +1,5 @@
 "use client";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ function WritingFormInner() {
       };
       await createWritingTest(payload);
       toast.success("Writing test created successfully!");
-      router.push("/admin/tests?skill=writing");
+      router.push(`${contentBase()}/tests?skill=writing`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to save test");
     } finally {
@@ -77,8 +78,7 @@ function WritingFormInner() {
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
       <Breadcrumb className="mb-6" items={[
-        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        ...builderBreadcrumbs(),
         { label: 'Add Writing Test', icon: 'edit_note' },
       ]} />
       {/* Header */}

@@ -77,7 +77,7 @@ my-app/                         ← You are here
 | Auth state | Zustand 5 (sessionStorage persist) |
 | Server data | TanStack React Query v5 |
 | HTTP client | Axios with auto-JWT interceptor |
-| AI / LLM | Groq SDK — `llama-3.3-70b-versatile` |
+| AI / LLM | Groq SDK — `openai/gpt-oss-120b` |
 | Media | Cloudinary + Sharp |
 | Database (direct) | Supabase JS client (used in AI routes only) |
 

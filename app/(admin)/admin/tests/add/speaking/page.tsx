@@ -1,4 +1,5 @@
 "use client";
+import { contentBase, builderBreadcrumbs } from "@/lib/content-base";
 
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
@@ -89,7 +90,7 @@ function SpeakingFormInner() {
       };
       await createSpeakingTest(payload);
       toast.success("Speaking test created successfully!");
-      router.push("/admin/tests?skill=speaking");
+      router.push(`${contentBase()}/tests?skill=speaking`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to save test");
     } finally {
@@ -105,8 +106,7 @@ function SpeakingFormInner() {
   return (
     <div className="p-8 max-w-6xl mx-auto pb-24">
       <Breadcrumb className="mb-6" items={[
-        { label: 'Admin', href: '/admin/dashboard', icon: 'admin_panel_settings' },
-        { label: 'Tests', href: '/admin/tests', icon: 'assignment' },
+        ...builderBreadcrumbs(),
         { label: 'Add Speaking Test', icon: 'record_voice_over' },
       ]} />
 
