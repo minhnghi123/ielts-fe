@@ -210,6 +210,44 @@ export interface SpeakingScore {
 
 export type BandSkill = Skill | 'overall';
 
+export type GoalSkill = 'listening' | 'reading' | 'writing' | 'speaking';
+export type GoalPurpose = 'study_abroad' | 'immigration' | 'work' | 'graduation' | 'other';
+
+export interface LearnerGoalsInput {
+    targetOverall: number;
+    targetListening?: number | null;
+    targetReading?: number | null;
+    targetWriting?: number | null;
+    targetSpeaking?: number | null;
+    /** YYYY-MM-DD or null when not booked */
+    examDate?: string | null;
+    minutesPerDay: number;
+    daysPerWeek: number;
+    purpose?: GoalPurpose | null;
+}
+
+export interface LearnerGoals {
+    learnerId: string;
+    targetOverall: number;
+    targets: Record<GoalSkill, { target: number; explicit: boolean; current: number | null; gap: number | null }>;
+    examDate: string | null;
+    daysLeft: number | null;
+    weeksLeft: number | null;
+    minutesPerDay: number;
+    daysPerWeek: number;
+    weeklyMinutes: number;
+    purpose: GoalPurpose | null;
+    updatedAt: string;
+}
+
+export interface EvidenceAnchor {
+    kind: 'passage' | 'audio';
+    paragraph?: number;
+    startMs?: number;
+    endMs?: number;
+    quote?: string;
+}
+
 export interface LearnerBandProfile {
     id: string;
     learnerId: string;

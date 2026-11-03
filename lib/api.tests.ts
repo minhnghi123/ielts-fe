@@ -16,6 +16,8 @@ export interface CreateManualTestRequest {
                 questionText: string;
                 config: any;
                 explanation?: string;
+                difficulty?: number | null;
+                evidenceAnchor?: import('./types').EvidenceAnchor | null;
                 answer: {
                     correctAnswers: string[];
                     caseSensitive: boolean;

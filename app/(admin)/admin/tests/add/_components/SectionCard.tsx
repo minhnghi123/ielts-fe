@@ -11,6 +11,8 @@ interface QuestionData {
   questionText: string;
   config: any;
   explanation?: string;
+  difficulty?: number | null;
+  evidenceAnchor?: import("@/lib/types").EvidenceAnchor | null;
   answer: { correctAnswers: string[]; caseSensitive: boolean };
 }
 
@@ -144,6 +146,7 @@ export default function SectionCard({
                     onUpdateAnswer(gIndex, qi, field, value)
                   }
                   onRemoveQuestion={(qi) => onRemoveQuestion(gIndex, qi)}
+                  skill={skill}
                 />
               );
             })}

@@ -13,6 +13,8 @@ interface GroupData {
     questionText: string;
     config: any;
     explanation?: string;
+    difficulty?: number | null;
+    evidenceAnchor?: import("@/lib/types").EvidenceAnchor | null;
     answer: { correctAnswers: string[]; caseSensitive: boolean };
   }[];
 }
@@ -28,6 +30,7 @@ interface GroupCardProps {
   onUpdateQuestion: (qIndex: number, field: string, value: any) => void;
   onUpdateAnswer: (qIndex: number, field: string, value: any) => void;
   onRemoveQuestion: (qIndex: number) => void;
+  skill?: string;
 }
 
 export default function GroupCard({
@@ -38,6 +41,7 @@ export default function GroupCard({
   onRemoveGroup,
   onAddQuestion,
   onUpdateQuestion,
+  skill,
   onUpdateAnswer,
   onRemoveQuestion,
 }: GroupCardProps) {
@@ -88,6 +92,7 @@ export default function GroupCard({
             onTypeChange={(newType) =>
               onUpdateQuestion(qIndex, "questionType", newType)
             }
+            skill={skill}
           />
         ))}
       </div>

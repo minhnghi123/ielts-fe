@@ -47,6 +47,7 @@ export const queryKeys = {
         all: ['analytics'] as const,
         dashboard: (learnerId: string) => ['analytics', 'dashboard', learnerId] as const,
         bands: (learnerId: string) => ['analytics', 'bands', learnerId] as const,
+        goals: (learnerId: string) => ['analytics', 'goals', learnerId] as const,
         progress: (learnerId: string) => ['analytics', 'progress', learnerId] as const,
         mistakes: (learnerId: string) => ['analytics', 'mistakes', learnerId] as const,
         adminStats: () => ['analytics', 'admin', 'global-stats'] as const,

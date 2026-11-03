@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { analyticsApi } from '@/lib/api/analytics';
 import { queryKeys } from '@/lib/query-keys';
+import type { LearnerGoalsInput } from '@/lib/types';
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -12,6 +13,16 @@ export function useAnalyticsDashboard(learnerId: string | undefined) {
     return useQuery({
         queryKey: queryKeys.analytics.dashboard(learnerId ?? ''),
         queryFn: () => analyticsApi.getDashboardSummary(learnerId!),
+        enabled: !!learnerId,
+        staleTime: 60_000,
+    });
+}
+
+/** Learner goals (targets, exam date, study budget). `null` = not set yet. */
+export function useLearnerGoals(learnerId: string | undefined) {
+    return useQuery({
+        queryKey: queryKeys.analytics.goals(learnerId ?? ''),
+        queryFn: () => analyticsApi.getGoals(learnerId!),
         enabled: !!learnerId,
         staleTime: 60_000,
     });
@@ -57,6 +68,20 @@ export function useAdminGlobalStats() {
 }
 
 // ─── Mutations ────────────────────────────────────────────────────────────────
+
+export function useUpsertLearnerGoals(learnerId: string | undefined) {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (dto: LearnerGoalsInput) => analyticsApi.upsertGoals(learnerId!, dto),
+        onSuccess: (goals) => {
+            if (!learnerId) return;
+            qc.setQueryData(queryKeys.analytics.goals(learnerId), goals);
+            // targets were pushed into band profiles too
+            qc.invalidateQueries({ queryKey: queryKeys.analytics.bands(learnerId) });
+            qc.invalidateQueries({ queryKey: queryKeys.analytics.dashboard(learnerId) });
+        },
+    });
+}
 
 /** Sync analytics for a specific learner — invalidates their analytics cache. */
 export function useSyncLearner() {

@@ -38,6 +38,9 @@ import MatchingQuestion from "@/app/(admin)/_components/questions/MatchingQuesti
 import HeadingMatchingQuestion from "@/app/(admin)/_components/questions/HeadingMatchingQuestion";
 import SentenceEndingQuestion from "@/app/(admin)/_components/questions/SentenceEndingQuestion";
 import MatchingFeaturesQuestion from "@/app/(admin)/_components/questions/MatchingFeaturesQuestion";
+import QuestionMetaFields from "@/app/(admin)/_components/questions/QuestionMetaFields";
+import { QUESTION_TYPE_OPTIONS } from "@/lib/question-types";
+import type { EvidenceAnchor } from "@/lib/types";
 import {
     Accordion,
     AccordionContent,
@@ -67,6 +70,8 @@ export interface EditManualTestRequest {
                 questionText: string;
                 config: any;
                 explanation?: string;
+                difficulty?: number | null;
+                evidenceAnchor?: EvidenceAnchor | null;
                 answer: {
                     id?: string;
                     correctAnswers: string[];
@@ -128,6 +133,8 @@ export default function EditTestPage() {
                         questionText: q.questionText || "",
                         config: q.config || {},
                         explanation: q.explanation || "",
+                        difficulty: q.difficulty ?? null,
+                        evidenceAnchor: q.evidenceAnchor ?? null,
                         answer: {
                             correctAnswers: q.answer?.correctAnswers || [""],
                             caseSensitive: q.answer?.caseSensitive || false,
@@ -244,6 +251,8 @@ export default function EditTestPage() {
             questionText: "",
             config: {},
             explanation: "",
+            difficulty: null,
+            evidenceAnchor: null,
             answer: { correctAnswers: [""], caseSensitive: false }
         });
         setTestData({ ...testData, sections: newSections });
@@ -335,6 +344,8 @@ export default function EditTestPage() {
                             questionText: q.questionText,
                             config: q.config,
                             explanation: q.explanation,
+                            difficulty: q.difficulty ?? null,
+                            evidenceAnchor: q.evidenceAnchor ?? null,
                             answer: {
                                 correctAnswers: q.answer.correctAnswers,
                                 caseSensitive: q.answer.caseSensitive
@@ -561,14 +572,7 @@ export default function EditTestPage() {
                                                                                             onChange={(e) => handleTypeChange(qIndex, e.target.value)}
                                                                                             className="border-0 rounded px-2 py-1 text-sm font-medium text-slate-700 outline-none cursor-pointer hover:bg-slate-100 transition-colors bg-transparent"
                                                                                         >
-                                                                                            <option value="multiple_choice">Multiple Choice</option>
-                                                                                            <option value="fill_in_blank">Fill in the Blank</option>
-                                                                                            <option value="matching">Matching</option>
-                                                                                            <option value="true_false_not_given">True / False / Not Given</option>
-                                                                                            <option value="yes_no_not_given">Yes / No / Not Given</option>
-                                                                                            <option value="matching_heading">Matching Headings</option>
-                                                                                            <option value="sentence_ending">Sentence Endings</option>
-                                                                                            <option value="matching_features">Matching Features</option>
+                                                                                            {QUESTION_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                                                                                         </select>
                                                                                     </div>
                                                                                     <button onClick={() => removeQuestion(sIndex, gIndex, qIndex)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-md self-end sm:self-auto"><Trash2 className="w-4 h-4" /></button>
@@ -581,7 +585,7 @@ export default function EditTestPage() {
                                                                                         options={q.config?.options || (q.questionType === 'true_false_not_given' ? ["TRUE", "FALSE", "NOT GIVEN"] : q.questionType === 'yes_no_not_given' ? ["YES", "NO", "NOT GIVEN"] : ["", "", "", ""])}
                                                                                     />
                                                                                 )}
-                                                                                {q.questionType === 'fill_in_blank' && (
+                                                                                {(q.questionType === 'fill_in_blank' || q.questionType === 'short_answer') && (
                                                                                     <div className="space-y-4">
                                                                                         <FillInBlankQuestion {...commonProps} />
                                                                                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 space-y-1">
@@ -595,6 +599,14 @@ export default function EditTestPage() {
                                                                                 {q.questionType === 'matching_heading' && <HeadingMatchingQuestion {...commonProps} options={q.config?.options || []} />}
                                                                                 {q.questionType === 'sentence_ending' && <SentenceEndingQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
                                                                                 {q.questionType === 'matching_features' && <MatchingFeaturesQuestion {...commonProps} options={q.config?.options || ["", "", ""]} />}
+                                                                                <QuestionMetaFields
+                                                                                    questionType={q.questionType}
+                                                                                    explanation={q.explanation ?? ""}
+                                                                                    difficulty={q.difficulty}
+                                                                                    evidenceAnchor={q.evidenceAnchor}
+                                                                                    skill={testData.skill}
+                                                                                    onChange={(field, value) => updateQuestion(sIndex, gIndex, qIndex, field, value)}
+                                                                                />
                                                                             </div>
                                                                         );
                                                                     })}

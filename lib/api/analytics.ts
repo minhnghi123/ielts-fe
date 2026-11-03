@@ -6,6 +6,8 @@ import type {
     DashboardSummary,
     AdminGlobalStats,
     LeaderboardEntry,
+    LearnerGoals,
+    LearnerGoalsInput,
     ApiResponse,
 } from '../types';
 
@@ -18,6 +20,16 @@ export const analyticsApi = {
     getDashboardSummary: (learnerId: string) =>
         apiClient
             .get<ApiResponse<DashboardSummary>>(`/api/analytics/summary/${learnerId}`)
+            .then((r) => r.data.data),
+
+    getGoals: (learnerId: string) =>
+        apiClient
+            .get<ApiResponse<LearnerGoals | null>>(`/api/analytics/goals/${learnerId}`)
+            .then((r) => r.data.data ?? null),
+
+    upsertGoals: (learnerId: string, dto: LearnerGoalsInput) =>
+        apiClient
+            .put<ApiResponse<LearnerGoals>>(`/api/analytics/goals/${learnerId}`, dto)
             .then((r) => r.data.data),
 
     getBandProfiles: (learnerId: string) =>
