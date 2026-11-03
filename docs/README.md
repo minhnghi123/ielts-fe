@@ -15,7 +15,7 @@ Next.js 16 (App Router) frontend for the IELTS Practice Platform. Learners take 
 | State (auth/UI) | Zustand 5.0.12 (sessionStorage persist) |
 | Server data | TanStack React Query v5 |
 | HTTP client | Axios 1.13.3 |
-| AI / LLM | Groq SDK (llama-3.3-70b-versatile) |
+| AI / LLM | Groq SDK (openai/gpt-oss-120b) |
 | Image processing | Sharp 0.34.5 |
 | Media upload | Cloudinary |
 | Auth cookies | js-cookie |

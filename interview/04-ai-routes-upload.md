@@ -29,7 +29,7 @@ Groq llama-70b: ~250-300 tokens/second
 
 Với IELTS grading (cần 700-2000 tokens response), Groq cho kết quả trong 2-5s thay vì 15-30s của OpenAI. Với streaming advisor, latency thấp hơn tạo trải nghiệm chat tốt hơn.
 
-**Model: `llama-3.3-70b-versatile`**
+**Model: `openai/gpt-oss-120b`**
 
 Meta's LLaMA 3.3, 70 billion parameter model — đủ thông minh cho IELTS grading, đủ nhanh cho real-time use. Free tier của Groq đủ dùng cho dự án học thuật.
 
@@ -51,7 +51,7 @@ Khi LLM tạo text tự do, nó có thể return:
 
 ```typescript
 const response = await groq.chat.completions.create({
-  model: 'llama-3.3-70b-versatile',
+  model: 'openai/gpt-oss-120b',
   response_format: { type: 'json_object' },  // ← JSON mode
   messages: [
     {

@@ -182,7 +182,7 @@ Browser → POST /api/ai/grade-writing
                  ▼ (server-side only)
           Next.js API Route
           ├── Validate input
-          ├── Call Groq API (llama-3.3-70b-versatile)
+          ├── Call Groq API (openai/gpt-oss-120b)
           ├── Parse JSON response
           ├── POST to NestJS backend (save submissions/gradings)
           └── Return result to browser

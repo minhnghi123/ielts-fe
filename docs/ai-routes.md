@@ -10,7 +10,7 @@ All routes under `app/api/` are Next.js Route Handlers running server-side. They
 
 **File:** `app/api/ai/advisor/route.ts`  
 **Purpose:** AI-powered IELTS coaching chat with learner-specific context.  
-**External service:** Groq API (`llama-3.3-70b-versatile`)  
+**External service:** Groq API (`openai/gpt-oss-120b`)  
 **Response type:** Server-Sent Events (streaming text)
 
 **Request body:**
@@ -57,7 +57,7 @@ All routes under `app/api/` are Next.js Route Handlers running server-side. They
 
 **File:** `app/api/ai/grade-writing/route.ts`  
 **Purpose:** Grade IELTS Writing Task 1 and Task 2 essays with annotated HTML and per-criterion bands.  
-**External service:** Groq API (`llama-3.3-70b-versatile`, JSON mode)
+**External service:** Groq API (`openai/gpt-oss-120b`, JSON mode)
 
 **Request body:**
 ```typescript
@@ -113,7 +113,7 @@ overallBand = (task1.overall_band + 2 * task2.overall_band) / 3
 
 **File:** `app/api/ai/generate-test/route.ts`  
 **Purpose:** Generate a complete IELTS test from a topic description.  
-**External service:** Groq API (`llama-3.3-70b-versatile`, JSON mode)
+**External service:** Groq API (`openai/gpt-oss-120b`, JSON mode)
 
 **Request body:**
 ```typescript
@@ -167,7 +167,7 @@ overallBand = (task1.overall_band + 2 * task2.overall_band) / 3
 
 **File:** `app/api/ai/analyze-result/route.ts`  
 **Purpose:** Generate post-test AI feedback analyzing performance patterns and saving mistake data.  
-**External service:** Groq SDK (`llama-3.3-70b-versatile`, non-streaming JSON)
+**External service:** Groq SDK (`openai/gpt-oss-120b`, non-streaming JSON)
 
 **Request body:**
 ```typescript
@@ -211,7 +211,7 @@ overallBand = (task1.overall_band + 2 * task2.overall_band) / 3
 
 **File:** `app/api/ai/speaking-chat/route.ts`  
 **Purpose:** Simulated IELTS speaking exam with an AI examiner that follows official protocol.  
-**External service:** Groq API via direct HTTP (`llama-3.3-70b-versatile`, JSON mode)
+**External service:** Groq API via direct HTTP (`openai/gpt-oss-120b`, JSON mode)
 
 **Request body:**
 ```typescript

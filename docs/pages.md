@@ -127,7 +127,7 @@ Layout: `LearnerSidebar` (with navigation links)
 **External:** `POST /api/ai/advisor` (SSE stream)  
 **Features:**
 - Chat interface with AI IELTS coach
-- Streams responses from Groq (`llama-3.3-70b-versatile`)
+- Streams responses from Groq (`openai/gpt-oss-120b`)
 - Context includes skill bands, accuracy stats, recent attempts
 - Provides study roadmap, weekly schedule, practice recommendations
 
