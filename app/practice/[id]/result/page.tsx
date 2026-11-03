@@ -953,7 +953,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         </div>
 
                         {attemptId && (
-                            <MistakePatterns learnerId={(attempt as any)?.learnerId} attemptId={attemptId} wrongCount={wrongQ} />
+                            <MistakePatterns learnerId={(attempt as any)?.learnerId} attemptId={attemptId} wrongCount={wrongQ} skill={skill} />
                         )}
 
                         {showAnswers && (

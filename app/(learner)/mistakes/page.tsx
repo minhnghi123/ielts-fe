@@ -10,6 +10,7 @@ import { useMistakeSummary, useMistakes, useUpdateMistakeStatus } from "@/lib/ho
 import { errorCauseAdvice, errorCauseLabel } from "@/lib/error-causes";
 import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 import type { MistakeStatus } from "@/lib/types";
+import { drillHref } from "@/lib/api/drills";
 
 const STATUS_TABS: { key: MistakeStatus | "all"; label: string }[] = [
     { key: "all", label: "Tất cả" },
@@ -95,6 +96,11 @@ export default function MistakesPage() {
                 <select value={skill} onChange={(e) => setSkill(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-xs">
                     {SKILLS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
                 </select>
+                {(summary?.total ?? 0) > 0 && (
+                    <Link href={drillHref({ skill: skill === "listening" ? "listening" : "reading", errorCause: cause || undefined })} className="ml-auto">
+                        <Button size="sm" className="h-8 text-xs">Luyện lại {cause ? errorCauseLabel(cause).toLowerCase() : "các câu sai"}</Button>
+                    </Link>
+                )}
             </div>
 
             {isLoading ? (
