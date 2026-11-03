@@ -1,5 +1,6 @@
+import type { MistakeStatus } from '@/lib/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { analyticsApi } from '@/lib/api/analytics';
+import { analyticsApi, type MistakeFilters } from '@/lib/api/analytics';
 import { queryKeys } from '@/lib/query-keys';
 import type { LearnerGoalsInput } from '@/lib/types';
 
@@ -28,6 +29,37 @@ export function useLearnerGoals(learnerId: string | undefined) {
     });
 }
 
+/** Mistake notebook rows (filters: status, skill, questionType, attemptId, due). */
+export function useMistakes(learnerId: string | undefined, filters: MistakeFilters = {}) {
+    return useQuery({
+        queryKey: queryKeys.analytics.mistakes(learnerId ?? '', filters),
+        queryFn: () => analyticsApi.getMistakes(learnerId!, filters),
+        enabled: !!learnerId,
+        staleTime: 30_000,
+    });
+}
+
+/** Counts by error cause / question type, for the whole notebook or one attempt. */
+export function useMistakeSummary(learnerId: string | undefined, attemptId?: string) {
+    return useQuery({
+        queryKey: queryKeys.analytics.mistakeSummary(learnerId ?? '', attemptId),
+        queryFn: () => analyticsApi.getMistakeSummary(learnerId!, attemptId),
+        enabled: !!learnerId,
+        staleTime: 30_000,
+    });
+}
+
+export function useUpdateMistakeStatus(learnerId: string | undefined) {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, status }: { id: string; status: MistakeStatus }) => analyticsApi.updateMistakeStatus(id, status),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['analytics', 'mistakes', learnerId ?? ''] });
+            qc.invalidateQueries({ queryKey: ['analytics', 'mistake-summary', learnerId ?? ''] });
+        },
+    });
+}
+
 /** Fetch band profiles for a learner. */
 export function useBandProfiles(learnerId: string | undefined) {
     return useQuery({
@@ -45,16 +77,6 @@ export function useProgress(learnerId: string | undefined) {
         queryFn: () => analyticsApi.getProgress(learnerId!),
         enabled: !!learnerId,
         staleTime: 60_000,
-    });
-}
-
-/** Fetch mistake records for a learner. */
-export function useMistakes(learnerId: string | undefined) {
-    return useQuery({
-        queryKey: queryKeys.analytics.mistakes(learnerId ?? ''),
-        queryFn: () => analyticsApi.getMistakes(learnerId!),
-        enabled: !!learnerId,
-        staleTime: 120_000,
     });
 }
 

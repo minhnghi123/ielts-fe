@@ -1,3 +1,4 @@
+import type { MistakeSummary, MistakeStatus, QuestionExplanation } from '@/lib/types';
 import apiClient from '@/lib/api';
 import type {
     LearnerBandProfile,
@@ -16,6 +17,14 @@ import type {
  * in an outer { data, statusCode, message } object. The proxy-service forwards this raw
  * body exactly, so the frontend must access response.data.data to get the actual payload.
  */
+export interface MistakeFilters {
+    status?: MistakeStatus;
+    skill?: string;
+    questionType?: string;
+    attemptId?: string;
+    due?: boolean;
+}
+
 export const analyticsApi = {
     getDashboardSummary: (learnerId: string) =>
         apiClient
@@ -60,9 +69,35 @@ export const analyticsApi = {
             })
             .then((r) => r.data.data),
 
-    getMistakes: (learnerId: string) =>
+    getMistakes: (learnerId: string, filters: MistakeFilters = {}) =>
         apiClient
-            .get<ApiResponse<LearnerMistake[]>>(`/api/analytics/mistakes/${learnerId}`)
+            .get<ApiResponse<LearnerMistake[]>>(`/api/analytics/mistakes/${learnerId}`, {
+                params: { ...filters, due: filters.due ? 1 : undefined },
+            })
+            .then((r) => r.data.data),
+
+    getMistakeSummary: (learnerId: string, attemptId?: string) =>
+        apiClient
+            .get<ApiResponse<MistakeSummary>>(`/api/analytics/mistakes/${learnerId}/summary`, {
+                params: attemptId ? { attemptId } : undefined,
+            })
+            .then((r) => r.data.data),
+
+    updateMistakeStatus: (id: string, status: MistakeStatus) =>
+        apiClient
+            .patch<ApiResponse<LearnerMistake>>(`/api/analytics/mistakes/${id}/status`, { status })
+            .then((r) => r.data.data),
+
+    getExplanation: (questionId: string, userAnswer?: string) =>
+        apiClient
+            .get<ApiResponse<QuestionExplanation | null>>('/api/analytics/explanations', {
+                params: { questionId, userAnswer },
+            })
+            .then((r) => r.data.data),
+
+    voteExplanation: (id: string, helpful: boolean) =>
+        apiClient
+            .post<ApiResponse<QuestionExplanation>>(`/api/analytics/explanations/${id}/vote`, { helpful })
             .then((r) => r.data.data),
 
     syncLearner: (learnerId: string) =>

@@ -18,6 +18,7 @@ import { attemptsApi } from "@/lib/api/attempts";
 import type { TestAttempt, Test, Section, QuestionAttempt, PartGrading } from "@/lib/types";
 import { WritingResult } from "./_components/writing-result";
 import { SpeakingResult } from "./_components/speaking-result";
+import { MistakePatterns, WrongAnswersReview } from "./_components/wrong-answers-review";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -934,7 +935,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                     className="h-8 text-xs font-semibold"
                                     onClick={() => setShowAnswers(v => !v)}
                                 >
-                                    {showAnswers ? "Hide Details" : "Show Details"}
+                                    {showAnswers ? "Ẩn từng câu" : "Xem từng câu sai"}
                                 </Button>
                                 {wrongQ > 0 && (
                                     <Link href={`/practice/${testId}`}>
@@ -944,17 +945,16 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                             className="h-8 text-xs font-semibold gap-1 border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
                                         >
                                             <RotateCcw className="h-3 w-3" />
-                                            Retry Incorrect ({wrongQ})
+                                            Làm lại bài này
                                         </Button>
                                     </Link>
                                 )}
                             </div>
                         </div>
 
-                        {/* Tip */}
-                        <div className="mx-4 mt-3 px-4 py-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 text-xs text-emerald-800 dark:text-emerald-200 font-medium">
-                            💡 Tip: Review your incorrect answers to improve your score on the next attempt.
-                        </div>
+                        {attemptId && (
+                            <MistakePatterns learnerId={(attempt as any)?.learnerId} attemptId={attemptId} wrongCount={wrongQ} />
+                        )}
 
                         {showAnswers && (
                             <div className="mt-3 pb-2">
@@ -976,6 +976,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                                     </div>
                                 )}
                                 <AnswerList qas={activeQAs} />
+                                {attemptId && (
+                                    <WrongAnswersReview
+                                        learnerId={(attempt as any)?.learnerId}
+                                        attemptId={attemptId}
+                                        skill={skill}
+                                        sections={fullTest?.sections ?? []}
+                                        qas={activeQAs}
+                                    />
+                                )}
                             </div>
                         )}
                     </CardContent>
