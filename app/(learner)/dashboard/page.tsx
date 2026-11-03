@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics";
 import { useAttemptsByLearner } from "@/lib/hooks/use-attempts";
@@ -281,18 +280,13 @@ export default function DashboardPage() {
   const accent = tipAccent[weakestSkill] ?? tipAccent.reading;
 
   return (
-    <motion.div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex flex-col gap-4">
         <Breadcrumb items={[
           { label: "Home", href: "/", icon: "home" },
           { label: "Dashboard", icon: "dashboard" },
         ]} />
-        <WelcomeHeader userName={user?.fullName || user?.email || ""} />
+        <WelcomeHeader userName={user?.fullName || user?.email || ""} learnerId={learnerId} />
       </div>
 
       <TodayCard learnerId={learnerId} />
@@ -305,7 +299,6 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <SkillProgressPanel summary={summary} attempts={attempts} loading={isLoading} />
         </div>
-        <ExamReadinessWidget examReadiness={summary?.examReadiness} loading={isLoading} />
       </div>
 
       {/* ── Module Grid ─────────────────────────────────────────────────────── */}
@@ -427,6 +420,6 @@ export default function DashboardPage() {
 
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
