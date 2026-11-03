@@ -1,5 +1,6 @@
 import apiClient from '@/lib/api';
 import type {
+    ClassHeatmap,
     ApiResponse,
     ClassAssignment,
     ClassMember,
@@ -101,6 +102,11 @@ export const classroomApi = {
                 `/api/classes/${id}/assignments/${aid}/submissions`,
             )
             .then(unwrap),
+
+    // ── weaknesses heatmap & targeted drills (PR5) ──
+    heatmap: (id: string) => apiClient.get<ApiResponse<ClassHeatmap>>(`/api/classes/${id}/heatmap`).then(unwrap),
+    assignDrill: (id: string, input: { learnerIds: string[]; skill: string; questionType?: string; note?: string }) =>
+        apiClient.post<ApiResponse<{ assigned: number; created: number }>>(`/api/classes/${id}/drills`, input).then(unwrap),
 
     // ── gradebook & review ──
     gradebook: (id: string, skill?: string) =>

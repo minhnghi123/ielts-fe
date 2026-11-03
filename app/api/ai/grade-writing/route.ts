@@ -30,7 +30,7 @@ You will receive the TASK PROMPTS and the candidate's responses. Return ONLY a v
     "word_count": 171,
     "examiner_comment": "Two or three sentences a candidate can act on.",
     "suggestions": [
-      { "id": 0, "original_text": "exact phrase", "error_type": "Grammar", "correction": "fixed phrase", "explanation": "why + which criterion it affects" }
+      { "id": 0, "original_text": "exact phrase", "error_type": "Grammar", "correction": "fixed phrase", "explanation": "why + which criterion it affects", "explanation_vi": "Giải thích ngắn bằng tiếng Việt vì sao sai và ảnh hưởng tiêu chí nào", "fix_vi": "Một mẹo tiếng Việt để tránh lỗi này lần sau" }
     ]
   },
   "task2": { ...same shape... }
@@ -43,6 +43,7 @@ RULES
 - Scores are 0–9 in 0.5 steps. overall_band = mean of the four criteria rounded to the nearest 0.5 (round .25 down, .75 up).
 - error_type ∈ {Grammar, Cohesion, Lexical, Task Response, Punctuation, Spelling}. data-id values must match suggestion ids. 3–8 suggestions per task, most impactful first.
 - annotated_html must contain the ENTIRE response; wrap phrases, not whole paragraphs. Escape nothing else.
+- "explanation_vi" and "fix_vi" are in Vietnamese; "explanation" stays in English. Keep quoted English phrases (original_text, correction) in English.
 - No markdown, no text outside the JSON.`;
 
 interface TaskGrading {
@@ -59,6 +60,22 @@ interface TaskGrading {
 
 const wordCount = (t: string) => (t || '').trim().split(/\s+/).filter(Boolean).length;
 const half = (n: number) => Math.min(9, Math.max(0, Math.round(n * 2) / 2));
+
+/** Tagged error summary persisted to ai_writing_gradings.errors_json (thẻ lỗi). */
+function buildErrorsJson(t1: TaskGrading, t2: TaskGrading | null) {
+    const byType: Record<string, number> = {};
+    const items: Array<Record<string, unknown>> = [];
+    const take = (task: 1 | 2, g: TaskGrading | null) => {
+        for (const sg of (g?.suggestions ?? []) as Array<Record<string, unknown>>) {
+            const type = String(sg.error_type ?? 'Other');
+            byType[type] = (byType[type] ?? 0) + 1;
+            items.push({ task, error_type: type, original_text: sg.original_text, correction: sg.correction, explanation_vi: sg.explanation_vi ?? null, fix_vi: sg.fix_vi ?? null });
+        }
+    };
+    take(1, t1);
+    take(2, t2);
+    return { byType, items };
+}
 
 /** Clamp model output to the IELTS scale and re-derive the overall band from the criteria. */
 function normalise(t: TaskGrading | undefined, content: string): TaskGrading | null {
@@ -197,6 +214,7 @@ Return the JSON evaluation.`;
             method: 'POST',
             headers: systemHeaders(),
             body: JSON.stringify({
+                errorsJson: buildErrorsJson(t1, t2),
                 submissionId: task1Sub.id,
                 modelName: MODEL,
                 modelVersion: '1.0',
