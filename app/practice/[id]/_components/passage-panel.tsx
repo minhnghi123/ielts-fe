@@ -7,7 +7,9 @@
 import { Badge } from "@/components/ui/badge";
 import { sanitizePassage } from "@/lib/utils/sanitize-passage";
 import { memo, useRef, useState, useCallback, useMemo } from "react";
-import { Highlighter } from "lucide-react";
+import { Highlighter, BookmarkPlus } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { wordsApi } from "@/lib/api/words";
 
 // ─── Highlight Logic ──────────────────────────────────────────────────────────
 
@@ -144,17 +146,34 @@ export const PassagePanel = memo(function PassagePanel({
   const articleRef = useRef<HTMLDivElement | null>(null);
   const [highlightMode, setHighlightMode] = useState(false);
 
-  const handleMouseUp = useCallback(() => {
-    if (!highlightMode) return;
+  // "Lưu từ": a short selection (1–3 words) outside highlight mode offers to save it to the vocabulary notebook.
+  const [pick, setPick] = useState<{ word: string; context: string } | null>(null);
+  const saveWord = useMutation({
+    mutationFn: (p: { word: string; context: string }) => wordsApi.add({ word: p.word, context: p.context }),
+    onSuccess: () => setTimeout(() => { setPick(null); saveWord.reset(); }, 1500),
+  });
 
+  const handleMouseUp = useCallback(() => {
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !selection.toString().trim()) return;
+    if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+      if (!highlightMode) setPick(null);
+      return;
+    }
 
     const range = selection.getRangeAt(0);
     const articleEl = articleRef.current;
     if (!articleEl || !articleEl.contains(range.commonAncestorContainer)) return;
 
-    applyYellowHighlight(range);
+    if (highlightMode) {
+      applyYellowHighlight(range);
+      return;
+    }
+
+    const text = selection.toString().trim().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
+    const words = text.split(/\s+/);
+    if (!text || words.length > 3 || text.length > 60) { setPick(null); return; }
+    const sentence = (range.startContainer.textContent ?? "").trim().slice(0, 300);
+    setPick({ word: text, context: sentence });
   }, [highlightMode]);
 
   const toggleHighlightMode = useCallback(() => {
@@ -188,6 +207,27 @@ export const PassagePanel = memo(function PassagePanel({
           {highlightMode ? "Highlighting ON" : "Highlight"}
         </button>
       </div>
+
+      {pick && !highlightMode && (
+        <div className="flex-shrink-0 px-6 py-1.5 bg-muted/60 border-b border-border text-xs flex items-center gap-2">
+          <BookmarkPlus className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
+          <span className="truncate">“{pick.word}”</span>
+          {saveWord.isSuccess ? (
+            <span className="text-emerald-700">Đã lưu vào Sổ từ vựng</span>
+          ) : (
+            <button
+              type="button"
+              disabled={saveWord.isPending}
+              onClick={() => saveWord.mutate(pick)}
+              className="rounded border border-primary px-2 py-0.5 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+            >
+              {saveWord.isPending ? "Đang lưu…" : "Lưu từ"}
+            </button>
+          )}
+          {saveWord.isError && <span className="text-rose-600">Không lưu được</span>}
+          <button type="button" onClick={() => setPick(null)} className="ml-auto text-muted-foreground hover:text-foreground">Đóng</button>
+        </div>
+      )}
 
       {/* Hint bar shown only when highlight mode is active */}
       {highlightMode && (
