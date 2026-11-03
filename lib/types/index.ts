@@ -63,6 +63,8 @@ export interface Question {
     questionText: string;
     config: Record<string, any>;
     explanation?: string;
+    difficulty?: number | null;
+    evidenceAnchor?: EvidenceAnchor | null;
     answer?: QuestionAnswer;
 }
 
@@ -262,14 +264,6 @@ export interface LearnerProgressSnapshot {
     learnerId: string;
     overallBand: number;
     snapshotAt: string;
-}
-
-export interface LearnerMistake {
-    id: string;
-    learnerId: string;
-    questionId: string;
-    mistakeType?: string;
-    createdAt: string;
 }
 
 export interface DashboardSummary {
@@ -546,4 +540,46 @@ export interface TeacherAccount {
     approvedAt: string | null;
     rejectionReason: string | null;
     createdAt: string;
+}
+
+// ─── Mistake notebook & explanations (PR2) ────────────────────────────────────
+
+export type MistakeStatus = "new" | "reviewing" | "fixed";
+
+export interface LearnerMistake {
+    id: string;
+    learnerId: string;
+    questionId: string;
+    mistakeType?: string | null;
+    attemptId?: string | null;
+    skill?: string | null;
+    questionType?: string | null;
+    errorCause?: string | null;
+    userAnswer?: string | null;
+    correctAnswer?: string | null;
+    status: MistakeStatus;
+    nextReviewAt?: string | null;
+    reviewCount: number;
+    createdAt: string;
+    updatedAt?: string;
+}
+
+export interface MistakeSummary {
+    total: number;
+    byCause: Record<string, number>;
+    byQuestionType: Record<string, number>;
+    byStatus: Record<string, number>;
+}
+
+export interface QuestionExplanation {
+    id: string;
+    questionId: string;
+    userAnswerNorm: string;
+    errorCause?: string | null;
+    evidenceQuote?: string | null;
+    explanationVi: string;
+    tipVi?: string | null;
+    source: "ai" | "author" | "teacher";
+    helpfulVotes: number;
+    unhelpfulVotes: number;
 }

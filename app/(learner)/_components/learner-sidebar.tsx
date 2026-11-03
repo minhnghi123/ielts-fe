@@ -34,6 +34,7 @@ export function LearnerSidebar() {
   const routes = [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
     { href: "/analysis", label: "Analysis", icon: "analytics" },
+    { href: "/mistakes", label: "Sổ lỗi", icon: "rule" },
     { href: "/classes", label: "My Classes", icon: "groups" },
     { href: "/ai-advisor", label: "AI Coach", icon: "smart_toy" },
     { href: "/resources", label: "Resources", icon: "library_books" },
