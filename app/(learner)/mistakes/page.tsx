@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { useAuth } from "@/contexts/auth-context";
+import { MasteryList } from "./_mastery-list";
 import { useMistakeSummary, useMistakes, useUpdateMistakeStatus } from "@/lib/hooks/use-analytics";
 import { errorCauseAdvice, errorCauseLabel } from "@/lib/error-causes";
 import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
@@ -56,6 +57,7 @@ export default function MistakesPage() {
             <Breadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Sổ lỗi" }]} />
             <div>
                 <h1 className="text-2xl font-bold">Sổ lỗi</h1>
+                <MasteryList learnerId={learnerId} />
                 <p className="text-sm text-muted-foreground">
                     Mọi câu bạn làm sai được gom ở đây cùng nguyên nhân. Ôn lại rồi đánh dấu &quot;Đã nắm&quot; khi bạn tự tin.
                 </p>
