@@ -21,6 +21,7 @@ import {
     TrendingUp, Calendar, Trophy,
 } from "lucide-react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import GoalsCard from "./_components/goals-card";
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -314,7 +315,7 @@ export default function UserProfilePage() {
     const { user, setUser, isLoggedIn, loading } = useAuth();
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({ fullName: "", avatarUrl: "" });
-    const [activeSection, setActiveSection] = useState<"profile" | "history">("history");
+    const [activeSection, setActiveSection] = useState<"profile" | "history" | "goals">("goals");
 
     useEffect(() => {
         if (!loading && !isLoggedIn) router.push("/login");
@@ -393,6 +394,7 @@ export default function UserProfilePage() {
                 {/* Tab navigation */}
                 <div className="flex gap-1 border-b border-border">
                     {([
+                        { key: "goals", label: "Mục tiêu" },
                         { key: "history", label: "Test History" },
                         { key: "profile", label: "Personal Info" },
                     ] as const).map(tab => (
@@ -408,6 +410,8 @@ export default function UserProfilePage() {
                         </button>
                     ))}
                 </div>
+
+                {activeSection === "goals" && <GoalsCard learnerId={learnerId} />}
 
                 {/* Test History tab */}
                 {activeSection === "history" && (

@@ -198,6 +198,8 @@ export function AddTestPageSuspense() {
                       questionText: "",
                       config: {},
                       explanation: "",
+                      difficulty: null,
+                      evidenceAnchor: null,
                       answer: { correctAnswers: [""], caseSensitive: false },
                     },
                   ],

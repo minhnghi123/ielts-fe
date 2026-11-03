@@ -6,18 +6,12 @@ import MatchingQuestion from "@/app/(admin)/_components/questions/MatchingQuesti
 import HeadingMatchingQuestion from "@/app/(admin)/_components/questions/HeadingMatchingQuestion";
 import SentenceEndingQuestion from "@/app/(admin)/_components/questions/SentenceEndingQuestion";
 import MatchingFeaturesQuestion from "@/app/(admin)/_components/questions/MatchingFeaturesQuestion";
+import QuestionMetaFields from "@/app/(admin)/_components/questions/QuestionMetaFields";
+import { QUESTION_TYPE_OPTIONS } from "@/lib/question-types";
+import type { EvidenceAnchor } from "@/lib/types";
 
-// Canonical list of question types shown in the dropdown
-export const QUESTION_TYPES = [
-  { value: "multiple_choice", label: "Multiple Choice" },
-  { value: "fill_in_blank", label: "Fill in the Blank" },
-  { value: "matching", label: "Matching" },
-  { value: "true_false_not_given", label: "True / False / Not Given" },
-  { value: "yes_no_not_given", label: "Yes / No / Not Given" },
-  { value: "matching_heading", label: "Matching Headings" },
-  { value: "sentence_ending", label: "Sentence Endings" },
-  { value: "matching_features", label: "Matching Features" },
-] as const;
+/** Canonical list of question types shown in the dropdown (see lib/question-types.ts). */
+export const QUESTION_TYPES = QUESTION_TYPE_OPTIONS;
 
 interface QuestionData {
   questionOrder: number;
@@ -25,6 +19,8 @@ interface QuestionData {
   questionText: string;
   config: any;
   explanation?: string;
+  difficulty?: number | null;
+  evidenceAnchor?: EvidenceAnchor | null;
   answer: { correctAnswers: string[]; caseSensitive: boolean };
 }
 
@@ -35,6 +31,8 @@ interface QuestionItemProps {
   onUpdateAnswer: (field: string, value: any) => void;
   onRemove: () => void;
   onTypeChange: (newType: string) => void;
+  /** reading | listening — decides the evidence form */
+  skill?: string;
 }
 
 export default function QuestionItem({
@@ -44,6 +42,7 @@ export default function QuestionItem({
   onUpdateAnswer,
   onRemove,
   onTypeChange,
+  skill,
 }: QuestionItemProps) {
   const commonProps = {
     order: q.questionOrder || qIndex + 1,
@@ -93,7 +92,7 @@ export default function QuestionItem({
         />
       )}
 
-      {q.questionType === "fill_in_blank" && (
+      {(q.questionType === "fill_in_blank" || q.questionType === "short_answer") && (
         <FillInBlankQuestion {...commonProps} />
       )}
 
@@ -124,6 +123,15 @@ export default function QuestionItem({
           options={q.config?.options || ["", "", ""]}
         />
       )}
+
+      <QuestionMetaFields
+        questionType={q.questionType}
+        explanation={q.explanation ?? ""}
+        difficulty={q.difficulty}
+        evidenceAnchor={q.evidenceAnchor}
+        skill={skill}
+        onChange={(field, value) => onUpdateField(field, value)}
+      />
     </div>
   );
 }
