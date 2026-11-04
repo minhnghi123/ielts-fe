@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`  `}
+      className={`${instrumentSans.variable} ${instrumentSerif.variable}`}
     >
       <head>
         <link

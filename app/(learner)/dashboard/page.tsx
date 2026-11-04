@@ -196,11 +196,11 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
   };
 
   return (
-    <div className="bg-muted border border-blue-100 dark:border-blue-900/40 rounded-xl p-5">
+    <div className="bg-muted rounded-md p-5">
       <div className="flex items-center gap-2 mb-2">
-        <Target className="h-4 w-4 text-blue-600" />
-        <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-          Top Study Priority
+        <Target className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">
+          Ưu tiên luyện tập
         </span>
       </div>
       {loading ? (

@@ -15,9 +15,8 @@ import {
   Headphones, BookOpen, PenLine, Mic,
   Sparkles, ArrowRight, TrendingUp, Target,
   CheckCircle2, XCircle, Clock, ChevronRight,
-  BarChart3, PlayCircle, AlertTriangle, RefreshCw,
+  BarChart3, PlayCircle, AlertTriangle,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -366,15 +365,12 @@ function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
   const testId = latest.testId ?? (latest.test as any)?.id;
 
   return (
-    <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-800/40 shadow-sm">
+    <Card className="bg-muted border-0 shadow-none">
       <CardContent className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <div className="h-7 w-7 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
-            <Sparkles className="h-3.5 w-3.5 text-violet-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-violet-700 dark:text-violet-300 uppercase tracking-wider">
-              Latest AI Coaching Feedback
+                    <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">
+              Nhận xét mới nhất từ AI Coach
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
               {latest.test?.title ?? "Practice Test"} · {formatDate(latest.startedAt)}
@@ -382,8 +378,8 @@ function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
           </div>
           {testId && (
             <Link href={`/practice/${testId}/result?attemptId=${latest.id}`}>
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-100 gap-1 flex-shrink-0">
-                Full Result <ChevronRight className="h-3 w-3" />
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-primary gap-1 flex-shrink-0">
+                Xem kết quả <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
           )}
@@ -392,8 +388,8 @@ function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
           <ReactMarkdown>{feedback.slice(0, 600) + (feedback.length > 600 ? "…" : "")}</ReactMarkdown>
         </div>
         <Link href="/ai-advisor">
-          <Button size="sm" className="mt-3 gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs">
-            <Sparkles className="h-3.5 w-3.5" /> Chat with AI Coach
+          <Button size="sm" variant="outline" className="mt-3 text-xs">
+            Hỏi AI Coach
           </Button>
         </Link>
       </CardContent>
@@ -410,7 +406,6 @@ export default function AnalysisPage() {
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   const [skillFilter, setSkillFilter] = useState<SkillFilter>("all");
 
   const learnerId = (user as any)?.profileId || user?.id;
@@ -430,24 +425,6 @@ export default function AnalysisPage() {
     setLoading(true);
     loadData(learnerId).finally(() => setLoading(false));
   }, [learnerId]);
-
-  async function handleSync() {
-    if (!learnerId || syncing) return;
-    setSyncing(true);
-    try {
-      const result = await analyticsApi.syncLearner(learnerId);
-      toast.success(
-        `Analytics synced — ${result.bandProfiles} band profiles, ${result.snapshots} snapshots, ${result.mistakes} mistakes rebuilt`,
-      );
-      setLoading(true);
-      await loadData(learnerId);
-    } catch {
-      toast.error("Sync failed — please try again.");
-    } finally {
-      setSyncing(false);
-      setLoading(false);
-    }
-  }
 
   const completed = useMemo(() => attempts.filter(a => !!a.submittedAt), [attempts]);
   const overall = avgBand(completed);
@@ -485,33 +462,21 @@ export default function AnalysisPage() {
       <div className="flex flex-col gap-3">
         <Breadcrumb items={[
           { label: "Home", href: "/", icon: "home" },
-          { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
-          { label: "Analysis", icon: "analytics" },
+          { label: "Hôm nay", href: "/dashboard", icon: "dashboard" },
+          { label: "Kết quả", icon: "analytics" },
         ]} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Performance Analysis</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Kết quả</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Your IELTS progress across all tests — powered by real data.
+            Band và điểm yếu tính từ toàn bộ bài bạn đã nộp.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSync}
-            disabled={syncing}
-            className="gap-2"
-            title="Rebuild analytics from all your submitted attempts"
-          >
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing…" : "Sync Data"}
-          </Button>
           <Link href="/ai-advisor">
-            <Button className="gap-2 bg-violet-600 hover:bg-violet-700 text-white">
-              <Sparkles className="h-4 w-4" />
-              AI Study Coach
+            <Button variant="outline" className="gap-2">
+              Hỏi AI Coach
             </Button>
           </Link>
         </div>
@@ -519,18 +484,18 @@ export default function AnalysisPage() {
 
       {/* ── Overall Banner + Exam Readiness ─────────────────────────────────── */}
       {!loading && overall !== null && (
-        <div className="bg-gradient-to-r from-blue-600 to-violet-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-primary rounded-md p-6 text-primary-foreground">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">
-                Overall Average Band Score
+              <p className="text-sm opacity-80 mb-1">
+                Band trung bình
               </p>
-              <p className="text-5xl font-black leading-none tabular-nums">{overall.toFixed(1)}</p>
-              <p className="text-sm opacity-80 mt-1">{bandLabel(overall)} · {completed.length} tests completed</p>
+              <p className="text-5xl leading-none tabular-nums">{overall.toFixed(1)}</p>
+              <p className="text-sm opacity-80 mt-1">{bandLabel(overall)} · {completed.length} bài đã nộp</p>
               <div className="flex items-center gap-2 mt-3">
-                {trend() === "up" && <Badge className="bg-white/20 text-white border-none text-xs">↑ Improving</Badge>}
-                {trend() === "down" && <Badge className="bg-white/20 text-white border-none text-xs">↓ Declining</Badge>}
-                {trend() === "flat" && <Badge className="bg-white/20 text-white border-none text-xs">→ Stable</Badge>}
+                {trend() === "up" && <Badge className="bg-white/20 text-white border-none text-xs">↑ Đang tiến bộ</Badge>}
+                {trend() === "down" && <Badge className="bg-white/20 text-white border-none text-xs">↓ Đang giảm</Badge>}
+                {trend() === "flat" && <Badge className="bg-white/20 text-white border-none text-xs">→ Ổn định</Badge>}
               </div>
             </div>
             {summary?.examReadiness != null && (
@@ -545,13 +510,13 @@ export default function AnalysisPage() {
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-zinc-400" />
-            Progress Over Time
+            Tiến bộ theo thời gian
           </h2>
           <Card className="border-zinc-200">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm font-semibold">Overall Band History</p>
+                  <p className="text-sm font-semibold">Lịch sử band tổng</p>
                   <p className="text-xs text-muted-foreground">
                     {summary.progressHistory.length} data point{summary.progressHistory.length !== 1 ? "s" : ""} tracked
                   </p>
@@ -799,22 +764,21 @@ export default function AnalysisPage() {
       </div>
 
       {/* ── AI Coach CTA ────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="bg-muted rounded-md p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="h-5 w-5 opacity-80" />
-            <span className="font-bold uppercase tracking-wider text-xs opacity-80">AI Study Coach</span>
+            <span className="text-sm text-muted-foreground">AI Coach</span>
           </div>
-          <h3 className="text-lg font-bold mb-1">Get a personalised improvement roadmap</h3>
-          <p className="text-sm opacity-80 leading-relaxed">
-            Our AI analyses every test attempt, identifies your weakest question types, and builds a week-by-week practice plan tailored to your target band score.
+          <h3 className="text-lg font-medium mb-1">Hỏi AI Coach về lộ trình của bạn</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            AI đọc toàn bộ bài bạn đã nộp, chỉ ra dạng câu yếu nhất và giải thích kế hoạch tuần theo band mục tiêu.
           </p>
         </div>
         <Link
           href="/ai-advisor"
-          className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-purple-700 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-purple-50 transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-5 py-2.5 rounded-md hover:bg-primary/90 transition-colors"
         >
-          Chat Now <ArrowRight className="h-4 w-4" />
+          Hỏi AI Coach <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
