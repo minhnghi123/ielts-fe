@@ -131,23 +131,13 @@ export default function TestsPage() {
         { label: 'Tests', icon: 'assignment' },
       ]} />
 
-      {/* Page Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-primary p-8 text-white">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-10 -right-10 h-60 w-60 rounded-full bg-white" />
-          <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white" />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-5 w-5 text-yellow-300" />
-            <span className="text-primary-foreground/80 text-sm">Luyện tập</span>
-          </div>
-          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2">Test Library</h1>
-          <p className="text-blue-100 text-lg">
-            {total > 0 ? `${total} tests available` : 'Explore our collection'} — choose a skill and start practicing today.
-          </p>
-        </div>
-      </div>
+      {/* Title row: one question per screen — "luyện gì hôm nay?" */}
+      <header>
+        <h1 className="text-3xl font-semibold tracking-tight">Luyện tập</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {total > 0 ? `${total} đề thi` : 'Chưa có đề nào'} · chọn kỹ năng rồi bắt đầu, hoặc luyện theo dạng câu ở Sổ lỗi.
+        </p>
+      </header>
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -155,7 +145,7 @@ export default function TestsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search tests by name..."
+            placeholder="Tìm đề theo tên…"
             className="pl-9 h-11 bg-card"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
