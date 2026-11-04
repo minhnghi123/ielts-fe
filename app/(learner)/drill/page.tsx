@@ -13,8 +13,22 @@ import { QUESTION_TYPE_HINTS_VI, QUESTION_TYPE_LABELS_VI, normalizeQuestionType 
 
 type Phase = "loading" | "error" | "empty" | "question" | "feedback" | "done";
 
+const ENTITIES: Record<string, string> = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", hellip: "…", ndash: "–", mdash: "—", lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”" };
+
+/** Rich-text from the admin editor → plain text: tags become line breaks/spaces, HTML entities are decoded. */
 function stripHtml(s: string) {
-    return s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "");
+    return s
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, code: string) => {
+            if (code[0] === "#") {
+                const n = code[1].toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+                return Number.isFinite(n) && n > 0 ? String.fromCodePoint(n) : m;
+            }
+            return ENTITIES[code.toLowerCase()] ?? m;
+        })
+        .replace(/\u00a0/g, " ");
 }
 
 function paragraphWithQuote(passage: string | null, quote: string | null, paragraph: number | null) {
