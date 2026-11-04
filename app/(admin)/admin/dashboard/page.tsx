@@ -474,41 +474,29 @@ export default function AdminDashboardPage() {
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
 
 function StatCard({
-  title, value, subtext, icon, color,
+  title, value, subtext,
 }: {
   title: string;
   value: string | number;
   subtext?: string;
-  icon: React.ReactNode;
-  color: "blue" | "green" | "purple" | "orange";
+  icon?: React.ReactNode;
+  color?: "blue" | "green" | "purple" | "orange";
 }) {
-  const colors = {
-    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-    green: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
-    purple: "bg-violet-50 dark:bg-violet-900/20 text-violet-600",
-    orange: "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
-  };
   const isLoading = value === "…";
-
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className={`p-2 rounded-xl ${colors[color]}`}>{icon}</div>
-        </div>
-        <p className="text-muted-foreground text-sm">{title}</p>
-        {isLoading ? (
-          <>
-            <Skeleton className="h-9 w-20 mt-1 rounded" />
-            <Skeleton className="h-3 w-32 mt-2 rounded" />
-          </>
-        ) : (
-          <>
-            <p className="font-display text-3xl font-bold mt-1 tabular-nums text-foreground">{value}</p>
-            {subtext && <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>}
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <div className="rounded-md bg-muted px-5 py-4">
+      <p className="text-sm text-muted-foreground">{title}</p>
+      {isLoading ? (
+        <>
+          <Skeleton className="h-9 w-20 mt-1 rounded" />
+          <Skeleton className="h-3 w-32 mt-2 rounded" />
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-[2rem] leading-none tabular-nums text-foreground">{value}</p>
+          {subtext && <p className="mt-1 text-xs text-muted-foreground">{subtext}</p>}
+        </>
+      )}
+    </div>
   );
 }

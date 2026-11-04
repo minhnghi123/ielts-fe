@@ -166,12 +166,12 @@ function AnalysisTable({
             <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-[11px] text-muted-foreground uppercase tracking-wide">
                     <tr>
-                        <th className="text-left px-4 py-2.5 font-semibold">Question Type</th>
-                        <th className="text-center px-3 py-2.5 font-semibold text-emerald-600">Correct</th>
-                        <th className="text-center px-3 py-2.5 font-semibold text-rose-600">Incorrect</th>
-                        <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Skipped</th>
-                        <th className="text-center px-3 py-2.5 font-semibold">Accuracy</th>
-                        <th className="text-left px-3 py-2.5 font-semibold min-w-[140px]">Questions</th>
+                        <th className="text-left px-4 py-2.5 font-semibold">Dạng câu</th>
+                        <th className="text-center px-3 py-2.5 font-semibold text-emerald-600">Đúng</th>
+                        <th className="text-center px-3 py-2.5 font-semibold text-rose-600">Sai</th>
+                        <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Bỏ qua</th>
+                        <th className="text-center px-3 py-2.5 font-semibold">Độ chính xác</th>
+                        <th className="text-left px-3 py-2.5 font-semibold min-w-[140px]">Câu</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -212,7 +212,7 @@ function AnalysisTable({
                     })}
                     {/* Total row */}
                     <tr className="bg-muted/50 text-xs font-bold border-t-2 border-border">
-                        <td className="px-4 py-3">Total</td>
+                        <td className="px-4 py-3">Tổng</td>
                         <td className="px-3 py-3 text-center text-emerald-600">{totalC}</td>
                         <td className="px-3 py-3 text-center text-rose-600">{totalW}</td>
                         <td className="px-3 py-3 text-center text-muted-foreground">{totalS}</td>
@@ -346,15 +346,15 @@ function AiFeedbackPanel({
     }
 
     return (
-        <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-800/40 shadow-sm overflow-hidden">
+        <Card className="bg-gradient-to-br  to-purple-50 dark: dark:to-purple-950/30  shadow-sm overflow-hidden">
             <CardContent className="p-0">
-                <div className="px-5 pt-4 pb-3 border-b border-violet-200/60 dark:border-violet-800/30 flex items-center justify-between gap-2">
+                <div className="px-5 pt-4 pb-3 border-b  flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
-                            <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+                        <div className="h-7 w-7 rounded-full  flex items-center justify-center">
+                            <Sparkles className="h-3.5 w-3.5 " />
                         </div>
-                        <h2 className="font-bold text-sm text-violet-900 dark:text-violet-200">AI Coaching Feedback</h2>
-                        <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-none">
+                        <h2 className="font-bold text-sm ">Nhận xét từ AI Coach</h2>
+                        <Badge variant="secondary" className="text-[10px]   dark: border-none">
                             Powered by Groq
                         </Badge>
                     </div>
@@ -362,7 +362,7 @@ function AiFeedbackPanel({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 text-xs gap-1 text-violet-600 hover:text-violet-700 hover:bg-violet-100"
+                            className="h-7 text-xs gap-1  hover: hover:"
                             onClick={onRetry}
                         >
                             <RefreshCw className="h-3 w-3" /> Regenerate
@@ -373,12 +373,12 @@ function AiFeedbackPanel({
                 <div className="px-5 py-4">
                     {loading ? (
                         <div className="space-y-2.5">
-                            <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400 text-sm font-medium mb-3">
-                                <div className="h-4 w-4 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />
+                            <div className="flex items-center gap-2  text-sm font-medium mb-3">
+                                <div className="h-4 w-4 rounded-full border-2  border-t-transparent animate-spin" />
                                 AI is analysing your performance…
                             </div>
                             {[80, 60, 70, 40].map((w, i) => (
-                                <div key={i} className={`h-3 bg-violet-100 dark:bg-violet-900/20 rounded animate-pulse`} style={{ width: `${w}%` }} />
+                                <div key={i} className={`h-3  rounded animate-pulse`} style={{ width: `${w}%` }} />
                             ))}
                         </div>
                     ) : feedback ? (
@@ -630,11 +630,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background px-4">
                 <FileText className="h-12 w-12 text-muted-foreground" />
-                <p className="font-semibold text-foreground text-center">Writing feedback not available</p>
+                <p className="font-semibold text-foreground text-center">Chưa có nhận xét cho bài Writing</p>
                 <p className="text-sm text-muted-foreground text-center max-w-sm">
                     The AI examiner has not returned feedback for this attempt yet. Your band score (if any) is still saved in your history.
                 </p>
-                <Link href="/tests"><Button variant="outline">Back to Tests</Button></Link>
+                <Link href="/tests"><Button variant="outline">Về Luyện tập</Button></Link>
             </div>
         );
     }
@@ -644,7 +644,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
                 <AlertCircle className="h-12 w-12 text-muted-foreground" />
                 <p className="text-muted-foreground">{error ?? "Result not found."}</p>
-                <Link href="/tests"><Button variant="outline">Back to Tests</Button></Link>
+                <Link href="/tests"><Button variant="outline">Về Luyện tập</Button></Link>
             </div>
         );
     }
@@ -851,7 +851,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                     <Card className="bg-card shadow-sm border">
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="flex-shrink-0 text-center min-w-[80px]">
-                                <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-bold mb-1">Band Score</p>
+                                <p className="text-[11px] text-muted-foreground font-medium mb-1">Band Score</p>
                                 <p className={`text-5xl font-black leading-none tabular-nums ${bandScore >= 7.5 ? "text-emerald-600 dark:text-emerald-400"
                                         : bandScore >= 6 ? "text-blue-600 dark:text-blue-400"
                                             : bandScore >= 4.5 ? "text-amber-600"
@@ -893,7 +893,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         {/* Header */}
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center gap-2">
                             <Table2 className="h-4 w-4 text-primary" />
-                            <h2 className="font-bold text-sm">Detailed Analysis</h2>
+                            <h2 className="font-bold text-sm">Phân tích chi tiết</h2>
                         </div>
 
                         {/* Tabs */}
@@ -925,7 +925,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         <div className="px-5 pt-4 pb-3 border-b border-border flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
                                 <ListChecks className="h-4 w-4 text-primary" />
-                                <h2 className="font-bold text-sm">Answer Review</h2>
+                                <h2 className="font-bold text-sm">Xem lại đáp án</h2>
                                 <Badge variant="secondary" className="text-xs">{correctQ}/{totalQ}</Badge>
                             </div>
                             <div className="flex gap-2 flex-wrap">
@@ -1026,7 +1026,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         </Button>
                     </Link>
                     <Link href="/ai-advisor">
-                        <Button variant="outline" className="gap-2 font-semibold border-violet-200 text-violet-700 hover:bg-violet-50">
+                        <Button variant="outline" className="gap-2 font-semibold   hover:">
                             <Sparkles className="h-4 w-4" />
                             AI Coach
                         </Button>

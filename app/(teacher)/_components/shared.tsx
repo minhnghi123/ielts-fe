@@ -118,17 +118,12 @@ export function EmptyState({ icon, title, description, action }: { icon: string;
   );
 }
 
-export function StatCard({ icon, label, value, hint }: { icon: string; label: string; value: React.ReactNode; hint?: string }) {
+export function StatCard({ label, value, hint }: { icon?: string; label: string; value: React.ReactNode; hint?: string }) {
   return (
-    <div className="rounded-xl border bg-card p-4 flex items-center gap-4">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <span className="material-symbols-outlined">{icon}</span>
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-2xl font-bold leading-tight">{value}</p>
-        {hint && <p className="text-xs text-muted-foreground truncate">{hint}</p>}
-      </div>
+    <div className="rounded-md bg-muted px-4 py-3">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[2rem] leading-none tabular-nums">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground truncate">{hint}</p>}
     </div>
   );
 }
