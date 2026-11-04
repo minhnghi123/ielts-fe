@@ -600,7 +600,7 @@ export interface StudyTask {
     titleVi: string;
     reasonVi: string | null;
     estMinutes: number;
-    priority: 0 | 1 | 2 | 3;
+    priority: 1 | 2 | 3;
     doneAt: string | null;
     resultRef: string | null;
     createdAt: string;

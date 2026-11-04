@@ -50,12 +50,12 @@ function TaskRow({ t, learnerId, compact }: { t: StudyTask; learnerId?: string; 
                 <p className={`text-sm font-medium ${done ? "line-through" : ""}`}>{t.titleVi}</p>
                 {!compact && t.reasonVi && <p className="text-xs text-muted-foreground">{t.reasonVi}</p>}
                 <p className="text-[11px] text-muted-foreground">
-                    {t.estMinutes} phút{t.skill ? ` · ${SKILL_VI[t.skill] ?? t.skill}` : ""}{t.priority === 0 ? " · giáo viên giao" : t.priority === 1 ? " · ưu tiên" : ""}
+                    {t.estMinutes} phút{t.skill ? ` · ${SKILL_VI[t.skill] ?? t.skill}` : ""}{t.refId ? " · giáo viên giao" : t.priority === 1 ? " · ưu tiên" : ""}
                 </p>
             </div>
             {!done && (
                 <Link href={taskHref(t)}>
-                    <Button size="sm" variant={t.priority <= 1 ? "default" : "outline"} className="h-7 text-xs">{taskVerb(t)}</Button>
+                    <Button size="sm" variant={t.priority === 1 ? "default" : "outline"} className="h-7 text-xs">{taskVerb(t)}</Button>
                 </Link>
             )}
         </li>

@@ -186,7 +186,7 @@ export default function ResourcesPage() {
           {/* Skill heading */}
           <div className="flex items-center gap-3 mb-4">
             <div className={`w-9 h-9 rounded-xl bg-muted text-foreground flex items-center justify-center`}>
-              <span className="material-symbols-outlined text-white text-[18px]">{icon}</span>
+              <span className="material-symbols-outlined text-primary text-[18px]">{icon}</span>
             </div>
             <h2 className="text-lg font-bold">{skill}</h2>
           </div>
