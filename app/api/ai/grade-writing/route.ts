@@ -77,6 +77,24 @@ function buildErrorsJson(t1: TaskGrading, t2: TaskGrading | null) {
     return { byType, items };
 }
 
+/** Compare previous vs. new error items by (task, type, normalised text): resolved / remaining / added, per type, plus the one thing to fix next. */
+function buildDiff(prev: Array<Record<string, unknown>>, next: Array<Record<string, unknown>>, bandBefore: number | null, bandAfter: number) {
+    const key = (i: Record<string, unknown>) => `${i.task}|${String(i.error_type ?? 'Other')}|${String(i.original_text ?? '').toLowerCase().replace(/\s+/g, ' ').trim()}`;
+    const pick = (i: Record<string, unknown>) => ({ task: Number(i.task), error_type: String(i.error_type ?? 'Other'), original_text: String(i.original_text ?? '') });
+    const nextKeys = new Set(next.map(key));
+    const prevKeys = new Set(prev.map(key));
+    const resolved = prev.filter((i) => !nextKeys.has(key(i))).map(pick);
+    const remaining = next.filter((i) => prevKeys.has(key(i))).map(pick);
+    const added = next.filter((i) => !prevKeys.has(key(i))).map(pick);
+    const byType: Record<string, { resolved: number; remaining: number; added: number }> = {};
+    const bump = (t: string, k: 'resolved' | 'remaining' | 'added') => { byType[t] = byType[t] ?? { resolved: 0, remaining: 0, added: 0 }; byType[t][k] += 1; };
+    resolved.forEach((i) => bump(i.error_type, 'resolved'));
+    remaining.forEach((i) => bump(i.error_type, 'remaining'));
+    added.forEach((i) => bump(i.error_type, 'added'));
+    const open = Object.entries(byType).map(([t, v]) => [t, v.remaining + v.added] as const).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+    return { resolved, remaining, added, byType, bandBefore, bandAfter, nextFix: open[0]?.[0] ?? null };
+}
+
 /** Clamp model output to the IELTS scale and re-derive the overall band from the criteria. */
 function normalise(t: TaskGrading | undefined, content: string): TaskGrading | null {
     if (!t) return null;
@@ -104,8 +122,45 @@ export async function POST(req: NextRequest) {
             task2Id?: string | null;
             task1Prompt?: string;
             task2Prompt?: string;
+            /** Revise-and-resubmit: grading of the version being revised (same learner). */
+            parentGradingId?: string;
         };
-        const { attemptId, task1Content = '', task2Content = '', task1Id, task2Id, task1Prompt, task2Prompt } = body;
+        let { task1Id, task2Id, task1Prompt, task2Prompt } = body;
+        const { attemptId, task1Content = '', task2Content = '', parentGradingId } = body;
+
+        // ── Revision: resolve task ids/prompts and the previous errors from the parent grading ──
+        let parent: { id: string; overallBand: number; errorsJson?: { items?: Array<Record<string, unknown>> } | null; feedback?: { task1?: { submission_id?: string }; task2_sub_id?: string | null } } | null = null;
+        let parentSub1: { id: string; writingTaskId: string } | null = null;
+        let parentSub2: { id: string; writingTaskId: string } | null = null;
+        if (parentGradingId) {
+            const pg = await fetch(`${API_BASE}/api/writing-gradings/${parentGradingId}`, { headers: userHeaders(token) });
+            if (!pg.ok) return NextResponse.json({ error: 'Không truy cập được bài chấm gốc' }, { status: pg.status === 403 ? 403 : 404 });
+            parent = await backendJson(pg);
+            const subId1 = parent?.feedback?.task1?.submission_id;
+            const subId2 = parent?.feedback?.task2_sub_id ?? null;
+            if (!subId1) return NextResponse.json({ error: 'Bài chấm gốc không có bản nộp' }, { status: 400 });
+            const s1 = await fetch(`${API_BASE}/api/writing-submissions/${subId1}`, { headers: userHeaders(token) });
+            if (!s1.ok) return NextResponse.json({ error: 'Không truy cập được bản nộp gốc' }, { status: s1.status === 403 ? 403 : 404 });
+            parentSub1 = await backendJson(s1);
+            if (subId2) {
+                const s2 = await fetch(`${API_BASE}/api/writing-submissions/${subId2}`, { headers: userHeaders(token) });
+                parentSub2 = s2.ok ? await backendJson(s2) : null;
+            }
+            task1Id = parentSub1!.writingTaskId;
+            task2Id = parentSub2?.writingTaskId ?? null;
+            if (attemptId && (!task1Prompt || (task2Id && !task2Prompt))) {
+                try {
+                    const at = await fetch(`${API_BASE}/api/attempts/${attemptId}`, { headers: userHeaders(token) });
+                    const attempt = at.ok ? await backendJson<{ testId?: string }>(at) : null;
+                    if (attempt?.testId) {
+                        const wt = await fetch(`${API_BASE}/api/tests/${attempt.testId}/writing-tasks`, { headers: userHeaders(token) });
+                        const tasks = wt.ok ? await backendJson<Array<{ id: string; prompt?: string }>>(wt) : [];
+                        task1Prompt = task1Prompt || tasks.find((t) => t.id === task1Id)?.prompt || '';
+                        task2Prompt = task2Prompt || tasks.find((t) => t.id === task2Id)?.prompt || '';
+                    }
+                } catch { /* grade on language only */ }
+            }
+        }
 
         if (!task1Id) return NextResponse.json({ error: 'Missing writing task id' }, { status: 400 });
         if (wordCount(task1Content) === 0 && wordCount(task2Content) === 0) {
@@ -193,28 +248,35 @@ Return the JSON evaluation.`;
         if (!t1) return NextResponse.json({ error: 'AI did not return a Task 1 evaluation' }, { status: 502 });
 
         // ── Step 2: persist submissions as the learner ───────────────────────────
-        const saveSub = async (writingTaskId: string, content: string) => {
+        const saveSub = async (writingTaskId: string, content: string, parentSubmissionId?: string | null) => {
             const res = await fetch(`${API_BASE}/api/writing-submissions`, {
                 method: 'POST',
                 headers: userHeaders(token),
-                body: JSON.stringify({ writingTaskId, content }),
+                body: JSON.stringify({ writingTaskId, content, ...(parentSubmissionId ? { parentSubmissionId } : {}) }),
             });
             return backendJson<{ id: string; learnerId: string }>(res);
         };
-        const task1Sub = await saveSub(task1Id, task1Content);
-        const task2Sub = task2Id ? await saveSub(task2Id, task2Content) : null;
+        const task1Sub = await saveSub(task1Id, task1Content, parentSub1?.id ?? null);
+        const task2Sub = task2Id ? await saveSub(task2Id, task2Content, parentSub2?.id ?? null) : null;
 
         // ── Step 3: combined band — Task 2 carries twice the weight of Task 1 ──────
         const combinedBand = t2 ? half((t1.overall_band + t2.overall_band * 2) / 3) : t1.overall_band;
         const avg = (k: keyof Pick<TaskGrading, 'task_response' | 'coherence' | 'lexical' | 'grammar'>) =>
             t2 ? half((t1[k] + t2[k] * 2) / 3) : t1[k];
 
+        // Write & Improve principle: never flag text whose "correction" is identical — a missed error is less harmful than a false one.
+        const normTxt = (x: unknown) => String(x ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
+        for (const g of [t1, t2]) if (g) g.suggestions = (g.suggestions ?? []).filter((sg) => normTxt(sg.original_text) !== normTxt(sg.correction));
+        const errorsJson = buildErrorsJson(t1, t2);
+        const diffJson = parent ? buildDiff((parent.errorsJson?.items ?? []) as Array<Record<string, unknown>>, errorsJson.items, Number(parent.overallBand), combinedBand) : null;
+
         // ── Step 4: persist grading with the trusted key ───────────────────────────
         const gradingRes = await fetch(`${API_BASE}/api/writing-gradings`, {
             method: 'POST',
             headers: systemHeaders(),
             body: JSON.stringify({
-                errorsJson: buildErrorsJson(t1, t2),
+                errorsJson,
+                diffJson,
                 submissionId: task1Sub.id,
                 modelName: MODEL,
                 modelVersion: '1.0',
@@ -236,17 +298,19 @@ Return the JSON evaluation.`;
         });
         const grading = await backendJson<{ id: string }>(gradingRes);
 
-        // ── Step 5: write the band onto the attempt (server-side, cannot be forged) ─
-        if (attemptId) {
+        // ── Step 5: write the band onto the attempt (server-side, cannot be forged). A revision never overwrites the official attempt band. ─
+        if (attemptId && !parent) {
             const summary = [
                 `Overall ${combinedBand.toFixed(1)} (Task 2 weighted ×2).`,
                 `Task 1 ${t1.overall_band.toFixed(1)}: ${t1.examiner_comment ?? ''}`,
                 t2 ? `Task 2 ${t2.overall_band.toFixed(1)}: ${t2.examiner_comment ?? ''}` : '',
             ].filter(Boolean).join('\n');
-            await storeAiResult(token, attemptId, { bandScore: combinedBand, aiFeedback: summary });
+            // Grading is already persisted: never fail the request (and tempt a re-submit) because the attempt update failed.
+            try { await storeAiResult(token, attemptId, { bandScore: combinedBand, aiFeedback: summary }); } catch (e) { console.warn('[grade-writing] attempt band update skipped', e); }
         }
 
         return NextResponse.json({
+            comparison: diffJson,
             gradingId: grading.id,
             submissionId: task1Sub.id,
             overallBand: combinedBand,
