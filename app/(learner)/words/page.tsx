@@ -1,5 +1,6 @@
 "use client";
 
+import { AT_RISK_P, halfLifeLabel, recallNow } from "@/lib/api/memory";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export default function WordsPage() {
     const qc = useQueryClient();
     const all = useQuery({ queryKey: ["words", "all"], queryFn: () => wordsApi.list(false) });
     const words = all.data ?? [];
-    const due = useMemo(() => words.filter((w) => !w.nextReviewAt || new Date(w.nextReviewAt) <= new Date()), [words]);
+    const due = useMemo(() => words.filter((w) => !w.nextReviewAt || new Date(w.nextReviewAt) <= new Date() || (recallNow(w) ?? 1) < AT_RISK_P), [words]);
     const invalidate = () => qc.invalidateQueries({ queryKey: ["words"] });
 
     const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => new Set());
@@ -37,7 +38,7 @@ export default function WordsPage() {
         <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
             <div>
                 <h1 className="text-2xl font-semibold">Sổ từ vựng</h1>
-                <p className="text-sm text-muted-foreground">Từ bạn lưu khi đọc bài. Ôn đúng lúc sắp quên: Quên → mai gặp lại, Nhớ → giãn dần, Dễ → giãn nhanh hơn.</p>
+                <p className="text-sm text-muted-foreground">Từ bạn lưu khi đọc bài. Lịch ôn do mô hình quên tính riêng cho bạn: mỗi lần nhớ, thời gian nhớ được kéo dài; mỗi lần quên, rút ngắn. Quên → mai gặp lại, Nhớ → giãn dần, Dễ → giãn nhanh hơn.</p>
             </div>
 
             <Card>
@@ -49,7 +50,9 @@ export default function WordsPage() {
                     {current && (
                         <div className="space-y-4">
                             <p className="text-xs text-muted-foreground">Ôn {reviewedToday + 1}/{reviewedToday + due.filter((w) => !reviewedIds.has(w.id)).length}</p>
+                            {current.nextReviewAt && new Date(current.nextReviewAt) > new Date() && <p className="text-xs text-amber-700">Ôn sớm: mô hình dự đoán bạn chỉ còn nhớ ~{Math.round((recallNow(current) ?? 0) * 100)}%</p>}
                             <p className="text-3xl font-semibold">{current.word}</p>
+                            {current.halfLifeH != null && <p className="text-xs text-muted-foreground">Bạn thường nhớ từ này {halfLifeLabel(current.halfLifeH)} · đã nhớ {current.correctCount ?? 0} / quên {current.lapseCount ?? 0} lần</p>}
                             {current.context && <p className="text-sm italic text-muted-foreground">“{current.context}”</p>}
                             {!revealed ? (
                                 <Button onClick={() => setRevealed(true)}>Xem nghĩa</Button>
@@ -91,7 +94,7 @@ export default function WordsPage() {
                                 onBlur={(e) => { if (e.target.value !== (w.meaningVi ?? "")) update.mutate({ id: w.id, meaningVi: e.target.value }); }}
                             />
                             <span className="text-[11px] text-muted-foreground">
-                                {w.nextReviewAt && new Date(w.nextReviewAt) > new Date() ? `ôn lại ${new Date(w.nextReviewAt).toLocaleDateString("vi-VN")}` : "đến hạn"} · {w.reviewCount} lần
+                                {w.halfLifeH != null ? `nhớ ${halfLifeLabel(w.halfLifeH)} · ${w.correctCount ?? 0}✓ ${w.lapseCount ?? 0}✗ · ` : ""}{w.nextReviewAt && new Date(w.nextReviewAt) > new Date() ? `ôn lại ${new Date(w.nextReviewAt).toLocaleDateString("vi-VN")}` : "đến hạn"} · {w.reviewCount} lần
                             </span>
                             <button type="button" className="text-xs text-muted-foreground hover:text-rose-600" onClick={() => remove.mutate(w.id)}>Xoá</button>
                         </li>
