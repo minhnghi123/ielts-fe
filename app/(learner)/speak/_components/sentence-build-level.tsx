@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { speakingApi, type ScoreResult, type SpeakingExercise } from "@/lib/api/speaking";
+import { speakingApi, topicVi, type ScoreResult, type SpeakingExercise } from "@/lib/api/speaking";
 import { RecorderPanel } from "./recorder-panel";
 import { ScoreView } from "./score-view";
 
@@ -47,7 +47,7 @@ export function SentenceBuildLevel({ soundTips, onSaved }: { soundTips: Record<s
     return (
         <Card>
             <CardContent className="space-y-5 p-5">
-                <p className="text-xs text-muted-foreground">Câu {idx + 1}/{items.length}{ex.topic ? ` · ${ex.topic}` : ""}</p>
+                <p className="text-xs text-muted-foreground">Câu {idx + 1}/{items.length}{ex.topic ? ` · chủ đề: ${topicVi(ex.topic)}` : ""}</p>
                 <div className="min-h-12 rounded-md border border-dashed p-3" aria-label="Câu đang ghép">
                     {picked.length === 0 && <p className="text-sm text-muted-foreground">Chạm vào các từ bên dưới theo đúng thứ tự.</p>}
                     <div className="flex flex-wrap gap-1.5">

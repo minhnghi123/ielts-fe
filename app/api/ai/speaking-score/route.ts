@@ -79,6 +79,12 @@ export async function POST(req: NextRequest) {
     });
     const { wpm, pauses, fillers } = fluencyMetrics(timed, durationS);
 
+    // A recording with no recognisable speech is feedback, not an attempt: nothing is saved and mastery is untouched.
+    if (silent) {
+        const result: ScoreResult = { transcript: '', durationS, wpm: null, pauses: 0, fillers: 0, wordResults, scores: { accuracy: 0, completeness: 0, fluency: 0, overall: 0 }, sounds: [], commentVi: comments(wordResults, null, 0, 0, reference.length), attemptId: null };
+        return NextResponse.json(result);
+    }
+
     // Persist (scores recomputed server-side in analytics-service); failure to save must not hide the feedback.
     let attemptId: string | null = null; let scores = { accuracy: 0, completeness: 0, fluency: 0, overall: 0 }; let sounds: Array<{ sound: string; correct: boolean }> = [];
     try {
@@ -102,7 +108,7 @@ function comments(words: WordResult[], wpm: number | null, pauses: number, fille
     const out: string[] = [];
     const wrong = words.filter((w) => w.status === 'substituted');
     const omitted = words.filter((w) => w.status === 'omitted');
-    if (!words.some((w) => w.status !== 'omitted')) return ['Không nhận ra từ nào — hãy nói to, rõ và gần micro hơn rồi thử lại.'];
+    if (!words.some((w) => w.status !== 'omitted')) return ['Không nhận ra từ nào — hãy nói to, rõ và gần micro hơn rồi thử lại. Lượt này không được tính.'];
     if (wrong.length === 0 && omitted.length === 0) out.push(refLen === 1 ? 'Từ này được nhận diện đúng. Nghe lại bản ghi và so với giọng mẫu để kiểm tra trọng âm.' : 'Mọi từ đều được nhận diện đúng — tốt lắm!');
     if (wrong.length) out.push(`Nghe thành từ khác: ${wrong.slice(0, 3).map((w) => `"${w.word}" → "${w.heard}"`).join(', ')}. Thử phát âm chậm từng âm rồi ghép lại.`);
     if (omitted.length) out.push(`Bỏ sót hoặc không rõ: ${omitted.slice(0, 4).map((w) => `"${w.word}"`).join(', ')}.`);

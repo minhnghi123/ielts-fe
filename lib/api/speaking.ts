@@ -61,3 +61,10 @@ export const speakingApi = {
         return json as ScoreResult;
     },
 };
+
+export const TOPIC_VI: Record<string, string> = {
+    sounds: 'âm', 'daily life': 'đời sống', home: 'nhà ở', family: 'gia đình', food: 'ẩm thực', weather: 'thời tiết', travel: 'du lịch', hobbies: 'sở thích',
+    sport: 'thể thao', hometown: 'quê hương', transport: 'giao thông', education: 'giáo dục', technology: 'công nghệ', shopping: 'mua sắm', music: 'âm nhạc',
+    health: 'sức khoẻ', culture: 'văn hoá', city: 'thành phố', environment: 'môi trường', work: 'công việc', people: 'con người', childhood: 'tuổi thơ',
+};
+export const topicVi = (t: string | null | undefined) => (t ? TOPIC_VI[t] ?? t : '');

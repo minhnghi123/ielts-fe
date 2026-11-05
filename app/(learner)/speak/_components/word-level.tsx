@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { speakingApi, type ScoreResult, type SpeakingExercise } from "@/lib/api/speaking";
 import { RecorderPanel } from "./recorder-panel";
 import { ScoreView } from "./score-view";
+import { SOUND_LABEL } from "@/lib/speaking/align";
 
 /** Bậc 1 — Phát âm từ: một từ, IPA, nghe mẫu, ghi ≤5 s, chấm, tiếp. */
 export function WordLevel({ sound, soundTips, onSaved }: { sound: string | null; soundTips: Record<string, string>; onSaved: () => void }) {
@@ -33,7 +34,7 @@ export function WordLevel({ sound, soundTips, onSaved }: { sound: string | null;
     return (
         <Card>
             <CardContent className="space-y-5 p-5">
-                <p className="text-xs text-muted-foreground">Từ {idx + 1}/{items.length}{ex.targetSounds.length ? ` · âm ${ex.targetSounds.join(", ")}` : ""}</p>
+                <p className="text-xs text-muted-foreground">Từ {idx + 1}/{items.length}{ex.targetSounds.length ? ` · âm ${ex.targetSounds.map((t) => SOUND_LABEL[t] ?? t).join(", ")}` : ""}</p>
                 <div>
                     <p className="font-serif text-4xl">{ex.text}</p>
                     {ex.ipa && <p className="mt-1 text-lg text-muted-foreground">{ex.ipa}</p>}
