@@ -50,7 +50,7 @@ function SelfCause({ questionId, questionType, skill, autoCause }: { questionId:
         try {
             let r;
             try { r = await attempt(); } catch { await new Promise((res) => setTimeout(res, 1200)); r = await attempt(); }
-            setAgrees(r.agrees); setState("saved");
+            setAgrees(autoCause ? autoCause === c : r.agrees); setState("saved");
         } catch { setState("error"); }
     };
     return (
@@ -189,6 +189,7 @@ function DrillInner() {
         setAnswer("");
         setCheck(null);
         setResults([]);
+        setHintsUsed(0); setHintLevel(0); setHint(null); setHintErr(null);
         drillsApi
             .build({ skill, questionType, errorCause, limit: 8 })
             .then((d) => { setDrill(d); setPhase(d.items.length ? "question" : "empty"); })
@@ -266,7 +267,7 @@ function DrillInner() {
                                 {hintLevel >= 1 && canonicalItem && <p><span className="font-medium">Chiến lược:</span> {QUESTION_TYPE_HINTS_VI[canonicalItem]}</p>}
                                 {hintLevel >= 2 && hint && <p><span className="font-medium">Tìm ở đâu:</span> {hint.paragraph ? `đoạn ${hint.paragraph}. ` : ""}{hint.location ?? "Hãy đọc lướt từng đoạn tìm ý của câu hỏi."}</p>}
                                 {hintLevel >= 3 && hint && (
-                                    <p><span className="font-medium">Từ khoá được diễn đạt lại:</span> {hint.keywords.length ? hint.keywords.map((k) => <span key={k} className="mx-0.5 rounded bg-background px-1.5 py-0.5 font-mono text-xs border border-border">{k}</span>) : "không tìm được từ khoá chắc chắn"}{hint.paraphrase ? ` — ${hint.paraphrase}` : ""}</p>
+                                    <p><span className="font-medium">Từ khoá được diễn đạt lại:</span> {hint.keywords.length ? hint.keywords.map((k) => <span key={k} className="mx-0.5 rounded bg-background px-1.5 py-0.5 font-mono text-xs border border-border">{k}</span>) : "không tìm được từ khoá chắc chắn"}{hint.paraphrase ? ` — ${hint.paraphrase}` : ""}{hint.redacted ? " (một phần gợi ý được ẩn vì chạm vào đáp án)" : ""}</p>
                                 )}
                                 {hintErr && <p className="text-xs text-rose-600">{hintErr}</p>}
                             </div>

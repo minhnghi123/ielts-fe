@@ -9,6 +9,8 @@ export interface HintResult {
     keywords: string[];
     paraphrase: string | null;
     verified: boolean;
+    /** Part of the hint was hidden because it would have revealed the answer. */
+    redacted: boolean;
 }
 
 export interface HintRequest {
