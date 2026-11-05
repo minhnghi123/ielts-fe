@@ -305,7 +305,8 @@ Return the JSON evaluation.`;
                 `Task 1 ${t1.overall_band.toFixed(1)}: ${t1.examiner_comment ?? ''}`,
                 t2 ? `Task 2 ${t2.overall_band.toFixed(1)}: ${t2.examiner_comment ?? ''}` : '',
             ].filter(Boolean).join('\n');
-            await storeAiResult(token, attemptId, { bandScore: combinedBand, aiFeedback: summary });
+            // Grading is already persisted: never fail the request (and tempt a re-submit) because the attempt update failed.
+            try { await storeAiResult(token, attemptId, { bandScore: combinedBand, aiFeedback: summary }); } catch (e) { console.warn('[grade-writing] attempt band update skipped', e); }
         }
 
         return NextResponse.json({
