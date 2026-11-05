@@ -16,7 +16,7 @@ export interface MemoryItem {
 export interface MemoryForecast {
     items: MemoryItem[];
     counts: { words: number; mistakes: number; atRiskWords: number; atRiskMistakes: number };
-    model: { scale: number; nObs: number; logLoss: number | null; fittedAt: string | null; minObs: number };
+    model: { scale: number; nObs: number; fittedOn: number; logLoss: number | null; fittedAt: string | null; minObs: number };
 }
 
 export const memoryApi = {

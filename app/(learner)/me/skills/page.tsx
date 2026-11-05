@@ -86,7 +86,7 @@ export default function MySkillsPage() {
                             <p className="text-xs text-muted-foreground">Từ vựng</p>
                             <p className="mt-1 text-2xl font-semibold tabular-nums">{q.data.words.due}<span className="text-sm font-normal text-muted-foreground"> đến hạn</span></p>
                             <p className="text-sm text-muted-foreground">{q.data.words.soon} từ sắp đến hạn trong 2 ngày · {q.data.words.total} từ đã lưu</p>
-                            {mem.data && <p className="text-xs text-muted-foreground">Mô hình quên: {mem.data.counts.atRiskWords} từ và {mem.data.counts.atRiskMistakes} câu sổ lỗi dự đoán nhớ dưới 70%{mem.data.model.nObs >= mem.data.model.minObs ? ` · đã hiệu chỉnh riêng cho bạn (hệ số ${mem.data.model.scale})` : ` · dùng tham số mặc định (cần ${mem.data.model.minObs - mem.data.model.nObs} lượt ôn nữa để hiệu chỉnh riêng)`}</p>}
+                            {mem.data && <p className="text-xs text-muted-foreground">Mô hình quên: {mem.data.counts.atRiskWords} từ và {mem.data.counts.atRiskMistakes} câu sổ lỗi dự đoán nhớ dưới 70%{mem.data.model.fittedAt ? ` · đã hiệu chỉnh riêng cho bạn từ ${mem.data.model.fittedOn} lượt ôn (hệ số ${mem.data.model.scale})` : mem.data.model.nObs >= mem.data.model.minObs ? ` · đủ dữ liệu, đang chờ hiệu chỉnh` : ` · dùng tham số mặc định (cần ${mem.data.model.minObs - mem.data.model.nObs} lượt ôn nữa để hiệu chỉnh riêng)`}</p>}
                             {q.data.words.due > 0 && <Link href="/words" className="text-sm text-primary underline-offset-4 hover:underline">Ôn ngay</Link>}
                         </CardContent></Card>
                         <Card><CardContent className="p-4">
