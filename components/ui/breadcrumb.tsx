@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface BreadcrumbItem {
   label: string;
   href?: string;
+  /** Giữ để tương thích; breadcrumb không còn vẽ icon trang trí. */
   icon?: string;
 }
 
@@ -39,25 +41,15 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
         return (
           <motion.div key={index} variants={itemVariants} className="flex items-center gap-1">
             {index > 0 && (
-              <span className="material-symbols-outlined text-[14px] text-muted-foreground/50 select-none">
-                chevron_right
-              </span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" aria-hidden />
             )}
             {isLast ? (
-              <span className="flex items-center gap-1.5 font-semibold text-foreground">
-                {item.icon && (
-                  <span className="material-symbols-outlined text-[14px] text-primary">{item.icon}</span>
-                )}
-                {item.label}
-              </span>
+              <span className="font-medium text-foreground" aria-current="page">{item.label}</span>
             ) : (
               <Link
                 href={item.href ?? "#"}
-                className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors duration-150"
+                className="text-muted-foreground hover:text-primary transition-colors duration-150"
               >
-                {item.icon && (
-                  <span className="material-symbols-outlined text-[14px]">{item.icon}</span>
-                )}
                 {item.label}
               </Link>
             )}
