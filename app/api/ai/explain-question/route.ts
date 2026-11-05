@@ -113,6 +113,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'AI chưa được cấu hình' }, { status: 503 });
     }
     const skill: string = test?.skill ?? attempt.test?.skill ?? 'reading';
+    // Learner profile (best effort): the explanation should speak to this learner's recurring causes, like Duolingo's Explain My Answer.
+    let profileLine = '';
+    try {
+        const lm = await fetch(`${API_BASE}/api/analytics/learner-model/${attempt.learnerId}`, { headers: userHeaders(token) });
+        if (lm.ok) {
+            const model = await backendJson<{ topErrorCauses?: Array<{ cause: string; n: number }>; skills?: Array<{ skill: string; kcs: Array<{ kc: string; level: string }> }> }>(lm);
+            const causes = (model?.topErrorCauses ?? []).filter((c) => c.n >= 2).slice(0, 3).map((c) => `${c.cause} (${c.n} lần)`);
+            const kc = model?.skills?.find((s) => s.skill === skill)?.kcs.find((k) => k.kc === question.questionType);
+            if (causes.length || kc) profileLine = `HỒ SƠ HỌC VIÊN: nguyên nhân sai hay gặp: ${causes.join(', ') || 'chưa rõ'}; mức thành thạo dạng câu này: ${kc?.level ?? 'chưa đủ dữ liệu'}. Nếu lỗi lần này trùng với thói quen trên, hãy nói rõ trong explanation_vi và đưa tip_vi nhắm vào thói quen đó.`;
+        }
+    } catch { /* optional */ }
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const prompt = [
         `Bạn là giáo viên IELTS ${skill === 'listening' ? 'Listening' : 'Reading'} giàu kinh nghiệm, giải thích cho học viên Việt Nam.`,
@@ -125,6 +136,7 @@ export async function POST(req: NextRequest) {
         question.config?.options ? `LỰA CHỌN: ${JSON.stringify(question.config.options).slice(0, 600)}` : '',
         `ĐÁP ÁN ĐÚNG: ${correctAnswers.join(' / ') || '(không có)'}`,
         `HỌC VIÊN TRẢ LỜI: ${userAnswer.trim() || '(bỏ trống)'}`,
+        profileLine,
         passage ? `ĐOẠN VĂN:\n${passage.replace(/<[^>]+>/g, '\n').slice(0, 6000)}` : 'ĐOẠN VĂN: (bài nghe — không có transcript)',
     ].filter(Boolean).join('\n');
 
