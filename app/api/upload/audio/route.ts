@@ -16,8 +16,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/m4a", "audio/aac", "video/mp4"];
-        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a|aac|mp4)$/i)) {
+        const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/m4a", "audio/x-m4a", "audio/mp4", "audio/aac", "audio/webm", "video/webm", "video/mp4"];
+        // MediaRecorder reports e.g. "audio/webm;codecs=opus" — compare the base type.
+        const baseType = (file.type || "").split(";")[0].trim().toLowerCase();
+        if (!allowedTypes.includes(baseType) && !file.name.match(/\.(mp3|wav|ogg|m4a|aac|mp4|webm)$/i)) {
             return NextResponse.json({ error: "Invalid file type. Please upload an audio file." }, { status: 400 });
         }
 
