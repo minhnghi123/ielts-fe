@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, BookA, Bot, GraduationCap, LayoutDashboard, Library, ListChecks, User, Users } from "lucide-react";
+import { BarChart3, BookA, Bot, GraduationCap, LayoutDashboard, Library, ListChecks, User, Users, Mic } from "lucide-react";
 import { SideNav, type NavRoute } from "@/components/app-shell/side-nav";
 import { authApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth-store";
@@ -11,6 +11,7 @@ const ROUTES: NavRoute[] = [
   { href: "/analysis", label: "Kết quả", icon: BarChart3 },
   { href: "/mistakes", label: "Sổ lỗi", icon: ListChecks },
   { href: "/words", label: "Từ vựng", icon: BookA },
+  { href: "/speak", label: "Luyện nói", icon: Mic },
   { href: "/classes", label: "Lớp học", icon: Users },
   { href: "/ai-advisor", label: "Hỏi AI Coach", icon: Bot },
   { href: "/resources", label: "Tài nguyên", icon: Library },
