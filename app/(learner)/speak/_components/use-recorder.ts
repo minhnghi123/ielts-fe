@@ -10,9 +10,7 @@ export function useRecorder(maxSeconds: number) {
     const [blob, setBlob] = useState<Blob | null>(null);
     const [url, setUrl] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
-    const [peakLevel, setPeakLevel] = useState(0);
-    const peak = useRef(0);
-    const audioCtx = useRef<AudioContext | null>(null);
+    const [peakLevel, setPeakLevel] = useState<number | null>(null);
     const rec = useRef<MediaRecorder | null>(null);
     const chunks = useRef<Blob[]>([]);
     const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -29,26 +27,14 @@ export function useRecorder(maxSeconds: number) {
             const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : undefined;
             const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
             chunks.current = [];
-            // Track loudness so a silent recording can be reported honestly instead of being "scored".
-            peak.current = 0;
-            let analyser: AnalyserNode | null = null;
-            try {
-                const ctx = new AudioContext();
-                audioCtx.current = ctx;
-                analyser = ctx.createAnalyser();
-                analyser.fftSize = 1024;
-                ctx.createMediaStreamSource(stream).connect(analyser);
-            } catch { analyser = null; }
-            const buf = analyser ? new Float32Array(analyser.fftSize) : null;
             r.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
             r.onstop = () => {
                 stream.getTracks().forEach((t) => t.stop());
                 if (timer.current) clearInterval(timer.current);
-                audioCtx.current?.close().catch(() => undefined);
-                audioCtx.current = null;
-                setPeakLevel(peak.current);
                 const b = new Blob(chunks.current, { type: r.mimeType || "audio/webm" });
                 setBlob(b);
+                setPeakLevel(null);
+                void measureLevel(b).then(setPeakLevel);
                 setUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(b); });
                 setState("ready");
             };
@@ -60,12 +46,6 @@ export function useRecorder(maxSeconds: number) {
             timer.current = setInterval(() => {
                 const s = (Date.now() - startedAt.current) / 1000;
                 setElapsed(s);
-                if (analyser && buf) {
-                    analyser.getFloatTimeDomainData(buf);
-                    let sum = 0;
-                    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
-                    peak.current = Math.max(peak.current, Math.sqrt(sum / buf.length));
-                }
                 if (s >= maxSeconds) stop();
             }, 100);
         } catch {
@@ -77,13 +57,41 @@ export function useRecorder(maxSeconds: number) {
         setBlob(null);
         setUrl((old) => { if (old) URL.revokeObjectURL(old); return null; });
         setElapsed(0);
-        setPeakLevel(0);
+        setPeakLevel(null);
         setState("idle");
     }, []);
 
     useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
 
     return { state, blob, url, elapsed, peakLevel, start, stop, reset };
+}
+
+/**
+ * Loudness of a finished recording: max windowed RMS (0–1) over ~23 ms windows, from the decoded blob —
+ * independent of the live audio graph. null when the browser cannot decode the container.
+ */
+export async function measureLevel(blob: Blob): Promise<number | null> {
+    if (typeof window === "undefined" || !("AudioContext" in window)) return null;
+    let ctx: AudioContext | null = null;
+    try {
+        ctx = new AudioContext();
+        const audio = await ctx.decodeAudioData(await blob.arrayBuffer());
+        const win = 1024;
+        let peak = 0;
+        for (let ch = 0; ch < audio.numberOfChannels; ch++) {
+            const d = audio.getChannelData(ch);
+            for (let i = 0; i + win <= d.length; i += win) {
+                let sum = 0;
+                for (let j = i; j < i + win; j++) sum += d[j] * d[j];
+                peak = Math.max(peak, Math.sqrt(sum / win));
+            }
+        }
+        return peak;
+    } catch {
+        return null;
+    } finally {
+        ctx?.close().catch(() => undefined);
+    }
 }
 
 /**

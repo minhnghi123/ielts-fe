@@ -8,7 +8,7 @@ import { speak, useRecorder } from "./use-recorder";
 /**
  * Nghe mẫu → Ghi âm (tối đa maxSeconds) → nghe lại → Chấm. One primary action at a time.
  */
-export function RecorderPanel({ modelText, maxSeconds, onScore, scoring, disabled }: { modelText: string; maxSeconds: number; onScore: (blob: Blob, peakLevel: number) => void; scoring: boolean; disabled?: boolean }) {
+export function RecorderPanel({ modelText, maxSeconds, onScore, scoring, disabled }: { modelText: string; maxSeconds: number; onScore: (blob: Blob, peakLevel: number | null) => void; scoring: boolean; disabled?: boolean }) {
     const r = useRecorder(maxSeconds);
     const [modelError, setModelError] = useState<string | null>(null);
     return (

@@ -37,7 +37,7 @@ export function SentenceBuildLevel({ soundTips, onSaved }: { soundTips: Record<s
     };
     const reset = () => { setPicked([]); setChecked(null); setResult(null); setError(null); };
     const next = () => { reset(); setIdx((i) => (i + 1) % items.length); };
-    const score = async (blob: Blob, peakLevel: number) => {
+    const score = async (blob: Blob, peakLevel: number | null) => {
         setScoring(true); setError(null);
         try { setResult(await speakingApi.score({ blob, referenceText: ex.text, level: "sentence_build", exerciseId: ex.id, targetSounds: ex.targetSounds, peakLevel })); onSaved(); }
         catch (e) { setError(e instanceof Error ? e.message : "Không chấm được"); }
