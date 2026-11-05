@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth-store";
 import { learnerModelApi, type KcState, type SkillModel } from "@/lib/api/learner-model";
 import { memoryApi } from "@/lib/api/memory";
+import { writingProgressApi } from "@/lib/api/writing-progress";
+import { writingErrorLabel } from "@/lib/writing-errors";
 import { MASTERY_LABELS_VI } from "@/lib/api/words";
 import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 import { errorCauseLabel } from "@/lib/error-causes";
@@ -30,6 +32,7 @@ export default function MySkillsPage() {
     const qc = useQueryClient();
     const q = useQuery({ queryKey: ["learner-model", learnerId], queryFn: () => learnerModelApi.get(learnerId!), enabled: !!learnerId });
     const mem = useQuery({ queryKey: ["memory-forecast", learnerId], queryFn: () => memoryApi.forecast(learnerId!), enabled: !!learnerId, staleTime: 60_000 });
+    const wp = useQuery({ queryKey: ["writing-progress", learnerId], queryFn: () => writingProgressApi.get(learnerId!), enabled: !!learnerId, staleTime: 60_000 });
     const [msg, setMsg] = useState<string | null>(null);
     const [msgKind, setMsgKind] = useState<"ok" | "error">("ok");
     const fb = useMutation({
@@ -97,6 +100,21 @@ export default function MySkillsPage() {
                             <Link href="/mistakes" className="text-sm text-primary underline-offset-4 hover:underline">Mở sổ lỗi</Link>
                         </CardContent></Card>
                     </div>
+                    {wp.data && wp.data.trend.length > 0 && (
+                        <Card><CardContent className="p-4 space-y-2">
+                            <p className="text-xs text-muted-foreground">Writing — tiến bộ qua các bài</p>
+                            <ul className="space-y-1 text-sm">
+                                {wp.data.chains.slice(0, 4).map((c) => (
+                                    <li key={c.rootId} className="flex flex-wrap items-center gap-x-2">
+                                        <span className="text-muted-foreground">{new Date(c.versions[0].submittedAt).toLocaleDateString("vi-VN")}</span>
+                                        <span>{c.versions.map((v) => (v.band != null ? v.band.toFixed(1) : "—")).join(" → ")}</span>
+                                        <span className="text-xs text-muted-foreground">{c.versions.length > 1 ? `${c.versions.length - 1} bản sửa` : "chưa sửa lại"}{c.versions[c.versions.length - 1].diff ? ` · đã sửa ${c.versions[c.versions.length - 1].diff!.resolved.length} lỗi` : ""}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            {wp.data.topErrorTypes.length > 0 && <p className="text-xs text-muted-foreground">Lỗi hay gặp nhất gần đây: {wp.data.topErrorTypes.map((t) => `${writingErrorLabel(t.type)} (${t.n})`).join(", ")}</p>}
+                        </CardContent></Card>
+                    )}
                 </>
             )}
         </div>

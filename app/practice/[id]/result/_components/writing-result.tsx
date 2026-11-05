@@ -1,4 +1,7 @@
 import { writingErrorLabel, writingErrorTip } from "@/lib/writing-errors";
+import { Button } from "@/components/ui/button";
+import type { WritingDiff } from "@/lib/api/writing-progress";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +32,7 @@ interface WritingResultProps {
     gradingData: {
         id: string;
         overallBand: number;
+        diffJson?: WritingDiff | null;
         feedback: {
             task1: TaskFeedback;
             task2?: TaskFeedback | null;
@@ -40,6 +44,26 @@ interface WritingResultProps {
 export function WritingResult({ gradingData }: WritingResultProps) {
     const [activeTask, setActiveTask] = useState<"task1" | "task2">("task1");
     const [activeSuggestionId, setActiveSuggestionId] = useState<number | null>(null);
+    const params = useParams<{ id: string }>();
+    const router = useRouter();
+    const plain = (html: string | undefined) => (html ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    const [revising, setRevising] = useState(false);
+    const [rev1, setRev1] = useState("");
+    const [rev2, setRev2] = useState("");
+    const [revState, setRevState] = useState<"idle" | "grading" | "error">("idle");
+    const [revErr, setRevErr] = useState<string | null>(null);
+    const startRevise = () => { setRev1(plain(gradingData.feedback.task1?.annotated_html)); setRev2(plain(gradingData.feedback.task2?.annotated_html)); setRevising(true); };
+    const submitRevision = async () => {
+        setRevState("grading"); setRevErr(null);
+        try {
+            const res = await fetch("/api/ai/grade-writing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ parentGradingId: gradingData.id, attemptId: params?.id, task1Content: rev1, task2Content: rev2 }) });
+            const data = (await res.json()) as { gradingId?: string; error?: string };
+            if (!res.ok || !data.gradingId) throw new Error(data.error || "Không chấm được bản sửa");
+            router.push(`/practice/${params?.id}/result?skill=writing&gradingId=${data.gradingId}`);
+            setRevising(false); setRevState("idle");
+        } catch (e) { setRevState("error"); setRevErr(e instanceof Error ? e.message : "Không chấm được bản sửa"); }
+    };
+    const diff = gradingData.diffJson ?? null;
     // console.log(gradingData);
     const t1 = gradingData.feedback.task1;
     const t2 = gradingData.feedback.task2;
@@ -107,20 +131,48 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                                 <span className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 p-2 rounded-xl">
                                     <PenTool className="w-6 h-6" />
                                 </span>
-                                Writing Assessment
+                                Kết quả Writing
                             </h1>
-                            <p className="text-muted-foreground mt-1">Review your essays, scores, and detailed AI feedback.</p>
+                            <p className="text-muted-foreground mt-1">Band theo 4 tiêu chí, lỗi được đánh dấu trong bài và việc cần sửa tiếp.</p>
                         </div>
 
                         <div className="flex items-center gap-4 bg-violet-50 dark:bg-violet-900/20 px-6 py-4 rounded-2xl border border-violet-100 dark:border-violet-800/30">
                             <div className="text-center">
-                                <p className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">Overall Band</p>
+                                <p className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1">Band tổng</p>
                                 <p className="text-4xl font-black text-violet-700 dark:text-violet-300 leading-none">
                                     {Number(gradingData.overallBand).toFixed(1)}
                                 </p>
                             </div>
                         </div>
                     </div>
+
+                    {diff && (
+                        <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-sm space-y-1" aria-label="So với bản trước">
+                            <p className="font-medium">So với bản trước{diff.bandBefore != null ? `: band ${diff.bandBefore.toFixed(1)} → ${diff.bandAfter.toFixed(1)}` : ""}</p>
+                            <p className="text-muted-foreground">
+                                Đã sửa {diff.resolved.length} lỗi{diff.resolved.length > 0 ? ` (${Object.entries(diff.byType).filter(([, v]) => v.resolved > 0).map(([t, v]) => `${writingErrorLabel(t)} ${v.resolved}`).join(", ")})` : ""} · còn {diff.remaining.length} · mới {diff.added.length}.
+                                {diff.nextFix && <> <span className="text-foreground font-medium">Việc sửa tiếp:</span> {writingErrorLabel(diff.nextFix)} — {writingErrorTip(diff.nextFix)}</>}
+                                {!diff.nextFix && " Không còn lỗi nào được chỉ ra — thử một đề mới."}
+                            </p>
+                        </div>
+                    )}
+                    {!revising ? (
+                        <div className="mt-4 flex items-center gap-3">
+                            <Button onClick={startRevise} variant="outline">Sửa bài và nộp lại</Button>
+                            <span className="text-xs text-muted-foreground">Sửa theo các lỗi được chỉ ra; bản sửa được so với bản này để xem lỗi nào đã hết.</span>
+                        </div>
+                    ) : (
+                        <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
+                            <p className="text-sm font-medium">Bản sửa {gradingData.feedback.task2 ? "(Task 1 và Task 2)" : "(Task 1)"}</p>
+                            <textarea value={rev1} onChange={(e) => setRev1(e.target.value)} rows={10} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 1" />
+                            {gradingData.feedback.task2 && <textarea value={rev2} onChange={(e) => setRev2(e.target.value)} rows={14} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 2" />}
+                            <div className="flex items-center gap-3">
+                                <Button onClick={submitRevision} disabled={revState === "grading" || (!rev1.trim() && !rev2.trim())}>{revState === "grading" ? "Đang chấm bản sửa…" : "Nộp bản sửa"}</Button>
+                                <Button variant="ghost" onClick={() => setRevising(false)} disabled={revState === "grading"}>Huỷ</Button>
+                                {revErr && <span className="text-xs text-rose-600">{revErr}</span>}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Task Tabs */}
                     {t2 && (
@@ -165,7 +217,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
 
                     {/* Essay Content */}
                     <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar relative" ref={leftPaneRef}>
-                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">Your Essay</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">Bài viết của bạn</h3>
 
                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-lg">
                             {/* Injecting the HTML. The custom CSS classes are handled via Tailwind below or global CSS */}
@@ -213,7 +265,7 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                         <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                             <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                         </div>
-                        <h3 className="font-bold text-foreground">Improvements</h3>
+                        <h3 className="font-bold text-foreground">Điểm cần sửa</h3>
                         <Badge variant="secondary" className="ml-auto bg-muted text-muted-foreground">
                             {currentTask.suggestions?.length || 0} Total
                         </Badge>
@@ -224,8 +276,8 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                         {(!currentTask.suggestions || currentTask.suggestions.length === 0) ? (
                             <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
                                 <CheckCircle2 className="w-12 h-12 text-emerald-400 mb-4 opacity-50" />
-                                <p className="text-lg font-medium text-foreground">Great job!</p>
-                                <p className="text-sm mt-1">No major improvements suggested for this task.</p>
+                                <p className="text-lg font-medium text-foreground">Tốt lắm!</p>
+                                <p className="text-sm mt-1">Không có lỗi đáng kể nào được chỉ ra cho task này.</p>
                             </div>
                         ) : (
                             currentTask.suggestions.map((suggestion) => {
