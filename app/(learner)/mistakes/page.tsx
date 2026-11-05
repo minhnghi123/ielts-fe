@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,7 @@ export default function MistakesPage() {
     const [status, setStatus] = useState<MistakeStatus | "all">("all");
     const [skill, setSkill] = useState("");
     const [cause, setCause] = useState("");
-    const [due, setDue] = useState(false);
-    useEffect(() => { if (new URLSearchParams(window.location.search).get("due") === "1") setDue(true); }, []);
+    const [due, setDue] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("due") === "1");
 
     const { data: mistakes, isLoading, isError } = useMistakes(learnerId, {
         status: due ? undefined : status === "all" ? undefined : status,
@@ -97,6 +96,11 @@ export default function MistakesPage() {
                             {t.label}
                         </button>
                     ))}
+                    <button type="button" onClick={() => setDue((v) => !v)} aria-pressed={due}
+                        className={`rounded-md border px-3 py-1 text-xs font-medium ${due ? "border-amber-400 bg-amber-50 text-amber-800" : "border-border text-muted-foreground hover:bg-muted"}`}
+                        title="Câu đến hạn hoặc mô hình dự đoán bạn sắp quên (<70%)">
+                        Sắp quên / đến hạn
+                    </button>
                 </div>
                 <select value={skill} onChange={(e) => setSkill(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-xs">
                     {SKILLS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
