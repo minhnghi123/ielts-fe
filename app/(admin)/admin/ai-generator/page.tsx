@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 import { createManualTest, CreateManualTestRequest } from "@/lib/api.tests";
+import { Icon } from "@/components/ui/icon";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -236,9 +237,7 @@ export default function AIGeneratorPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[22px]">
-                auto_awesome
-              </span>
+              <Icon name="auto_awesome" className="text-white h-[22px] w-[22px]" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               AI Test Generator
@@ -296,9 +295,7 @@ export default function AIGeneratorPage() {
                         : "border-border text-muted-foreground hover:border-primary/40"
                       }`}
                   >
-                    <span className="material-symbols-outlined text-[18px] align-middle mr-1.5">
-                      {s === "reading" ? "menu_book" : "headphones"}
-                    </span>
+                    <Icon name={s === "reading" ? "menu_book" : "headphones"} className="h-[18px] w-[18px] align-middle mr-1.5" />
                     {s}
                   </button>
                 ))}
@@ -431,9 +428,7 @@ export default function AIGeneratorPage() {
                 onClick={handleGenerate}
                 className="flex items-center gap-2 bg-primary hover:from-violet-600 hover:to-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  auto_awesome
-                </span>
+                <Icon name="auto_awesome" className="h-[20px] w-[20px]" />
                 Generate with AI
               </button>
             </div>
@@ -446,9 +441,7 @@ export default function AIGeneratorPage() {
             <div className="relative">
               <div className="w-20 h-20 rounded-full border-4 border-violet-200 border-t-violet-500 animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="material-symbols-outlined text-violet-500 text-[28px]">
-                  auto_awesome
-                </span>
+                <Icon name="auto_awesome" className="text-violet-500 h-[28px] w-[28px]" />
               </div>
             </div>
             <div className="text-center">
@@ -522,9 +515,7 @@ export default function AIGeneratorPage() {
                     disabled={isSaving}
                     className="px-4 py-2 rounded-lg border border-violet-300 bg-violet-50 text-violet-700 text-sm font-medium hover:bg-violet-100 transition-colors flex items-center gap-1.5"
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      refresh
-                    </span>
+                    <Icon name="refresh" className="h-[16px] w-[16px]" />
                     Regenerate
                   </button>
                   <button
@@ -540,9 +531,7 @@ export default function AIGeneratorPage() {
                       </>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[16px]">
-                          save
-                        </span>
+                        <Icon name="save" className="h-[16px] w-[16px]" />
                         Save to Database
                       </>
                     )}
@@ -585,9 +574,7 @@ export default function AIGeneratorPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-muted-foreground text-[20px]">
-                      {isSectionOpen ? "expand_less" : "expand_more"}
-                    </span>
+                    <Icon name={isSectionOpen ? "expand_less" : "expand_more"} className="text-muted-foreground h-[20px] w-[20px]" />
                   </button>
 
                   {isSectionOpen && (
@@ -648,9 +635,7 @@ export default function AIGeneratorPage() {
                                   ))}
                                 </div>
                               </div>
-                              <span className="material-symbols-outlined text-muted-foreground text-[18px]">
-                                {isGroupOpen ? "expand_less" : "expand_more"}
-                              </span>
+                              <Icon name={isGroupOpen ? "expand_less" : "expand_more"} className="text-muted-foreground h-[18px] w-[18px]" />
                             </button>
 
                             {isGroupOpen && (
@@ -751,9 +736,7 @@ export default function AIGeneratorPage() {
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[18px]">
-                      save
-                    </span>
+                    <Icon name="save" className="h-[18px] w-[18px]" />
                     Save Test to Database
                   </>
                 )}

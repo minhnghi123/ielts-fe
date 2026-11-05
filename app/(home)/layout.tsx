@@ -1,4 +1,5 @@
 import { HomeNavbar } from "./_components/home-navbar";
+import { Icon } from "@/components/ui/icon";
 
 export default function HomeLayout({
   children,
@@ -20,9 +21,7 @@ export default function HomeLayout({
         <div className="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="text-primary h-6 w-6 flex items-center justify-center bg-primary/10 rounded">
-              <span className="material-symbols-outlined text-[18px]">
-                school
-              </span>
+              <Icon name="school" className="h-[18px] w-[18px]" />
             </div>
             <span className="font-bold">IELTS-MN</span>
           </div>

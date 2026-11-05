@@ -6,6 +6,7 @@ import { testsApi } from "@/lib/api/tests";
 import type { TestAttempt } from "@/lib/types";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Icon } from "@/components/ui/icon";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ function AIMessage({ content, streaming }: { content: string; streaming?: boolea
   return (
     <div className="flex gap-3 items-start">
       <div className="shrink-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-sm mt-0.5">
-        <span className="material-symbols-outlined text-white text-[18px]">smart_toy</span>
+        <Icon name="smart_toy" className="text-white h-[18px] w-[18px]" />
       </div>
       <div className="flex-1 min-w-0 bg-card border border-border rounded-xl rounded-tl-sm px-4 py-3 shadow-sm">
         {content ? (
@@ -103,7 +104,7 @@ function UserMessage({ content }: { content: string }) {
         {content}
       </div>
       <div className="shrink-0 w-9 h-9 rounded-full bg-muted flex items-center justify-center mt-0.5">
-        <span className="material-symbols-outlined text-muted-foreground text-[18px]">person</span>
+        <Icon name="person" className="text-muted-foreground h-[18px] w-[18px]" />
       </div>
     </div>
   );
@@ -373,7 +374,7 @@ export default function AIAdvisorPage() {
       {/* Top bar */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-3.5 border-b bg-card shadow-sm">
         <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow">
-          <span className="material-symbols-outlined text-white text-[20px]">smart_toy</span>
+          <Icon name="smart_toy" className="text-white h-[20px] w-[20px]" />
         </div>
         <div>
           <h1 className="font-bold text-base leading-tight">AI Coach</h1>
@@ -381,10 +382,10 @@ export default function AIAdvisorPage() {
         </div>
         <div className="ml-auto flex items-center gap-3">
           <Link href="/analysis" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">bar_chart</span>Analysis
+            <Icon name="bar_chart" className="h-[14px] w-[14px]" />Analysis
           </Link>
           <Link href="/resources" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">library_books</span>Resources
+            <Icon name="library_books" className="h-[14px] w-[14px]" />Resources
           </Link>
         </div>
       </div>
@@ -399,7 +400,7 @@ export default function AIAdvisorPage() {
             <div className="relative w-14 h-14">
               <div className="w-14 h-14 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="material-symbols-outlined text-indigo-500 text-[22px]">smart_toy</span>
+                <Icon name="smart_toy" className="text-indigo-500 h-[22px] w-[22px]" />
               </div>
             </div>
             <div className="text-center">
@@ -463,7 +464,7 @@ export default function AIAdvisorPage() {
             {streaming ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <span className="material-symbols-outlined text-[20px]">send</span>
+              <Icon name="send" className="h-[20px] w-[20px]" />
             )}
           </button>
         </div>

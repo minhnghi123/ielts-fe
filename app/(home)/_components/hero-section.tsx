@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
+import { Icon } from "@/components/ui/icon";
 
 export function HeroSection() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export function HeroSection() {
                   onClick={() => router.push("/tests")}
                   className="px-6 py-5 text-sm font-semibold"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[18px]">play_arrow</span>
+                  <Icon name="play_arrow" className="mr-2 h-[18px] w-[18px]" />
                   Start Practice
                 </Button>
                 <Button
@@ -65,7 +66,7 @@ export function HeroSection() {
                   variant="outline"
                   className="px-6 py-5 text-sm font-semibold"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[18px]">analytics</span>
+                  <Icon name="analytics" className="mr-2 h-[18px] w-[18px]" />
                   View Progress
                 </Button>
               </div>
@@ -88,7 +89,7 @@ export function HeroSection() {
                   onClick={() => router.push("/register")}
                   className="px-6 py-5 text-sm font-semibold"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[18px]">rocket_launch</span>
+                  <Icon name="rocket_launch" className="mr-2 h-[18px] w-[18px]" />
                   Start for Free
                 </Button>
                 <Button

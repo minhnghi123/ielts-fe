@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmptyState, PageHeader, PendingApprovalBanner, errorMessage } from "../../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 const COLORS = ["emerald", "sky", "amber", "rose", "violet", "zinc"];
 const COLOR_CLS: Record<string, string> = {
@@ -49,7 +50,7 @@ function TeacherClassesPageInner() {
       <PageHeader
         title="Classes"
         subtitle="Each class has a join code. Students join, you assign tests, results land in the gradebook."
-        actions={!pending && <Button onClick={() => setOpen(true)}><span className="material-symbols-outlined text-[18px] mr-1">add</span>New class</Button>}
+        actions={!pending && <Button onClick={() => setOpen(true)}><Icon name="add" className="h-[18px] w-[18px] mr-1" />New class</Button>}
       />
       {pending && <PendingApprovalBanner />}
       {!pending && (
@@ -75,8 +76,8 @@ function TeacherClassesPageInner() {
                     </div>
                     {c.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{c.description}</p>}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-3">
-                      <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">school</span>{c.memberCount ?? 0}</span>
-                      <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">assignment</span>{c.assignmentCount ?? 0}</span>
+                      <span className="inline-flex items-center gap-1"><Icon name="school" className="h-[16px] w-[16px]" />{c.memberCount ?? 0}</span>
+                      <span className="inline-flex items-center gap-1"><Icon name="assignment" className="h-[16px] w-[16px]" />{c.assignmentCount ?? 0}</span>
                       {c.joinCode && <span className="ml-auto font-mono tracking-widest">{c.joinCode}</span>}
                     </div>
                   </div>

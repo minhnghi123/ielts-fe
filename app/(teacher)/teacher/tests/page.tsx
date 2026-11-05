@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Test } from "@/lib/types";
 import { EmptyState, PageHeader, PendingApprovalBanner, SkillBadge, errorMessage } from "../../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 export default function TeacherTestsPage() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function TeacherTestsPage() {
   const tests: Test[] = data?.data ?? [];
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
-      <PageHeader title="My Test Bank" subtitle="Tests you create are private: only students in a class you assign them to can see them." actions={!pending && <Button asChild><Link href="/teacher/tests/add"><span className="material-symbols-outlined text-[18px] mr-1">add</span>Create test</Link></Button>} />
+      <PageHeader title="My Test Bank" subtitle="Tests you create are private: only students in a class you assign them to can see them." actions={!pending && <Button asChild><Link href="/teacher/tests/add"><Icon name="add" className="h-[18px] w-[18px] mr-1" />Create test</Link></Button>} />
       {pending && <PendingApprovalBanner />}
       {!pending && (
         <>

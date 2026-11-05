@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { TableRowSkeleton } from "@/components/ui/skeleton";
+import { Icon } from "@/components/ui/icon";
 
 interface Test {
     id: string;
@@ -145,7 +146,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                         href={addLinkHref}
                         className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm"
                     >
-                        <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                        <Icon name="add_circle" className="h-[18px] w-[18px]" />
                         Add New Test
                         {activeSkill !== 'all' && <span className="text-blue-200 font-normal ml-1 border-l border-blue-500 pl-2">({activeSkill})</span>}
                     </Link>
@@ -153,7 +154,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                         href="/admin/tests/import"
                         className="flex items-center gap-2 px-5 py-2.5 bg-card text-foreground border border-border rounded-lg font-semibold hover:bg-muted transition-colors shadow-sm"
                     >
-                        <span className="material-symbols-outlined text-[18px]">upload_file</span>
+                        <Icon name="upload_file" className="h-[18px] w-[18px]" />
                         Import DOCX
                     </Link>
                 </div>
@@ -224,7 +225,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                             <td colSpan={5} className="text-center py-20 text-slate-500">
                                                 <div className="flex flex-col items-center justify-center gap-3">
                                                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-2">
-                                                        <span className="material-symbols-outlined text-3xl text-muted-foreground">inbox</span>
+                                                        <Icon name="inbox" className="h-7 w-7 text-muted-foreground" />
                                                     </div>
                                                     <p className="font-medium text-foreground">No tests found for this category</p>
                                                     <Link
@@ -264,7 +265,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                                             className="p-2 rounded-lg bg-card shadow-sm border border-border hover:border-primary/40 hover:text-primary transition-all text-muted-foreground"
                                                             title="Edit"
                                                         >
-                                                            <span className="material-symbols-outlined text-[18px] block">edit</span>
+                                                            <Icon name="edit" className="h-[18px] w-[18px] block" />
                                                         </Link>
                                                         <button
                                                             onClick={() => handleDelete(test.id, test.title)}
@@ -274,7 +275,7 @@ export default function TestsManagementPage({ searchParams }: { searchParams?: {
                                                         >
                                                             {deleting === test.id
                                                                 ? <span className="inline-block w-[18px] h-[18px] border-2 border-red-300 border-t-red-600 rounded-full animate-spin block" />
-                                                                : <span className="material-symbols-outlined text-[18px] block">delete</span>}
+                                                                : <Icon name="delete" className="h-[18px] w-[18px] block" />}
                                                         </button>
                                                     </div>
                                                 </td>

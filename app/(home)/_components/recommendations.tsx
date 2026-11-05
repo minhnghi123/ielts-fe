@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics";
+import { Icon } from "@/components/ui/icon";
 
 const container = {
   hidden: {},
@@ -115,7 +116,7 @@ function RecommendCard({ icon, title, desc, tag, onClick }: {
     >
       <div className="flex items-start gap-3">
         <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors duration-150 flex-shrink-0">
-          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          <Icon name={icon} className="h-[20px] w-[20px]" />
         </div>
         <div>
           <h4 className="font-semibold text-sm text-zinc-950 mb-0.5">{title}</h4>

@@ -21,6 +21,7 @@ import {
 import { testsApi } from "@/lib/api/tests";
 import type { Test } from "@/lib/types";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Icon as SymbolIcon } from "@/components/ui/icon";
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
@@ -129,7 +130,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
   if (!test) {
     return (
       <div className="text-center py-20 space-y-3">
-        <span className="material-symbols-outlined text-6xl text-muted-foreground">search_off</span>
+        <SymbolIcon name="search_off" className="h-14 w-14 text-muted-foreground" />
         <p className="font-medium">Không tìm thấy đề</p>
         <Link href="/tests"><Button variant="outline">Về Luyện tập</Button></Link>
       </div>
@@ -253,7 +254,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
           {/* Instructions */}
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px] text-orange-500">info</span>
+              <SymbolIcon name="info" className="h-[20px] w-[20px] text-orange-500" />
               Important Instructions
             </h3>
             <ul className="space-y-3">

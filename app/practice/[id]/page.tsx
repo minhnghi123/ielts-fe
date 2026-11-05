@@ -9,6 +9,7 @@ import { WritingTestInterface } from "./_components/writing-test-interface";
 import { SpeakingTestInterface } from "./_components/speaking-test-interface";
 import { RotateCcw, PlayCircle, Clock, BookOpen, Loader2, CloudCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 
 // ─── Per-skill metadata ────────────────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ function FullPageSpinner() {
 function FullPageError({ message }: { message: string }) {
     return (
         <div className="flex h-full items-center justify-center flex-col gap-3">
-            <span className="material-symbols-outlined text-5xl text-destructive">error</span>
+            <Icon name="error" className="h-12 w-12 text-destructive" />
             <p className="font-semibold text-destructive">{message}</p>
         </div>
     );

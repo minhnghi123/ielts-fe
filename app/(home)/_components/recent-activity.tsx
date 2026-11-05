@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAttemptsByLearner } from "@/lib/hooks/use-attempts";
+import { Icon } from "@/components/ui/icon";
 
 export function RecentActivity() {
   const user = useAuthStore((s) => s.user);
@@ -100,7 +101,7 @@ export function RecentActivity() {
               ) : (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
-                    <span className="material-symbols-outlined text-4xl text-zinc-300 block mb-2">lock</span>
+                    <Icon name="lock" className="h-9 w-9 text-zinc-300 block mb-2" />
                     <p className="mb-2">Activity history is available for registered users.</p>
                     <Link href="/login" className="text-zinc-900 font-medium hover:underline">
                       Sign in to track your progress

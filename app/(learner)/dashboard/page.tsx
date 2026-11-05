@@ -18,6 +18,7 @@ import {
   CheckCircle2, Clock, ArrowRight,
   Target, Sparkles,
 } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ function SkillProgressPanel({
             <div key={id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className={`material-symbols-outlined text-[18px] ${skillColors(id).split(" ")[1]}`}>{icon}</span>
+                  <Icon name={icon} className={`h-[18px] w-[18px] ${skillColors(id).split(" ")[1]}`} />
                   <span className="text-sm font-semibold">{label}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -130,55 +131,6 @@ function SkillProgressPanel({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── Exam Readiness Widget ─────────────────────────────────────────────────────
-
-function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number | undefined; loading: boolean }) {
-  const pct = examReadiness ?? 0;
-  const r = 36;
-  const circumference = 2 * Math.PI * r;
-  const dash = circumference * (pct / 100);
-  const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
-
-  return (
-    <div className="bg-card border rounded-xl p-6 shadow-sm flex flex-col items-center gap-3 text-center">
-      <div className="flex items-center gap-2 w-full justify-between mb-1">
-        <h2 className="font-display text-base font-semibold text-foreground">Exam Readiness</h2>
-        <Link href="/analysis" className="text-xs text-primary font-medium flex items-center gap-1 hover:text-primary/80 transition-colors duration-150">
-          Details <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
-      {loading ? (
-        <Skeleton className="h-24 w-24 rounded-full mx-auto" />
-      ) : (
-        <div className="relative">
-          <svg width="96" height="96" viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r={r} fill="none" stroke="#e5e7eb" strokeWidth="8" />
-            <circle
-              cx="48" cy="48" r={r}
-              fill="none"
-              stroke={color}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={circumference / 4}
-              style={{ transition: "stroke-dasharray 1s ease" }}
-            />
-            <text x="48" y="52" textAnchor="middle" fontSize="18" fontWeight="800" fill="currentColor" className="text-foreground">
-              {pct}%
-            </text>
-          </svg>
-        </div>
-      )}
-      <p className="text-xs text-muted-foreground leading-relaxed">
-        {pct >= 75 ? "You're well prepared! Keep it up." :
-          pct >= 50 ? "Good progress — a few more tests will get you there." :
-            pct >= 25 ? "Keep practicing — you're building momentum." :
-              "Start taking tests to track your readiness."}
-      </p>
     </div>
   );
 }
@@ -402,14 +354,14 @@ export default function DashboardPage() {
                 <p className="text-sm font-semibold text-white">AI Coach</p>
                 <p className="text-xs text-white/70">Get your personalised plan</p>
               </div>
-              <span className="material-symbols-outlined text-white/70 text-[18px]">chevron_right</span>
+              <Icon name="chevron_right" className="text-white/70 h-[18px] w-[18px]" />
             </div>
           </Link>
 
           {/* Daily Tip with skill accent */}
           <div className={`border ${accent.border} rounded-xl p-4 bg-card shadow-sm`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`material-symbols-outlined text-[16px] ${accent.icon}`}>lightbulb</span>
+              <Icon name="lightbulb" className={`h-[16px] w-[16px] ${accent.icon}`} />
               <span className={`text-[10px] font-bold uppercase tracking-widest ${accent.label} capitalize`}>
                 {weakestSkill} Tip
               </span>

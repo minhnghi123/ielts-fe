@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
 import { analyticsApi } from "@/lib/api/analytics";
 import type { DashboardSummary } from "@/lib/types";
+import { Icon } from "@/components/ui/icon";
 
 const GUEST_STATS = [
   { title: "Học viên", value: "10,000+", badge: "Đang tăng" },
@@ -47,7 +48,7 @@ export function HomeStats() {
   return (
     <section className="mb-10">
       <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-        <span className="material-symbols-outlined text-zinc-400">analytics</span>
+        <Icon name="analytics" className="h-5 w-5 text-zinc-400" />
         {isLoggedIn ? "Số liệu của bạn" : "Số liệu nền tảng"}
       </h2>
 

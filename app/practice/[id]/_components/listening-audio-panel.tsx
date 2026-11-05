@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 
 function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60);
@@ -150,16 +151,14 @@ export const TabbedAudioPanel = memo(function TabbedAudioPanel({
                     className="h-16 w-16 rounded-full shadow-lg hover:scale-105 transition-transform"
                     disabled={!audioUrl}
                   >
-                    <span className="material-symbols-outlined text-[32px]">
-                       {isPlaying ? "pause" : "play_arrow"}
-                    </span>
+                    <Icon name={isPlaying ? "pause" : "play_arrow"} className="h-[32px] w-[32px]" />
                   </Button>
                 </div>
               </div>
 
               {/* Warning */}
               <div className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-lg flex items-center gap-2 text-xs text-yellow-800 dark:text-yellow-200 border border-yellow-100 dark:border-yellow-800/30 w-full">
-                <span className="material-symbols-outlined text-sm">warning</span>
+                <Icon name="warning" className="h-4 w-4" />
                 <span className="font-medium">
                    Lưu ý: Bạn chỉ được nghe đoạn ghi âm MỘT lần duy nhất.
                 </span>

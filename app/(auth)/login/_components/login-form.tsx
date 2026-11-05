@@ -20,6 +20,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useLoginMutation } from "@/lib/hooks/use-auth";
 import { Suspense } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { Icon } from "@/components/ui/icon";
 
 export function LoginFormContent() {
   const router = useRouter();
@@ -102,7 +103,7 @@ export function LoginFormContent() {
       <CardHeader className="space-y-1 mb-4">
         <div className="flex items-center gap-2.5 mb-6">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50">
-            <span className="material-symbols-outlined text-[20px]">school</span>
+            <Icon name="school" className="h-[20px] w-[20px]" />
           </div>
           <span className="font-display text-lg font-bold">IELTS-MN</span>
         </div>
@@ -115,14 +116,14 @@ export function LoginFormContent() {
       <CardContent>
         {registered && (
           <div className="bg-zinc-100 border border-zinc-300 text-zinc-700 px-4 py-3 rounded-lg text-sm mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">check_circle</span>
+            <Icon name="check_circle" className="h-5 w-5" />
             Registration successful! Please sign in.
           </div>
         )}
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">error</span>
+            <Icon name="error" className="h-5 w-5" />
             {error}
           </div>
         )}
@@ -167,7 +168,7 @@ export function LoginFormContent() {
           >
             {loginMutation.isPending ? (
               <div className="flex items-center gap-2">
-                <span className="animate-spin material-symbols-outlined text-lg">progress_activity</span>
+                <Icon name="progress_activity" className="animate-spin h-5 w-5" />
                 Signing In...
               </div>
             ) : (

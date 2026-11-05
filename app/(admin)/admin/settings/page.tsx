@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 
 export default function AdminSettingsPage() {
   return (
@@ -18,7 +19,7 @@ export default function AdminSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <span className="material-symbols-outlined text-orange-500">memory</span>
+                <Icon name="memory" className="h-5 w-5 text-orange-500" />
                 AI Service Integration
               </h2>
               <p className="text-sm text-muted-foreground">Configure the API keys and endpoints for marking engines.</p>
@@ -31,7 +32,7 @@ export default function AdminSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <span className="material-symbols-outlined text-green-500">mark_email_read</span>
+                <Icon name="mark_email_read" className="h-5 w-5 text-green-500" />
                 Automated Mailer
               </h2>
               <p className="text-sm text-muted-foreground">Set up SMTP or SendGrid connection for student alerts.</p>
@@ -44,7 +45,7 @@ export default function AdminSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-500">analytics</span>
+                <Icon name="analytics" className="h-5 w-5 text-blue-500" />
                 Analytics Cron Jobs
               </h2>
               <p className="text-sm text-muted-foreground">Manage the frequency of background data aggregations.</p>

@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Icon } from "@/components/ui/icon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ export default function ImportTestPage() {
                     href="/admin/tests"
                     className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                    <span className="material-symbols-outlined">arrow_back</span>
+                    <Icon name="arrow_back" className="h-5 w-5" />
                 </Link>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Import Test</h1>
@@ -157,9 +158,7 @@ export default function ImportTestPage() {
                         className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-12 text-center cursor-pointer transition-all
               ${dragging ? "border-orange-500 bg-orange-500/5" : "border-border hover:border-orange-300 hover:bg-muted/50"}`}
                     >
-                        <span className="material-symbols-outlined text-5xl text-muted-foreground">
-                            upload_file
-                        </span>
+                        <Icon name="upload_file" className="h-12 w-12 text-muted-foreground" />
                         {docxFile ? (
                             <>
                                 <p className="font-semibold text-lg">{docxFile.name}</p>
@@ -202,7 +201,7 @@ export default function ImportTestPage() {
                             <div className="flex flex-wrap gap-2">
                                 {audioFiles.map((af, i) => (
                                     <span key={i} className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                                        <span className="material-symbols-outlined text-sm">music_note</span>
+                                        <Icon name="music_note" className="h-4 w-4" />
                                         {af.name}
                                         <button onClick={() => setAudioFiles(audioFiles.filter((_, j) => j !== i))} className="hover:text-red-500">×</button>
                                     </span>
@@ -250,7 +249,7 @@ ANSWER: B`}</pre>
                             disabled={!docxFile || loading}
                             className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                         >
-                            {loading ? <Spinner /> : <span className="material-symbols-outlined text-sm">visibility</span>}
+                            {loading ? <Spinner /> : <Icon name="visibility" className="h-4 w-4" />}
                             {loading ? "Parsing..." : "Preview Parse"}
                         </button>
                     </div>
@@ -282,7 +281,7 @@ ANSWER: B`}</pre>
                                 { label: "Speaking Parts", value: preview.stats?.speakingParts ?? 0, icon: "record_voice_over" },
                             ].map((s) => (
                                 <div key={s.label} className="rounded-lg bg-muted/50 p-3 flex flex-col gap-1">
-                                    <span className="material-symbols-outlined text-muted-foreground text-sm">{s.icon}</span>
+                                    <Icon name={s.icon} className="text-muted-foreground h-4 w-4" />
                                     <p className="text-2xl font-bold">{s.value}</p>
                                     <p className="text-xs text-muted-foreground">{s.label}</p>
                                 </div>
@@ -299,7 +298,7 @@ ANSWER: B`}</pre>
                                         <span className="font-semibold text-sm">Section {sec.sectionOrder}</span>
                                         {sec.audioFilename && (
                                             <span className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                                                <span className="material-symbols-outlined text-xs">music_note</span>
+                                                <Icon name="music_note" className="h-5 w-5 text-xs" />
                                                 {sec.audioFilename}
                                             </span>
                                         )}
@@ -336,7 +335,7 @@ ANSWER: B`}</pre>
                             disabled={loading}
                             className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center gap-2"
                         >
-                            {loading ? <Spinner /> : <span className="material-symbols-outlined text-sm">cloud_upload</span>}
+                            {loading ? <Spinner /> : <Icon name="cloud_upload" className="h-4 w-4" />}
                             {loading ? "Importing…" : "Confirm Import"}
                         </button>
                     </div>
@@ -347,7 +346,7 @@ ANSWER: B`}</pre>
             {step === "done" && importedId && (
                 <div className="flex flex-col items-center gap-6 py-12 text-center">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                        <span className="material-symbols-outlined text-5xl text-green-600">check_circle</span>
+                        <Icon name="check_circle" className="h-12 w-12 text-green-600" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-bold">Test Imported!</h2>
@@ -402,7 +401,7 @@ function StepIndicator({ current }: { current: "upload" | "preview" | "done" }) 
 function ErrorBox({ message }: { message: string }) {
     return (
         <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 text-red-700 p-4 text-sm">
-            <span className="material-symbols-outlined text-lg shrink-0">error</span>
+            <Icon name="error" className="h-5 w-5 shrink-0" />
             {message}
         </div>
     );
