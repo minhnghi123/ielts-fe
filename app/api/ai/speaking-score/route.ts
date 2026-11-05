@@ -6,6 +6,9 @@ import type { ScoreResult, SpeakingLevel, WordResult } from '@/lib/api/speaking'
 const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const MAX_BYTES = 10 * 1024 * 1024;
 const LEVELS: SpeakingLevel[] = ['word', 'sentence_build', 'sentence', 'free'];
+/** RMS (0–1) below which a recording is treated as silence; normal speech sits around 0.05–0.3. */
+const SILENCE_RMS = 0.004;
+const HALLUCINATIONS = new Set(['you', 'thank you', 'thanks', 'bye', 'the', 'oh', 'so', 'okay', 'thank you very much', 'thanks for watching', 'you you', 'yeah', 'hmm', 'mm', 'uh', 'um']);
 
 /**
  * Scripted scoring: reference text + short recording → Groq Whisper (word timestamps) → alignment →
@@ -26,6 +29,8 @@ export async function POST(req: NextRequest) {
     const exerciseId = (form.get('exerciseId') as string | null) || null;
     const audioUrl = (form.get('audioUrl') as string | null) || null;
     const targetSounds = String(form.get('targetSounds') ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    const peakRaw = form.get('peakLevel');
+    const peakLevel = peakRaw == null || peakRaw === '' ? null : Number(peakRaw);
     if (!(file instanceof Blob) || file.size === 0) return NextResponse.json({ error: 'Thiếu bản ghi âm' }, { status: 400 });
     if (file.size > MAX_BYTES) return NextResponse.json({ error: 'Bản ghi quá lớn (tối đa 10 MB)' }, { status: 413 });
     if (!LEVELS.includes(level) || level === 'free') return NextResponse.json({ error: 'level không hợp lệ cho chấm theo văn bản' }, { status: 400 });
@@ -49,13 +54,22 @@ export async function POST(req: NextRequest) {
     }
     const data = (await groqRes.json()) as { text?: string; duration?: number; words?: Array<{ word: string; start: number; end: number }>; segments?: Array<{ start: number; end: number; text: string; no_speech_prob?: number; avg_logprob?: number }> };
     // Whisper hallucinates short tokens ("you", "Thank you.") on silence/noise; treat those as no speech.
+    // Whisper can be *confident* on pure silence (no_speech_prob 0, text "you"), so three independent signals:
+    // measured mic level from the recorder, Whisper's own flags, and the classic silence-hallucination phrases
+    // when they share no word with the reference text.
     const segs = data.segments ?? [];
-    const silent = segs.length === 0 || segs.every((sg) => (sg.no_speech_prob ?? 0) > 0.5 || (sg.avg_logprob ?? 0) < -1.0);
-    const transcript = silent ? '' : (data.text ?? '').trim();
+    const rawText = (data.text ?? '').trim();
+    const rawTokens = tokenize(rawText);
+    const refTokens = tokenize(referenceText);
+    const tooQuiet = peakLevel != null && Number.isFinite(peakLevel) && peakLevel < SILENCE_RMS;
+    const whisperSaysSilent = segs.length === 0 || segs.every((sg) => (sg.no_speech_prob ?? 0) > 0.5 || (sg.avg_logprob ?? 0) < -1.0);
+    const hallucinated = rawTokens.length <= 3 && HALLUCINATIONS.has(rawTokens.join(' ')) && !rawTokens.some((t) => refTokens.includes(t));
+    const silent = tooQuiet || whisperSaysSilent || hallucinated;
+    const transcript = silent ? '' : rawText;
     const timed: TimedWord[] = silent ? [] : (data.words ?? []).map((w) => ({ word: w.word, start: w.start, end: w.end }));
     const durationS = Math.max(0.1, Number(data.duration ?? (timed.at(-1)?.end ?? data.segments?.at(-1)?.end ?? 0)) || 0.1);
 
-    const reference = tokenize(referenceText);
+    const reference = refTokens;
     const heard = timed.length ? timed.map((w) => w.word).join(' ') : transcript;
     const aligned = alignWords(reference, tokenize(heard));
     const wordResults: WordResult[] = aligned.map((w) => {

@@ -46,7 +46,7 @@ export const speakingApi = {
     },
     deleteAudio: (id: string) => apiClient.delete<ApiResponse<SpeakingAttempt>>(`${base}/attempts/${id}/audio`).then((r) => r.data.data),
     /** Record → Groq Whisper (word timestamps) → alignment → saved attempt. */
-    score: async (input: { blob: Blob; referenceText: string; level: SpeakingLevel; exerciseId?: string; targetSounds?: string[]; audioUrl?: string | null }) => {
+    score: async (input: { blob: Blob; referenceText: string; level: SpeakingLevel; exerciseId?: string; targetSounds?: string[]; audioUrl?: string | null; peakLevel?: number }) => {
         const fd = new FormData();
         fd.append('file', input.blob, 'speech.webm');
         fd.append('referenceText', input.referenceText);
@@ -54,6 +54,7 @@ export const speakingApi = {
         if (input.exerciseId) fd.append('exerciseId', input.exerciseId);
         if (input.targetSounds?.length) fd.append('targetSounds', input.targetSounds.join(','));
         if (input.audioUrl) fd.append('audioUrl', input.audioUrl);
+        if (input.peakLevel !== undefined) fd.append('peakLevel', String(input.peakLevel));
         const res = await fetch('/api/ai/speaking-score', { method: 'POST', body: fd, credentials: 'include' });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json?.error || 'Không chấm được bản ghi');

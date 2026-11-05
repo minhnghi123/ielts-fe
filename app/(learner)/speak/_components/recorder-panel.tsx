@@ -8,7 +8,7 @@ import { speak, useRecorder } from "./use-recorder";
 /**
  * Nghe mẫu → Ghi âm (tối đa maxSeconds) → nghe lại → Chấm. One primary action at a time.
  */
-export function RecorderPanel({ modelText, maxSeconds, onScore, scoring, disabled }: { modelText: string; maxSeconds: number; onScore: (blob: Blob) => void; scoring: boolean; disabled?: boolean }) {
+export function RecorderPanel({ modelText, maxSeconds, onScore, scoring, disabled }: { modelText: string; maxSeconds: number; onScore: (blob: Blob, peakLevel: number) => void; scoring: boolean; disabled?: boolean }) {
     const r = useRecorder(maxSeconds);
     const [modelError, setModelError] = useState<string | null>(null);
     return (
@@ -29,7 +29,7 @@ export function RecorderPanel({ modelText, maxSeconds, onScore, scoring, disable
                 )}
                 {r.state === "ready" && (
                     <>
-                        <Button type="button" size="sm" onClick={() => r.blob && onScore(r.blob)} disabled={scoring}>{scoring ? "Đang chấm…" : "Chấm"}</Button>
+                        <Button type="button" size="sm" onClick={() => r.blob && onScore(r.blob, r.peakLevel)} disabled={scoring}>{scoring ? "Đang chấm…" : "Chấm"}</Button>
                         <Button type="button" size="sm" variant="ghost" onClick={r.reset} disabled={scoring}><RotateCcw className="mr-1.5 h-4 w-4" /> Ghi lại</Button>
                     </>
                 )}

@@ -22,9 +22,9 @@ export function WordLevel({ sound, soundTips, onSaved }: { sound: string | null;
     if (q.isError) return <p className="text-sm text-rose-600">Không tải được bài luyện.</p>;
     if (!ex) return <p className="text-sm text-muted-foreground">Chưa có từ nào cho âm này.</p>;
 
-    const score = async (blob: Blob) => {
+    const score = async (blob: Blob, peakLevel: number) => {
         setScoring(true); setError(null);
-        try { setResult(await speakingApi.score({ blob, referenceText: ex.text, level: "word", exerciseId: ex.id, targetSounds: ex.targetSounds })); onSaved(); }
+        try { setResult(await speakingApi.score({ blob, referenceText: ex.text, level: "word", exerciseId: ex.id, targetSounds: ex.targetSounds, peakLevel })); onSaved(); }
         catch (e) { setError(e instanceof Error ? e.message : "Không chấm được"); }
         finally { setScoring(false); }
     };
