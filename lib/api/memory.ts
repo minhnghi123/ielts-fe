@@ -29,3 +29,13 @@ export function halfLifeLabel(h: number): string {
     if (h < 48) return `~${Math.round(h)} giờ`;
     return `~${Math.round(h / 24)} ngày`;
 }
+
+/** Client-side recall estimate for an item (same formula as the BE): 2^(-lag/h). */
+export function recallNow(item: { halfLifeH?: number | null; lastReviewedAt?: string | null; createdAt: string }, now = Date.now()): number | null {
+    const h = item.halfLifeH ?? 24;
+    const anchor = item.lastReviewedAt ?? item.createdAt;
+    if (!anchor) return null;
+    const lagH = Math.max(0, (now - new Date(anchor).getTime()) / 3_600_000);
+    return Math.pow(2, -lagH / h);
+}
+export const AT_RISK_P = 0.7;

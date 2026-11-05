@@ -1,6 +1,6 @@
 "use client";
 
-import { halfLifeLabel } from "@/lib/api/memory";
+import { AT_RISK_P, halfLifeLabel, recallNow } from "@/lib/api/memory";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function WordsPage() {
     const qc = useQueryClient();
     const all = useQuery({ queryKey: ["words", "all"], queryFn: () => wordsApi.list(false) });
     const words = all.data ?? [];
-    const due = useMemo(() => words.filter((w) => !w.nextReviewAt || new Date(w.nextReviewAt) <= new Date()), [words]);
+    const due = useMemo(() => words.filter((w) => !w.nextReviewAt || new Date(w.nextReviewAt) <= new Date() || (recallNow(w) ?? 1) < AT_RISK_P), [words]);
     const invalidate = () => qc.invalidateQueries({ queryKey: ["words"] });
 
     const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => new Set());
@@ -50,6 +50,7 @@ export default function WordsPage() {
                     {current && (
                         <div className="space-y-4">
                             <p className="text-xs text-muted-foreground">Ôn {reviewedToday + 1}/{reviewedToday + due.filter((w) => !reviewedIds.has(w.id)).length}</p>
+                            {current.nextReviewAt && new Date(current.nextReviewAt) > new Date() && <p className="text-xs text-amber-700">Ôn sớm: mô hình dự đoán bạn chỉ còn nhớ ~{Math.round((recallNow(current) ?? 0) * 100)}%</p>}
                             <p className="text-3xl font-semibold">{current.word}</p>
                             {current.halfLifeH != null && <p className="text-xs text-muted-foreground">Bạn thường nhớ từ này {halfLifeLabel(current.halfLifeH)} · đã nhớ {current.correctCount ?? 0} / quên {current.lapseCount ?? 0} lần</p>}
                             {current.context && <p className="text-sm italic text-muted-foreground">“{current.context}”</p>}
