@@ -29,10 +29,16 @@ export default function MySkillsPage() {
     const qc = useQueryClient();
     const q = useQuery({ queryKey: ["learner-model", learnerId], queryFn: () => learnerModelApi.get(learnerId!), enabled: !!learnerId });
     const [msg, setMsg] = useState<string | null>(null);
+    const [msgKind, setMsgKind] = useState<"ok" | "error">("ok");
     const fb = useMutation({
         mutationFn: (input: { skill: string; kc: string; verdict: "vung" | "chua_vung" }) => learnerModelApi.feedback(learnerId!, input),
-        onSuccess: (r) => { setMsg(`Đã ghi nhận. ${kcLabel(r.kc)}: ${MASTERY_LABELS_VI[r.level]} (rating ${Math.round(r.ratingBefore)} → ${Math.round(r.ratingAfter)}).`); qc.invalidateQueries({ queryKey: ["learner-model"] }); qc.invalidateQueries({ queryKey: ["mastery"] }); },
-        onError: (e: unknown) => setMsg((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Không gửi được phản hồi."),
+        onSuccess: (r) => { setMsgKind("ok"); setMsg(`Đã ghi nhận. ${kcLabel(r.kc)}: ${MASTERY_LABELS_VI[r.level]} (điểm năng lực ${Math.round(r.ratingBefore)} → ${Math.round(r.ratingAfter)}).`); qc.invalidateQueries({ queryKey: ["learner-model"] }); qc.invalidateQueries({ queryKey: ["mastery"] }); },
+        onError: (e: unknown) => {
+            const d = (e as { response?: { data?: { message?: string | string[]; error?: { message?: string | string[] } } } })?.response?.data;
+            const m = d?.error?.message ?? d?.message;
+            setMsgKind("error");
+            setMsg(Array.isArray(m) ? m.join(" ") : m || "Không gửi được phản hồi.");
+        },
     });
 
     return (
@@ -53,7 +59,7 @@ export default function MySkillsPage() {
                     {q.data.skills.some((s) => s.kcs.length > 0) && (
                         <Card><CardContent className="space-y-4 p-5">
                             <p className="font-medium">Dạng câu — bạn vững đến đâu?</p>
-                            {msg && <p className="text-sm text-emerald-700">{msg}</p>}
+                            {msg && <p className={`text-sm ${msgKind === "error" ? "text-rose-600" : "text-emerald-700"}`}>{msg}</p>}
                             {q.data.skills.filter((s) => s.kcs.length > 0).map((s) => (
                                 <div key={s.skill} className="space-y-1.5">
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">{SKILL_VI[s.skill]}</p>
@@ -115,7 +121,7 @@ function KcRow({ skill, k, onFeedback, busy }: { skill: string; k: KcState; onFe
         <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
             <span className="min-w-[10rem] font-medium">{kcLabel(k.kc)}</span>
             <span className={`rounded-full px-2 py-0.5 text-xs ${LEVEL_CLASS[k.level]}`}>{MASTERY_LABELS_VI[k.level]}</span>
-            <span className="text-xs text-muted-foreground">{k.correct}/{k.attempts} đúng · rating {Math.round(k.rating)}</span>
+            <span className="text-xs text-muted-foreground">{k.correct}/{k.attempts} đúng · điểm năng lực {Math.round(k.rating)}</span>
             <span className="ml-auto flex gap-1">
                 {canDrill && t && <Button asChild size="sm" variant="outline"><Link href={drillHref({ skill, questionType: t })}>Luyện</Link></Button>}
                 {k.attempts >= 3 && k.level !== "thanh_thao" && <Button size="sm" variant="ghost" disabled={busy} onClick={() => onFeedback("vung")} title="Tôi thấy mình vững hơn mức này">Tôi đã vững</Button>}
