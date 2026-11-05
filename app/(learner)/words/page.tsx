@@ -1,5 +1,6 @@
 "use client";
 
+import { halfLifeLabel } from "@/lib/api/memory";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export default function WordsPage() {
         <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
             <div>
                 <h1 className="text-2xl font-semibold">Sổ từ vựng</h1>
-                <p className="text-sm text-muted-foreground">Từ bạn lưu khi đọc bài. Ôn đúng lúc sắp quên: Quên → mai gặp lại, Nhớ → giãn dần, Dễ → giãn nhanh hơn.</p>
+                <p className="text-sm text-muted-foreground">Từ bạn lưu khi đọc bài. Lịch ôn do mô hình quên tính riêng cho bạn: mỗi lần nhớ, thời gian nhớ được kéo dài; mỗi lần quên, rút ngắn. Quên → mai gặp lại, Nhớ → giãn dần, Dễ → giãn nhanh hơn.</p>
             </div>
 
             <Card>
@@ -50,6 +51,7 @@ export default function WordsPage() {
                         <div className="space-y-4">
                             <p className="text-xs text-muted-foreground">Ôn {reviewedToday + 1}/{reviewedToday + due.filter((w) => !reviewedIds.has(w.id)).length}</p>
                             <p className="text-3xl font-semibold">{current.word}</p>
+                            {current.halfLifeH != null && <p className="text-xs text-muted-foreground">Bạn thường nhớ từ này {halfLifeLabel(current.halfLifeH)} · đã nhớ {current.correctCount ?? 0} / quên {current.lapseCount ?? 0} lần</p>}
                             {current.context && <p className="text-sm italic text-muted-foreground">“{current.context}”</p>}
                             {!revealed ? (
                                 <Button onClick={() => setRevealed(true)}>Xem nghĩa</Button>

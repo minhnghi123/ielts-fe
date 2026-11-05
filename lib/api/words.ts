@@ -12,7 +12,13 @@ export interface SavedWord {
     srsEase: number;
     nextReviewAt: string | null;
     reviewCount: number;
+    correctCount?: number;
+    lapseCount?: number;
+    halfLifeH?: number | null;
+    lastReviewedAt?: string | null;
     createdAt: string;
+    /** Only on the review response: predicted recall before this review. */
+    pRecallBefore?: number;
 }
 
 export type MasteryLevel = 'chua_du_du_lieu' | 'yeu' | 'dang_hoc' | 'vung' | 'thanh_thao';

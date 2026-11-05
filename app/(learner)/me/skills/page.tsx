@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth-store";
 import { learnerModelApi, type KcState, type SkillModel } from "@/lib/api/learner-model";
+import { memoryApi } from "@/lib/api/memory";
 import { MASTERY_LABELS_VI } from "@/lib/api/words";
 import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 import { errorCauseLabel } from "@/lib/error-causes";
@@ -28,6 +29,7 @@ export default function MySkillsPage() {
     const learnerId = (user as { profileId?: string } | null)?.profileId || user?.id || null;
     const qc = useQueryClient();
     const q = useQuery({ queryKey: ["learner-model", learnerId], queryFn: () => learnerModelApi.get(learnerId!), enabled: !!learnerId });
+    const mem = useQuery({ queryKey: ["memory-forecast", learnerId], queryFn: () => memoryApi.forecast(learnerId!), enabled: !!learnerId, staleTime: 60_000 });
     const [msg, setMsg] = useState<string | null>(null);
     const [msgKind, setMsgKind] = useState<"ok" | "error">("ok");
     const fb = useMutation({
@@ -84,6 +86,7 @@ export default function MySkillsPage() {
                             <p className="text-xs text-muted-foreground">Từ vựng</p>
                             <p className="mt-1 text-2xl font-semibold tabular-nums">{q.data.words.due}<span className="text-sm font-normal text-muted-foreground"> đến hạn</span></p>
                             <p className="text-sm text-muted-foreground">{q.data.words.soon} từ sắp đến hạn trong 2 ngày · {q.data.words.total} từ đã lưu</p>
+                            {mem.data && <p className="text-xs text-muted-foreground">Mô hình quên: {mem.data.counts.atRiskWords} từ và {mem.data.counts.atRiskMistakes} câu sổ lỗi dự đoán nhớ dưới 70%{mem.data.model.nObs >= mem.data.model.minObs ? ` · đã hiệu chỉnh riêng cho bạn (hệ số ${mem.data.model.scale})` : ` · dùng tham số mặc định (cần ${mem.data.model.minObs - mem.data.model.nObs} lượt ôn nữa để hiệu chỉnh riêng)`}</p>}
                             {q.data.words.due > 0 && <Link href="/words" className="text-sm text-primary underline-offset-4 hover:underline">Ôn ngay</Link>}
                         </CardContent></Card>
                         <Card><CardContent className="p-4">
