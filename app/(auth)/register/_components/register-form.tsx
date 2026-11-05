@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
 import { supabase } from "@/lib/supabase/client";
+import { Icon } from "@/components/ui/icon";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export function RegisterForm() {
       <CardHeader>
         <div className="flex items-center gap-2.5 mb-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50">
-            <span className="material-symbols-outlined text-[20px]">school</span>
+            <Icon name="school" className="h-[20px] w-[20px]" />
           </div>
           <span className="font-display text-lg font-bold">IELTS-MN</span>
         </div>
@@ -129,7 +130,7 @@ export function RegisterForm() {
                   }`}
                 >
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    <span className="material-symbols-outlined text-[18px]">{opt.icon}</span>
+                    <Icon name={opt.icon} className="h-[18px] w-[18px]" />
                     {opt.label}
                   </span>
                   <span className={`text-xs ${role === opt.value ? "text-zinc-300" : "text-muted-foreground"}`}>

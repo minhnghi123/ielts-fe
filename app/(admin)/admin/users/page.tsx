@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
+import { Icon } from "@/components/ui/icon";
 
 interface User {
     id: string;
@@ -86,9 +87,7 @@ export default function UsersManagementPage() {
 
                 <div className="flex gap-3 relative">
                     <div className="relative w-full md:w-64 flex-1 min-w-48">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                            search
-                        </span>
+                        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                         <input
                             type="text"
                             placeholder="Search by email..."
@@ -126,7 +125,7 @@ export default function UsersManagementPage() {
                         ) : users.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="text-center py-16 text-muted-foreground">
-                                    <span className="material-symbols-outlined text-4xl block mb-2">group_off</span>
+                                    <Icon name="group_off" className="h-9 w-9 block mb-2" />
                                     No users found matching your criteria.
                                 </td>
                             </tr>

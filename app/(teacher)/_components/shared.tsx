@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { AssignmentStatus, Skill, SubmissionStatus } from "@/lib/types";
+import { Icon } from "@/components/ui/icon";
 
 export const SKILL_ICON: Record<Skill, string> = {
   listening: "headphones",
@@ -23,7 +24,7 @@ export function SkillBadge({ skill }: { skill?: Skill | string | null }) {
   const s = (skill ?? "reading") as Skill;
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold capitalize", SKILL_COLOR[s])}>
-      <span className="material-symbols-outlined text-[14px]">{SKILL_ICON[s] ?? "quiz"}</span>
+      <Icon name={SKILL_ICON[s] ?? "quiz"} className="h-[14px] w-[14px]" />
       {s}
     </span>
   );
@@ -62,9 +63,7 @@ export function BandPill({ band, reviewed }: { band: number | null | undefined; 
     <span className="inline-flex items-center gap-1 font-semibold tabular-nums">
       {Number(band).toFixed(1)}
       {reviewed && (
-        <span className="material-symbols-outlined text-[14px] text-primary" title="Reviewed by teacher">
-          verified
-        </span>
+        <span title="Giáo viên đã chấm"><Icon name="verified" className="h-[14px] w-[14px] text-primary" /></span>
       )}
     </span>
   );
@@ -90,7 +89,7 @@ export function PageHeader({ title, subtitle, actions, back }: { title: string; 
       <div>
         {back && (
           <Link href={back.href} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-1">
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <Icon name="arrow_back" className="h-[16px] w-[16px]" />
             {back.label}
           </Link>
         )}
@@ -110,7 +109,7 @@ export function errorMessage(e: unknown, fallback: string): string {
 export function EmptyState({ icon, title, description, action }: { icon: string; title: string; description?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center text-center rounded-xl border border-dashed p-10 gap-2">
-      <span className="material-symbols-outlined text-4xl text-muted-foreground">{icon}</span>
+      <Icon name={icon} className="h-9 w-9 text-muted-foreground" />
       <h3 className="font-semibold">{title}</h3>
       {description && <p className="text-sm text-muted-foreground max-w-sm">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
@@ -118,17 +117,12 @@ export function EmptyState({ icon, title, description, action }: { icon: string;
   );
 }
 
-export function StatCard({ icon, label, value, hint }: { icon: string; label: string; value: React.ReactNode; hint?: string }) {
+export function StatCard({ label, value, hint }: { icon?: string; label: string; value: React.ReactNode; hint?: string }) {
   return (
-    <div className="rounded-xl border bg-card p-4 flex items-center gap-4">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <span className="material-symbols-outlined">{icon}</span>
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-2xl font-bold leading-tight">{value}</p>
-        {hint && <p className="text-xs text-muted-foreground truncate">{hint}</p>}
-      </div>
+    <div className="rounded-md bg-muted px-4 py-3">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[2rem] leading-none tabular-nums">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground truncate">{hint}</p>}
     </div>
   );
 }
@@ -136,7 +130,7 @@ export function StatCard({ icon, label, value, hint }: { icon: string; label: st
 export function PendingApprovalBanner() {
   return (
     <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-4 flex gap-3 mb-6">
-      <span className="material-symbols-outlined text-amber-600">hourglass_top</span>
+      <Icon name="hourglass_top" className="h-5 w-5 text-amber-600" />
       <div>
         <p className="font-semibold text-amber-800 dark:text-amber-200">Your teacher account is waiting for approval</p>
         <p className="text-sm text-amber-700 dark:text-amber-300">

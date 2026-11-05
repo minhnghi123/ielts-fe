@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
+import { Icon } from "@/components/ui/icon";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -49,7 +50,7 @@ export function HomeNavbar() {
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-3 cursor-pointer">
             <div className="text-primary h-8 w-8 bg-primary/10 flex items-center justify-center rounded-lg">
-              <span className="material-symbols-outlined">school</span>
+              <Icon name="school" className="h-5 w-5" />
             </div>
             <h2 className="font-display text-xl font-bold tracking-tight">IELTS-MN</h2>
           </Link>
@@ -95,7 +96,7 @@ export function HomeNavbar() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push(user?.role === "admin" ? "/admin/dashboard" : "/dashboard")}>
-                    <span className="material-symbols-outlined text-[18px] mr-2">dashboard</span>
+                    <Icon name="dashboard" className="h-[18px] w-[18px] mr-2" />
                     Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -103,7 +104,7 @@ export function HomeNavbar() {
                     className="text-destructive focus:text-destructive"
                     onClick={logout}
                   >
-                    <span className="material-symbols-outlined text-[18px] mr-2">logout</span>
+                    <Icon name="logout" className="h-[18px] w-[18px] mr-2" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>

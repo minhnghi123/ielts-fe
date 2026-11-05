@@ -17,11 +17,11 @@ export default function WordsPage() {
     const due = useMemo(() => words.filter((w) => !w.nextReviewAt || new Date(w.nextReviewAt) <= new Date()), [words]);
     const invalidate = () => qc.invalidateQueries({ queryKey: ["words"] });
 
-    const [idx, setIdx] = useState(0);
+    const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => new Set());
     const [revealed, setRevealed] = useState(false);
     const review = useMutation({
         mutationFn: ({ id, q }: { id: string; q: "again" | "good" | "easy" }) => wordsApi.review(id, q),
-        onSuccess: () => { setRevealed(false); setIdx((i) => i + 1); invalidate(); },
+        onSuccess: (_d, { id }) => { setRevealed(false); setReviewedIds((prev) => new Set(prev).add(id)); invalidate(); },
     });
     const remove = useMutation({ mutationFn: (id: string) => wordsApi.remove(id), onSuccess: invalidate });
     const update = useMutation({ mutationFn: ({ id, meaningVi }: { id: string; meaningVi: string }) => wordsApi.update(id, { meaningVi }), onSuccess: invalidate });
@@ -29,7 +29,9 @@ export default function WordsPage() {
     const [newWord, setNewWord] = useState("");
     const [newMeaning, setNewMeaning] = useState("");
 
-    const current: SavedWord | undefined = due[idx];
+    // Session queue keyed by id, not index: a word added mid-session becomes reviewable without reload.
+    const current: SavedWord | undefined = due.find((w) => !reviewedIds.has(w.id));
+    const reviewedToday = words.filter((w) => reviewedIds.has(w.id)).length;
 
     return (
         <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
@@ -43,10 +45,10 @@ export default function WordsPage() {
                     {all.isLoading && <p className="text-sm text-muted-foreground">Đang tải sổ từ…</p>}
                     {all.isError && <p className="text-sm text-rose-600">Không tải được sổ từ.</p>}
                     {all.data && due.length === 0 && <p className="text-sm text-muted-foreground">Hôm nay không có từ nào đến hạn ôn.</p>}
-                    {all.data && due.length > 0 && !current && <p className="text-sm text-emerald-700">Đã ôn xong {due.length} từ hôm nay.</p>}
+                    {all.data && due.length > 0 && !current && <p className="text-sm text-emerald-700">Đã ôn xong {reviewedToday} từ hôm nay.</p>}
                     {current && (
                         <div className="space-y-4">
-                            <p className="text-xs text-muted-foreground">Ôn {idx + 1}/{due.length}</p>
+                            <p className="text-xs text-muted-foreground">Ôn {reviewedToday + 1}/{reviewedToday + due.filter((w) => !reviewedIds.has(w.id)).length}</p>
                             <p className="text-3xl font-semibold">{current.word}</p>
                             {current.context && <p className="text-sm italic text-muted-foreground">“{current.context}”</p>}
                             {!revealed ? (

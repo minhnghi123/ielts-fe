@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 
 interface TestCardProps {
   title: string;
@@ -66,15 +67,11 @@ export function TestCard({
       <CardContent className="p-5 py-2 flex-1">
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[18px]">
-              schedule
-            </span>
+            <Icon name="schedule" className="h-[18px] w-[18px]" />
             <span>{duration}</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[18px]">
-              help_outline
-            </span>
+            <Icon name="help_outline" className="h-[18px] w-[18px]" />
             <span>{questionCount} Qs</span>
           </div>
         </div>

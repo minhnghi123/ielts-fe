@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Test } from "@/lib/types";
 import { PageHeader, SkillBadge, errorMessage } from "../../../../../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 function toLocalInput(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -80,7 +81,7 @@ export default function NewAssignmentPage({ params }: { params: Promise<{ id: st
                   <button type="button" onClick={() => { setTest(t); if (!form.title) setForm({ ...form, title: "" }); }} aria-pressed={test?.id === t.id} className={`w-full text-left p-3 flex items-center gap-3 hover:bg-accent ${test?.id === t.id ? "bg-primary/10" : ""}`}>
                     <SkillBadge skill={t.skill} />
                     <div className="min-w-0 flex-1"><p className="font-medium truncate">{t.title}</p><p className="text-xs text-muted-foreground capitalize">{t.difficulty ?? "medium"} · {t.durationMinutes ?? "—"} min · {t.isMock ? "mock" : "practice"}{t.visibility === "private" ? " · private" : ""}</p></div>
-                    {test?.id === t.id && <span className="material-symbols-outlined text-primary">check_circle</span>}
+                    {test?.id === t.id && <Icon name="check_circle" className="h-5 w-5 text-primary" />}
                   </button>
                 </li>
               ))}

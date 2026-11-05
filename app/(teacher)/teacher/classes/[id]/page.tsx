@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ClassAssignment, ClassMember, Gradebook } from "@/lib/types";
 import { WeaknessTab } from "./_weakness-tab";
 import { AssignmentStatusBadge, BandPill, EmptyState, PageHeader, SkillBadge, SubmissionStatusBadge, formatDateTime, relativeDue } from "../../../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 export default function TeacherClassPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -41,17 +42,17 @@ export default function TeacherClassPage({ params }: { params: Promise<{ id: str
               <button onClick={copy} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent" title="Copy join link">
                 <span className="text-xs text-muted-foreground">Code</span>
                 <span className="font-mono font-bold tracking-widest">{cls.joinCode}</span>
-                <span className="material-symbols-outlined text-[18px]">{copied ? "check" : "content_copy"}</span>
+                <Icon name={copied ? "check" : "content_copy"} className="h-[18px] w-[18px]" />
               </button>
             )}
-            <Button asChild><Link href={`/teacher/classes/${id}/assignments/new`}><span className="material-symbols-outlined text-[18px] mr-1">assignment_add</span>Assign a test</Link></Button>
+            <Button asChild><Link href={`/teacher/classes/${id}/assignments/new`}><Icon name="assignment_add" className="h-[18px] w-[18px] mr-1" />Assign a test</Link></Button>
           </>
         }
       />
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
-        <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[18px]">school</span>{cls.memberCount ?? 0} students</span>
-        <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[18px]">assignment</span>{cls.assignmentCount ?? 0} assignments</span>
-        {cls.targetBand && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[18px]">flag</span>Target band {Number(cls.targetBand).toFixed(1)}</span>}
+        <span className="inline-flex items-center gap-1"><Icon name="school" className="h-[18px] w-[18px]" />{cls.memberCount ?? 0} students</span>
+        <span className="inline-flex items-center gap-1"><Icon name="assignment" className="h-[18px] w-[18px]" />{cls.assignmentCount ?? 0} assignments</span>
+        {cls.targetBand && <span className="inline-flex items-center gap-1"><Icon name="flag" className="h-[18px] w-[18px]" />Target band {Number(cls.targetBand).toFixed(1)}</span>}
         {cls.status === "archived" && <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-xs">Archived</span>}
       </div>
 
@@ -171,7 +172,7 @@ function GradebookTab({ classId }: { classId: string }) {
         {["", "listening", "reading", "writing", "speaking"].map((s) => (
           <button key={s} onClick={() => setSkill(s)} className={`rounded-full px-3 py-1 text-xs capitalize ${skill === s ? "bg-primary text-primary-foreground" : "border hover:bg-accent"}`}>{s || "All skills"}</button>
         ))}
-        <Button size="sm" variant="outline" className="ml-auto" onClick={download}><span className="material-symbols-outlined text-[16px] mr-1">download</span>CSV</Button>
+        <Button size="sm" variant="outline" className="ml-auto" onClick={download}><Icon name="download" className="h-[16px] w-[16px] mr-1" />CSV</Button>
       </div>
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
@@ -232,7 +233,7 @@ function PostsTab({ classId }: { classId: string }) {
         <article key={p.id} className="rounded-xl border bg-card p-4">
           <div className="flex items-start justify-between gap-2">
             <div>{p.title && <h4 className="font-semibold">{p.title}</h4>}<p className="text-xs text-muted-foreground">{formatDateTime(p.createdAt)}{p.pinned ? " · Pinned" : ""}</p></div>
-            <button className="text-muted-foreground hover:text-destructive" aria-label="Delete post" onClick={() => del.mutate(p.id)}><span className="material-symbols-outlined text-[18px]">delete</span></button>
+            <button className="text-muted-foreground hover:text-destructive" aria-label="Delete post" onClick={() => del.mutate(p.id)}><Icon name="delete" className="h-[18px] w-[18px]" /></button>
           </div>
           <p className="text-sm whitespace-pre-wrap mt-2">{p.body}</p>
         </article>

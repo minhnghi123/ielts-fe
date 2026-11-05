@@ -21,6 +21,7 @@ import {
 import { testsApi } from "@/lib/api/tests";
 import type { Test } from "@/lib/types";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Icon as SymbolIcon } from "@/components/ui/icon";
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
@@ -129,9 +130,9 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
   if (!test) {
     return (
       <div className="text-center py-20 space-y-3">
-        <span className="material-symbols-outlined text-6xl text-muted-foreground">search_off</span>
-        <p className="font-medium">Test not found</p>
-        <Link href="/tests"><Button variant="outline">Back to Library</Button></Link>
+        <SymbolIcon name="search_off" className="h-14 w-14 text-muted-foreground" />
+        <p className="font-medium">Không tìm thấy đề</p>
+        <Link href="/tests"><Button variant="outline">Về Luyện tập</Button></Link>
       </div>
     );
   }
@@ -165,7 +166,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
       </Link>
 
       {/* Hero Banner */}
-      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${config.gradient} p-8 text-white`}>
+      <div className={`relative overflow-hidden rounded-2xl bg-primary p-8 text-white`}>
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -top-10 -right-10 h-60 w-60 rounded-full bg-white" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white" />
@@ -231,7 +232,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
                       key={sec.id || index}
                       className="flex items-center gap-3 bg-white/60 dark:bg-slate-800/60 rounded-lg p-3"
                     >
-                      <div className={`h-7 w-7 rounded-full bg-gradient-to-br ${config.gradient} text-white flex items-center justify-center text-xs font-bold flex-shrink-0`}>
+                      <div className={`h-7 w-7 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0`}>
                         {index + 1}
                       </div>
                       <div className="flex-1">
@@ -253,7 +254,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
           {/* Instructions */}
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px] text-orange-500">info</span>
+              <SymbolIcon name="info" className="h-[20px] w-[20px] text-orange-500" />
               Important Instructions
             </h3>
             <ul className="space-y-3">
@@ -271,7 +272,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
         <div className="relative">
           <div className="sticky top-24">
             <Card className="shadow-xl border-primary/10 overflow-hidden">
-              <div className={`h-2 w-full bg-gradient-to-r ${config.gradient}`} />
+              <div className={`h-2 w-full bg-primary`} />
               <CardContent className="p-6 space-y-5">
                 <div>
                   <h3 className="font-bold text-lg">Ready to begin?</h3>
@@ -308,7 +309,7 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <Button
-                  className={`w-[calc(100%+1px)] h-12 text-base font-bold bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 shadow-lg transition-all gap-2`}
+                  className={`w-[calc(100%+1px)] h-12 text-base font-bold bg-primary text-white hover:opacity-90 shadow-lg transition-all gap-2`}
                   onClick={() => router.push(`/practice/${test.id}`)}
                 >
                   <PlayCircle className="h-5 w-5" />

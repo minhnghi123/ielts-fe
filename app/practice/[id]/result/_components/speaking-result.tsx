@@ -208,7 +208,7 @@ export function SpeakingResult({ gradings, bandScore, testTitle, testId }: Speak
                     <Link href={`/practice/${testId}`}>
                         <Button className="gap-2 font-semibold">
                             <RotateCcw className="h-4 w-4" />
-                            Retake This Test
+                            Làm lại đề này
                         </Button>
                     </Link>
                     <Link href="/profile">

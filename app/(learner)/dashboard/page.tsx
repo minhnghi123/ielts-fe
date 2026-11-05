@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics";
 import { useAttemptsByLearner } from "@/lib/hooks/use-attempts";
@@ -19,6 +18,7 @@ import {
   CheckCircle2, Clock, ArrowRight,
   Target, Sparkles,
 } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,9 +88,9 @@ function SkillProgressPanel({
   return (
     <div className="bg-card border rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display text-xl font-semibold text-foreground">Skill Progress</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Tiến bộ theo kỹ năng</h2>
         <Link href="/analysis" className="text-sm text-primary font-medium flex items-center gap-1 hover:text-primary/80 transition-colors duration-150">
-          Full Analysis <ArrowRight className="h-3.5 w-3.5" />
+          Xem kết quả <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ function SkillProgressPanel({
             <div key={id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className={`material-symbols-outlined text-[18px] ${skillColors(id).split(" ")[1]}`}>{icon}</span>
+                  <Icon name={icon} className={`h-[18px] w-[18px] ${skillColors(id).split(" ")[1]}`} />
                   <span className="text-sm font-semibold">{label}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -125,61 +125,12 @@ function SkillProgressPanel({
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                {loading ? "…" : count === 0 ? "Not attempted yet" : `${count} test${count !== 1 ? "s" : ""} completed`}
+                {loading ? "…" : count === 0 ? "Chưa làm bài nào" : `${count} bài đã nộp`}
               </p>
             </div>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── Exam Readiness Widget ─────────────────────────────────────────────────────
-
-function ExamReadinessWidget({ examReadiness, loading }: { examReadiness: number | undefined; loading: boolean }) {
-  const pct = examReadiness ?? 0;
-  const r = 36;
-  const circumference = 2 * Math.PI * r;
-  const dash = circumference * (pct / 100);
-  const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
-
-  return (
-    <div className="bg-card border rounded-xl p-6 shadow-sm flex flex-col items-center gap-3 text-center">
-      <div className="flex items-center gap-2 w-full justify-between mb-1">
-        <h2 className="font-display text-base font-semibold text-foreground">Exam Readiness</h2>
-        <Link href="/analysis" className="text-xs text-primary font-medium flex items-center gap-1 hover:text-primary/80 transition-colors duration-150">
-          Details <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
-      {loading ? (
-        <Skeleton className="h-24 w-24 rounded-full mx-auto" />
-      ) : (
-        <div className="relative">
-          <svg width="96" height="96" viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r={r} fill="none" stroke="#e5e7eb" strokeWidth="8" />
-            <circle
-              cx="48" cy="48" r={r}
-              fill="none"
-              stroke={color}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={circumference / 4}
-              style={{ transition: "stroke-dasharray 1s ease" }}
-            />
-            <text x="48" y="52" textAnchor="middle" fontSize="18" fontWeight="800" fill="currentColor" className="text-foreground">
-              {pct}%
-            </text>
-          </svg>
-        </div>
-      )}
-      <p className="text-xs text-muted-foreground leading-relaxed">
-        {pct >= 75 ? "You're well prepared! Keep it up." :
-          pct >= 50 ? "Good progress — a few more tests will get you there." :
-            pct >= 25 ? "Keep practicing — you're building momentum." :
-              "Start taking tests to track your readiness."}
-      </p>
     </div>
   );
 }
@@ -197,11 +148,11 @@ function StudyPriorityCard({ summary, loading }: { summary: DashboardSummary | n
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl p-5">
+    <div className="bg-muted rounded-md p-5">
       <div className="flex items-center gap-2 mb-2">
-        <Target className="h-4 w-4 text-blue-600" />
-        <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-          Top Study Priority
+        <Target className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">
+          Ưu tiên luyện tập
         </span>
       </div>
       {loading ? (
@@ -281,18 +232,13 @@ export default function DashboardPage() {
   const accent = tipAccent[weakestSkill] ?? tipAccent.reading;
 
   return (
-    <motion.div
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex flex-col gap-4">
         <Breadcrumb items={[
           { label: "Home", href: "/", icon: "home" },
           { label: "Dashboard", icon: "dashboard" },
         ]} />
-        <WelcomeHeader userName={user?.fullName || user?.email || ""} />
+        <WelcomeHeader userName={user?.fullName || user?.email || ""} learnerId={learnerId} />
       </div>
 
       <TodayCard learnerId={learnerId} />
@@ -305,12 +251,11 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <SkillProgressPanel summary={summary} attempts={attempts} loading={isLoading} />
         </div>
-        <ExamReadinessWidget examReadiness={summary?.examReadiness} loading={isLoading} />
       </div>
 
       {/* ── Module Grid ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-6">
-        <h2 className="font-display text-xl font-semibold text-foreground">Select Test Module</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Luyện theo kỹ năng</h2>
         <ModuleGrid testCounts={testCounts} attempts={attempts} loading={isLoading} />
       </div>
 
@@ -320,7 +265,7 @@ export default function DashboardPage() {
         {/* ── Recent Activity ──────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-foreground">Recent Activity</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">Bài làm gần đây</h2>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="text-sm font-medium gap-1">
                 View All <ArrowRight className="h-3.5 w-3.5" />
@@ -400,23 +345,23 @@ export default function DashboardPage() {
           <StudyPriorityCard summary={summary} loading={isLoading} />
 
           {/* AI Advisor gradient CTA */}
-          <Link href="/ai-advisor" className="block bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-4 hover:opacity-95 transition-opacity duration-150">
+          <Link href="/ai-advisor" className="block bg-primary rounded-xl p-4 hover:opacity-95 transition-opacity duration-150">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 bg-white/20 rounded-lg flex items-center justify-center text-white flex-shrink-0">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">AI Study Coach</p>
+                <p className="text-sm font-semibold text-white">AI Coach</p>
                 <p className="text-xs text-white/70">Get your personalised plan</p>
               </div>
-              <span className="material-symbols-outlined text-white/70 text-[18px]">chevron_right</span>
+              <Icon name="chevron_right" className="text-white/70 h-[18px] w-[18px]" />
             </div>
           </Link>
 
           {/* Daily Tip with skill accent */}
           <div className={`border ${accent.border} rounded-xl p-4 bg-card shadow-sm`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`material-symbols-outlined text-[16px] ${accent.icon}`}>lightbulb</span>
+              <Icon name="lightbulb" className={`h-[16px] w-[16px] ${accent.icon}`} />
               <span className={`text-[10px] font-bold uppercase tracking-widest ${accent.label} capitalize`}>
                 {weakestSkill} Tip
               </span>
@@ -427,6 +372,6 @@ export default function DashboardPage() {
 
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

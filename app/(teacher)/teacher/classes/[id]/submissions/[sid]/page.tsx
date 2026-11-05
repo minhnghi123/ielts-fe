@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SubmissionDetail } from "@/lib/types";
 import { BandPill, EmptyState, PageHeader, SkillBadge, SubmissionStatusBadge, formatDateTime } from "../../../../../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 const RUBRICS: Record<string, { key: string; label: string }[]> = {
   writing: [
@@ -96,7 +97,7 @@ function SubmissionView({ classId, sub, onSaved }: { classId: string; sub: Submi
                       <td className="p-2 text-muted-foreground">{i + 1}</td>
                       <td className="p-2">{q.answer || <span className="text-muted-foreground">—</span>}</td>
                       <td className="p-2 text-muted-foreground">{q.question?.answer?.correctAnswers?.join(" / ") ?? q.correctAnswer ?? ""}</td>
-                      <td className="p-2 text-right"><span className={`material-symbols-outlined text-[18px] ${q.isCorrect ? "text-emerald-600" : "text-red-500"}`}>{q.isCorrect ? "check_circle" : "cancel"}</span></td>
+                      <td className="p-2 text-right"><Icon name={q.isCorrect ? "check_circle" : "cancel"} className={`h-[18px] w-[18px] ${q.isCorrect ? "text-emerald-600" : "text-red-500"}`} /></td>
                     </tr>
                   ))}
                 </tbody>

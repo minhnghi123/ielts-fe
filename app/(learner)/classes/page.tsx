@@ -22,11 +22,11 @@ export default function LearnerClassesPage() {
   const classes = data?.data ?? [];
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto">
-      <PageHeader title="My Classes" subtitle="Classes you joined and the work your teachers assigned." />
+      <PageHeader title="Lớp của tôi" subtitle="Classes you joined and the work your teachers assigned." />
       <form className="rounded-xl border bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center mb-6" onSubmit={(e) => { e.preventDefault(); if (code.trim()) join.mutate(); }}>
-        <div className="flex-1"><p className="text-sm font-medium">Join a class</p><p className="text-xs text-muted-foreground">Enter the 6-character code from your teacher.</p></div>
-        <Input className="sm:w-44 font-mono tracking-widest uppercase" maxLength={8} placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} aria-label="Class code" />
-        <Button type="submit" disabled={join.isPending || code.trim().length < 6}>Join</Button>
+        <div className="flex-1"><p className="text-sm font-medium">Tham gia lớp</p><p className="text-xs text-muted-foreground">Enter the 6-character code from your teacher.</p></div>
+        <Input className="sm:w-44 font-mono tracking-widest uppercase" maxLength={8} placeholder="ABC123" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} aria-label="Mã lớp" />
+        <Button type="submit" disabled={join.isPending || code.trim().length < 6}>Tham gia</Button>
       </form>
       {msg && <p className={`text-sm mb-4 ${msg.ok ? "text-emerald-600" : "text-destructive"}`}>{msg.text}</p>}
       {upcoming && upcoming.length > 0 && (

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePractice } from "../practice-context";
 import { Timer, Loader2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { authApi } from "@/lib/api/auth";
+import { Icon } from "@/components/ui/icon";
 
 function formatTime(ms: number | null): string {
     if (ms === null) return "∞";
@@ -333,7 +334,7 @@ export function WritingTestInterface({
                                         )}
 
                                         <div className="flex items-center gap-2 p-4 mt-6 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-200 rounded-lg border border-amber-100 dark:border-amber-900/50">
-                                            <span className="material-symbols-outlined shrink-0">info</span>
+                                            <Icon name="info" className="h-5 w-5 shrink-0" />
                                             <p className="text-sm font-medium m-0">
                                                 You should write at least {minWords} words.
                                             </p>

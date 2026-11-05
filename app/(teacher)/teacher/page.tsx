@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, PageHeader, PendingApprovalBanner, SkillBadge, StatCard, relativeDue } from "../_components/shared";
+import { Icon } from "@/components/ui/icon";
 
 export default function TeacherOverviewPage() {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function TeacherOverviewPage() {
       <PageHeader
         title={`Welcome${user?.fullName ? `, ${user.fullName.split(" ").slice(-1)[0]}` : ""}`}
         subtitle="Your classes, assignments and work waiting for review."
-        actions={!pending && <Button asChild><Link href="/teacher/classes?new=1"><span className="material-symbols-outlined text-[18px] mr-1">add</span>New class</Link></Button>}
+        actions={!pending && <Button asChild><Link href="/teacher/classes?new=1"><Icon name="add" className="h-[18px] w-[18px] mr-1" />New class</Link></Button>}
       />
       {pending && <PendingApprovalBanner />}
       {!pending && isLoading && <div className="grid gap-4 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20" />)}</div>}

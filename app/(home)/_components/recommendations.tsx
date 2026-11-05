@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics";
+import { Icon } from "@/components/ui/icon";
 
 const container = {
   hidden: {},
@@ -24,7 +25,7 @@ const SKILL_ICON: Record<string, string> = {
 };
 
 /**
- * "Recommended for You" is driven by the analytics-service adaptive study plan
+ * "Gợi ý cho bạn" is driven by the analytics-service adaptive study plan
  * (weakest skills + weakest question types). Visitors who are not signed in or
  * have no attempts yet get a getting-started path instead of fake data.
  */
@@ -44,20 +45,20 @@ export function Recommendations() {
           icon: SKILL_ICON[skill] ?? "target",
           title: task.title,
           desc: task.recommendation,
-          tag: task.priority === "high" ? "Priority" : task.priority === "medium" ? "Next up" : "Keep sharp",
+          tag: task.priority === "high" ? "Ưu tiên" : task.priority === "medium" ? "Tiếp theo" : "Giữ phong độ",
           href: SKILL_ICON[skill] ? `/tests?skill=${skill}` : "/tests",
         };
       })
     : [
-        { icon: "headphones", title: "Take a Listening diagnostic", desc: "30 minutes, 40 questions — the fastest way to find your starting band.", tag: "Start here", href: "/tests?skill=listening" },
+        { icon: "headphones", title: "Take a Listening diagnostic", desc: "30 minutes, 40 questions — the fastest way to find your starting band.", tag: "Bắt đầu từ đây", href: "/tests?skill=listening" },
         { icon: "menu_book", title: "Try an Academic Reading test", desc: "Three passages with the full range of IELTS question types.", tag: "60 min", href: "/tests?skill=reading" },
-        { icon: "edit_note", title: "Get AI feedback on an essay", desc: "Write Task 1 & Task 2 and receive band scores per criterion with corrections.", tag: "AI graded", href: "/tests?skill=writing" },
+        { icon: "edit_note", title: "Nhận nhận xét AI cho một bài luận", desc: "Write Task 1 & Task 2 and receive band scores per criterion with corrections.", tag: "AI graded", href: "/tests?skill=writing" },
       ];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Recommended for You</h2>
+        <h2 className="text-2xl font-bold">Gợi ý cho bạn</h2>
         {hasHistory && (
           <span className="text-xs text-muted-foreground">
             Based on {data?.totalAttempts} attempt{data?.totalAttempts === 1 ? "" : "s"}
@@ -77,9 +78,9 @@ export function Recommendations() {
             </motion.div>
           ))}
           <motion.div variants={item}>
-            <div className="bg-gradient-to-br from-primary to-blue-700 rounded-xl p-5 text-white">
+            <div className="bg-primary rounded-xl p-5 text-white">
               <h4 className="font-semibold text-sm text-white mb-1">
-                {hasHistory ? "See your full study plan" : "Ready for the real exam?"}
+                {hasHistory ? "Xem kế hoạch tuần" : "Ready for the real exam?"}
               </h4>
               <p className="text-xs text-white/75 mb-3 leading-relaxed">
                 {hasHistory
@@ -91,7 +92,7 @@ export function Recommendations() {
                 onClick={() => hasHistory ? router.push("/dashboard") : window.open("https://ielts.org", "_blank")}
                 className="w-full text-xs bg-white text-primary hover:bg-white/90"
               >
-                {hasHistory ? "Open Dashboard" : "Find Test Centers"}
+                {hasHistory ? "Mở Hôm nay" : "Tìm điểm thi"}
               </Button>
             </div>
           </motion.div>
@@ -115,7 +116,7 @@ function RecommendCard({ icon, title, desc, tag, onClick }: {
     >
       <div className="flex items-start gap-3">
         <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors duration-150 flex-shrink-0">
-          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          <Icon name={icon} className="h-[20px] w-[20px]" />
         </div>
         <div>
           <h4 className="font-semibold text-sm text-zinc-950 mb-0.5">{title}</h4>

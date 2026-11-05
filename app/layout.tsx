@@ -1,29 +1,24 @@
 import type { Metadata } from "next";
-import { Lexend, Noto_Sans, Roboto } from "next/font/google";
+import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthHydrator } from "@/components/providers/auth-hydrator";
 
-const lexend = Lexend({
-  subsets: ["latin"],
-  variable: "--font-lexend",
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
+  variable: "--font-instrument-sans",
   display: "swap",
 });
 
-const notoSans = Noto_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-noto",
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-roboto",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "IELTS-MN Platform",
@@ -41,15 +36,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lexend.variable} ${notoSans.variable} ${roboto.variable}`}
+      className={`${instrumentSans.variable} ${instrumentSerif.variable}`}
     >
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="bg-background font-body text-foreground antialiased">
+      <body className="bg-background font-sans text-foreground antialiased">
         {/* TanStack Query client + devtools */}
         <QueryProvider>
           {/* Hydrates Zustand auth store from the session cookie on first render */}

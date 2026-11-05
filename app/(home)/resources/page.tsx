@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
 
 const RESOURCES = [
   {
@@ -153,18 +154,18 @@ export default function ResourcesPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold mb-1">Study Resources</h1>
+        <h1 className="text-2xl font-bold mb-1">Tài nguyên học tập</h1>
         <p className="text-sm text-muted-foreground">
           Hand-picked materials to boost every IELTS skill — all trusted by successful candidates.
         </p>
       </div>
 
       {/* AI Coach CTA */}
-      <div className="bg-gradient-to-r from-violet-500 to-purple-700 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+      <div className="bg-primary rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
         <div>
           <div className="flex items-center gap-2 mb-1 opacity-80">
-            <span className="material-symbols-outlined text-[18px]">smart_toy</span>
-            <span className="text-xs font-bold uppercase tracking-wider">Personalised guidance</span>
+            <Icon name="smart_toy" className="h-[18px] w-[18px]" />
+            <span className="text-xs font-bold uppercase tracking-wider">Gợi ý theo kết quả của bạn</span>
           </div>
           <p className="font-bold text-lg">Not sure where to start?</p>
           <p className="text-sm opacity-80">
@@ -175,7 +176,7 @@ export default function ResourcesPage() {
           href="/ai-advisor"
           className="shrink-0 flex items-center gap-2 bg-white text-purple-700 font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-purple-50 transition-colors shadow"
         >
-          <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+          <Icon name="auto_awesome" className="h-[18px] w-[18px]" />
           Get My Study Plan
         </Link>
       </div>
@@ -185,8 +186,8 @@ export default function ResourcesPage() {
         <div key={skill}>
           {/* Skill heading */}
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}>
-              <span className="material-symbols-outlined text-white text-[18px]">{icon}</span>
+            <div className={`w-9 h-9 rounded-xl bg-muted text-foreground flex items-center justify-center`}>
+              <Icon name={icon} className="text-primary h-[18px] w-[18px]" />
             </div>
             <h2 className="text-lg font-bold">{skill}</h2>
           </div>
@@ -208,8 +209,8 @@ export default function ResourcesPage() {
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
                 <div className={`flex items-center gap-1 text-xs font-semibold ${text} mt-auto`}>
-                  <span>Open resource</span>
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  <span>Mở tài nguyên</span>
+                  <Icon name="open_in_new" className="h-[14px] w-[14px]" />
                 </div>
               </a>
             ))}
@@ -226,7 +227,7 @@ export default function ResourcesPage() {
           href="/practice"
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-sm px-6 py-2.5 rounded-xl hover:opacity-90 transition-opacity shadow"
         >
-          <span className="material-symbols-outlined text-[18px]">play_circle</span>
+          <Icon name="play_circle" className="h-[18px] w-[18px]" />
           Take a Practice Test
         </Link>
       </div>

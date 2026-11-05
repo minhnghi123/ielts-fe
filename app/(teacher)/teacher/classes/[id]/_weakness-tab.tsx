@@ -22,7 +22,14 @@ export function WeaknessTab({ classId }: { classId: string }) {
     const [done, setDone] = useState<string | null>(null);
     const assign = useMutation({
         mutationFn: () => classroomApi.assignDrill(classId, { learnerIds: [...selected], skill, questionType: questionType || undefined, note: note || undefined }),
-        onSuccess: (r) => { setDone(`Đã giao cho ${r.assigned} học viên; bài xuất hiện trong mục Hôm nay của các em.`); setSelected(new Set()); qc.invalidateQueries({ queryKey: ["class", classId, "heatmap"] }); },
+        onSuccess: (r) => {
+            setDone(r.created === 0
+                ? `Các em đã có bài này trong tuần; không giao thêm.`
+                : `Đã giao cho ${r.created}/${r.assigned} học viên; bài xuất hiện trong mục Hôm nay của các em.`);
+            setSelected(new Set());
+            qc.invalidateQueries({ queryKey: ["class", classId, "heatmap"] });
+        },
+        onError: () => setDone("Không giao được bài. Hãy thử lại sau ít phút."),
     });
 
     if (isLoading) return <Skeleton className="h-40 w-full" />;
