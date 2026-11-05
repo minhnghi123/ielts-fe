@@ -28,9 +28,9 @@ export default function RankingsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-4 text-center gap-4">
         <Trophy className="h-12 w-12 text-primary" />
-        <h1 className="text-3xl font-bold">Leaderboard</h1>
+        <h1 className="text-3xl font-bold">Bảng xếp hạng</h1>
         <p className="text-muted-foreground max-w-md">Sign in to see how your average band compares with other learners.</p>
-        <Link href="/login?next=/rankings"><Button>Sign in</Button></Link>
+        <Link href="/login?next=/rankings"><Button>Đăng nhập</Button></Link>
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function RankingsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="relative overflow-hidden rounded-2xl bg-primary p-8 text-white">
-        <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Leaderboard</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Bảng xếp hạng</h1>
         <p className="text-blue-100 text-sm">
           Ranked by average band across submitted tests. Only your display name is shown to others.
         </p>
@@ -61,7 +61,7 @@ export default function RankingsPage() {
         <div className="text-center py-16 space-y-3">
           <p className="font-medium">No ranked learners yet</p>
           <p className="text-sm text-muted-foreground">Finish a test to claim the first spot.</p>
-          <Link href="/tests"><Button variant="outline">Browse tests</Button></Link>
+          <Link href="/tests"><Button variant="outline">Chọn đề luyện</Button></Link>
         </div>
       ) : (
         <ol className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">

@@ -50,7 +50,7 @@ export function LearnerSidebar() {
           <Link
             href="/"
             className="flex items-center justify-center p-1.5 text-muted-foreground hover:bg-zinc-100 hover:text-zinc-900 rounded-lg transition-all duration-150"
-            title="Back to Home"
+            title="Về trang chủ"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </Link>
@@ -122,7 +122,7 @@ export function LearnerSidebar() {
             className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
-            <span className="text-sm font-medium">Log Out</span>
+            <span className="text-sm font-medium">Đăng xuất</span>
           </button>
         </div>
       </div>

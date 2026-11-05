@@ -149,7 +149,7 @@ export default function TestsPage() {
             className="pl-9 h-11 bg-card"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            aria-label="Search tests"
+            aria-label="Tìm đề"
           />
         </div>
 
@@ -204,7 +204,7 @@ export default function TestsPage() {
             <span className="material-symbols-outlined text-destructive text-4xl">error</span>
           </div>
           <p className="text-destructive font-medium">{error}</p>
-          <Button onClick={fetchTests} variant="outline">Retry</Button>
+          <Button onClick={fetchTests} variant="outline">Thử lại</Button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 space-y-3">
@@ -212,7 +212,7 @@ export default function TestsPage() {
             <span className="material-symbols-outlined text-muted-foreground text-4xl">search_off</span>
           </div>
           <p className="font-medium">No tests found</p>
-          <p className="text-muted-foreground text-sm">Try a different skill or search term</p>
+          <p className="text-muted-foreground text-sm">Thử kỹ năng khác hoặc từ khoá khác</p>
         </div>
       ) : (
         <motion.div
@@ -250,7 +250,7 @@ export default function TestsPage() {
                         {config.label}
                       </Badge>
                       {test.isMock && (
-                        <Badge variant="secondary" className="text-xs">Mock</Badge>
+                        <Badge variant="secondary" className="text-xs">Đề thi thử</Badge>
                       )}
                       {test.difficulty && (
                         <Badge className={`text-xs border-none capitalize ${DIFFICULTY_BADGE[test.difficulty] ?? ''}`}>

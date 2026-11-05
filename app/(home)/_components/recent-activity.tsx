@@ -27,7 +27,7 @@ export function RecentActivity() {
       transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
     >
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-2xl font-bold">Recent Activity</h2>
+        <h2 className="text-2xl font-bold">Bài làm gần đây</h2>
         {isLoggedIn && (
           <Link
             href="/analysis"
@@ -49,10 +49,10 @@ export function RecentActivity() {
           <table className="w-full text-left border-collapse">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Test</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase hidden sm:table-cell">Date</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Skill</th>
-                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Score</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Đề</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase hidden sm:table-cell">Ngày</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Kỹ năng</th>
+                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase">Điểm</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -115,7 +115,7 @@ export function RecentActivity() {
 
       {!isLoggedIn && (
         <p className="text-center text-sm text-muted-foreground mt-2">
-          <Link href="/login" className="text-zinc-900 font-medium hover:underline">Sign in</Link>{" "}
+          <Link href="/login" className="text-zinc-900 font-medium hover:underline">Đăng nhập</Link>{" "}
           to see your real activity
         </p>
       )}

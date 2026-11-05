@@ -130,8 +130,8 @@ export default function TestDetailPage({ params }: { params: Promise<{ id: strin
     return (
       <div className="text-center py-20 space-y-3">
         <span className="material-symbols-outlined text-6xl text-muted-foreground">search_off</span>
-        <p className="font-medium">Test not found</p>
-        <Link href="/tests"><Button variant="outline">Back to Library</Button></Link>
+        <p className="font-medium">Không tìm thấy đề</p>
+        <Link href="/tests"><Button variant="outline">Về Luyện tập</Button></Link>
       </div>
     );
   }

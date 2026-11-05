@@ -387,7 +387,7 @@ function AiFeedbackPanel({
                         </div>
                     ) : (
                         <div className="text-center py-4">
-                            <p className="text-sm text-muted-foreground mb-3">AI feedback could not be generated.</p>
+                            <p className="text-sm text-muted-foreground mb-3">Chưa tạo được nhận xét AI.</p>
                             <Button size="sm" variant="outline" onClick={onRetry} className="gap-1.5">
                                 <RefreshCw className="h-3.5 w-3.5" /> Try Again
                             </Button>
@@ -720,12 +720,12 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                     {/* Title + section badges */}
                     <div className="flex flex-wrap items-center gap-2 min-w-0">
                         <span className="text-sm font-bold text-foreground whitespace-nowrap hidden sm:block">
-                            Practice Result:
+                            Kết quả:
                         </span>
                         <span className="text-sm font-semibold text-primary truncate max-w-xs">{testTitle}</span>
                         {sections.map((_, i) => (
                             <Badge key={i} variant="secondary" className="text-[10px] font-semibold hidden md:inline-flex">
-                                {isListening ? `Recording ${i + 1}` : `Passage ${i + 1}`}
+                                {isListening ? `Phần ${i + 1}` : `Passage ${i + 1}`}
                             </Badge>
                         ))}
                     </div>
@@ -739,12 +739,12 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                             onClick={() => setShowAnswers(v => !v)}
                         >
                             <ListChecks className="h-3.5 w-3.5" />
-                            {showAnswers ? "Hide Answers" : "Show Answers"}
+                            {showAnswers ? "Ẩn đáp án" : "Xem đáp án"}
                         </Button>
                         <Link href={`/practice/${testId}`}>
                             <Button size="sm" className="h-8 text-xs font-semibold gap-1.5">
                                 <RotateCcw className="h-3.5 w-3.5" />
-                                Retake
+                                Làm lại
                             </Button>
                         </Link>
                     </div>
@@ -755,8 +755,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
                 {/* ── Breadcrumb ──────────────────────────────────────────── */}
                 <Breadcrumb items={[
-                    { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-                    { label: 'Analysis', href: '/analysis', icon: 'analytics' },
+                    { label: 'Hôm nay', href: '/dashboard', icon: 'dashboard' },
+                    { label: 'Kết quả', href: '/analysis', icon: 'analytics' },
                     { label: testTitle, icon: 'assignment_turned_in' },
                 ]} />
 
@@ -764,28 +764,28 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                         {
-                            label: "Score",
+                            label: "Điểm",
                             value: totalQ > 0 ? `${correctQ}/${totalQ}` : "—",
-                            sub: "correct",
+                            sub: "câu đúng",
                             icon: FileText,
                             color: "text-muted-foreground",
                             bg: "bg-muted",
                         },
                         {
-                            label: "Accuracy",
+                            label: "Độ chính xác",
                             value: totalQ > 0 ? `${accuracy.toFixed(1)}%` : "—",
-                            sub: "correct/total",
+                            sub: "",
                             icon: Table2,
-                            color: "text-blue-600",
-                            bg: "bg-blue-50 dark:bg-blue-900/20",
+                            color: "text-primary",
+                            bg: "bg-muted",
                         },
                         {
-                            label: "Time Taken",
+                            label: "Thời gian làm",
                             value: timeTaken,
                             sub: "",
                             icon: Clock,
-                            color: "text-amber-600",
-                            bg: "bg-amber-50 dark:bg-amber-900/20",
+                            color: "text-muted-foreground",
+                            bg: "bg-muted",
                         },
                     ].map(s => (
                         <Card key={s.label} className="bg-card shadow-sm border">
@@ -1016,7 +1016,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                     <Link href={`/practice/${testId}`}>
                         <Button className="gap-2 font-semibold">
                             <RotateCcw className="h-4 w-4" />
-                            Retake This Test
+                            Làm lại đề này
                         </Button>
                     </Link>
                     <Link href="/profile">

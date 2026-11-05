@@ -87,9 +87,9 @@ function SkillProgressPanel({
   return (
     <div className="bg-card border rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display text-xl font-semibold text-foreground">Skill Progress</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Tiến bộ theo kỹ năng</h2>
         <Link href="/analysis" className="text-sm text-primary font-medium flex items-center gap-1 hover:text-primary/80 transition-colors duration-150">
-          Full Analysis <ArrowRight className="h-3.5 w-3.5" />
+          Xem kết quả <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -124,7 +124,7 @@ function SkillProgressPanel({
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                {loading ? "…" : count === 0 ? "Not attempted yet" : `${count} test${count !== 1 ? "s" : ""} completed`}
+                {loading ? "…" : count === 0 ? "Chưa làm bài nào" : `${count} bài đã nộp`}
               </p>
             </div>
           );
@@ -303,7 +303,7 @@ export default function DashboardPage() {
 
       {/* ── Module Grid ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-6">
-        <h2 className="font-display text-xl font-semibold text-foreground">Select Test Module</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Luyện theo kỹ năng</h2>
         <ModuleGrid testCounts={testCounts} attempts={attempts} loading={isLoading} />
       </div>
 
@@ -313,7 +313,7 @@ export default function DashboardPage() {
         {/* ── Recent Activity ──────────────────────────────────────────────── */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-foreground">Recent Activity</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">Bài làm gần đây</h2>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="text-sm font-medium gap-1">
                 View All <ArrowRight className="h-3.5 w-3.5" />
@@ -399,7 +399,7 @@ export default function DashboardPage() {
                 <Sparkles className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">AI Study Coach</p>
+                <p className="text-sm font-semibold text-white">AI Coach</p>
                 <p className="text-xs text-white/70">Get your personalised plan</p>
               </div>
               <span className="material-symbols-outlined text-white/70 text-[18px]">chevron_right</span>

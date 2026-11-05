@@ -63,12 +63,12 @@ function bandBg(b: number | null): string {
 }
 
 function bandLabel(b: number | null): string {
-  if (!b) return "Not attempted";
-  if (b >= 8.5) return "Expert";
-  if (b >= 7.5) return "Very Good";
-  if (b >= 6.5) return "Competent";
-  if (b >= 5.5) return "Modest";
-  return "Limited";
+  if (!b) return "Chưa có bài";
+  if (b >= 8.5) return "Thành thạo";
+  if (b >= 7.5) return "Rất tốt";
+  if (b >= 6.5) return "Khá";
+  if (b >= 5.5) return "Trung bình";
+  return "Còn hạn chế";
 }
 
 const SKILLS = [
@@ -95,7 +95,7 @@ function ExamReadinessGauge({ pct }: { pct: number }) {
   const circumference = 2 * Math.PI * r;
   const dash = circumference * (pct / 100);
   const color = pct >= 75 ? "#10b981" : pct >= 50 ? "#3b82f6" : pct >= 25 ? "#f59e0b" : "#ef4444";
-  const label = pct >= 75 ? "Exam Ready" : pct >= 50 ? "On Track" : pct >= 25 ? "Building Up" : "Just Starting";
+  const label = pct >= 75 ? "Sẵn sàng thi" : pct >= 50 ? "Đúng tiến độ" : pct >= 25 ? "Đang xây nền" : "Mới bắt đầu";
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -282,7 +282,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
   return (
     <tr className="hover:bg-muted/30 transition-colors border-b border-border last:border-0">
       <td className="px-4 py-3 text-sm font-medium max-w-[200px] truncate">
-        {attempt.test?.title ?? "Practice Test"}
+        {attempt.test?.title ?? "Đề luyện tập"}
       </td>
       <td className="px-4 py-3">
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold capitalize ${skillBadge[skill] ?? "bg-muted text-muted-foreground"}`}>
@@ -338,7 +338,7 @@ function AttemptRow({ attempt }: { attempt: TestAttempt }) {
           <Link href={`/practice/${testId}`}>
             <Button variant="outline" size="sm" className="h-7 text-xs px-2.5 gap-1">
               <PlayCircle className="h-3 w-3" />
-              {session?.hasSession && !hasTimeLeft ? "Submit Results" : "Resume"}
+              {session?.hasSession && !hasTimeLeft ? "Nộp bài" : "Làm tiếp"}
             </Button>
           </Link>
         ) : null}
@@ -373,7 +373,7 @@ function LatestAiFeedbackCard({ attempts }: { attempts: TestAttempt[] }) {
               Nhận xét mới nhất từ AI Coach
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
-              {latest.test?.title ?? "Practice Test"} · {formatDate(latest.startedAt)}
+              {latest.test?.title ?? "Đề luyện tập"} · {formatDate(latest.startedAt)}
             </p>
           </div>
           {testId && (
@@ -573,7 +573,7 @@ export default function AnalysisPage() {
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <Target className="h-5 w-5 text-zinc-400" />
-            Adaptive Study Plan
+            Kế hoạch luyện tập
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {summary.adaptiveStudyPlan.slice(0, 4).map((task, idx) => (
@@ -609,7 +609,7 @@ export default function AnalysisPage() {
         <div>
           <h2 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-zinc-400" />
-            Question-type Mastery
+            Mức thành thạo theo dạng câu
           </h2>
           <Card className="border-zinc-200">
             <CardContent className="p-4 space-y-3">
@@ -693,7 +693,7 @@ export default function AnalysisPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-zinc-400" />
-            Test History
+            Lịch sử bài làm
           </h2>
           <div className="flex flex-wrap gap-1">
             {(["all", "listening", "reading", "writing", "speaking"] as SkillFilter[]).map(f => (
@@ -705,7 +705,7 @@ export default function AnalysisPage() {
                     : "bg-background border-border text-muted-foreground hover:text-foreground"
                   }`}
               >
-                {f === "all" ? "All Skills" : f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === "all" ? "Tất cả kỹ năng" : f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
             ))}
           </div>
@@ -724,7 +724,7 @@ export default function AnalysisPage() {
                   {skillFilter === "all" ? "No tests yet." : `No ${skillFilter} tests yet.`}
                 </p>
                 <Link href="/tests">
-                  <Button size="sm" className="mt-4">Browse Tests</Button>
+                  <Button size="sm" className="mt-4">Chọn đề luyện</Button>
                 </Link>
               </div>
             ) : (
@@ -732,13 +732,13 @@ export default function AnalysisPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-50 text-[11px] text-muted-foreground uppercase tracking-wide border-b border-zinc-200">
                     <tr>
-                      <th className="text-left px-4 py-2.5 font-semibold">Test</th>
-                      <th className="text-left px-4 py-2.5 font-semibold">Skill</th>
+                      <th className="text-left px-4 py-2.5 font-semibold">Đề</th>
+                      <th className="text-left px-4 py-2.5 font-semibold">Kỹ năng</th>
                       <th className="text-center px-4 py-2.5 font-semibold">Band</th>
-                      <th className="text-center px-4 py-2.5 font-semibold">Status</th>
-                      <th className="text-left px-4 py-2.5 font-semibold">Date</th>
-                      <th className="text-center px-4 py-2.5 font-semibold">AI Feedback</th>
-                      <th className="text-right px-4 py-2.5 font-semibold">Action</th>
+                      <th className="text-center px-4 py-2.5 font-semibold">Trạng thái</th>
+                      <th className="text-left px-4 py-2.5 font-semibold">Ngày</th>
+                      <th className="text-center px-4 py-2.5 font-semibold">Nhận xét AI</th>
+                      <th className="text-right px-4 py-2.5 font-semibold"></th>
                     </tr>
                   </thead>
                   <tbody>

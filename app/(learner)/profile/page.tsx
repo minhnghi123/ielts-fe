@@ -134,13 +134,13 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                         <table className="w-full text-sm">
                             <thead className="bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide">
                                 <tr>
-                                    <th className="text-left px-4 py-3 font-semibold">Test</th>
-                                    <th className="text-center px-3 py-3 font-semibold">Skill</th>
-                                    <th className="text-center px-3 py-3 font-semibold">Date</th>
-                                    <th className="text-center px-3 py-3 font-semibold">Time Taken</th>
+                                    <th className="text-left px-4 py-3 font-semibold">Đề</th>
+                                    <th className="text-center px-3 py-3 font-semibold">Kỹ năng</th>
+                                    <th className="text-center px-3 py-3 font-semibold">Ngày</th>
+                                    <th className="text-center px-3 py-3 font-semibold">Thời gian làm</th>
                                     <th className="text-center px-3 py-3 font-semibold">Band</th>
-                                    <th className="text-center px-3 py-3 font-semibold">Status</th>
-                                    <th className="text-center px-3 py-3 font-semibold">Actions</th>
+                                    <th className="text-center px-3 py-3 font-semibold">Trạng thái</th>
+                                    <th className="text-center px-3 py-3 font-semibold"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -221,14 +221,14 @@ function TestHistorySection({ learnerId }: { learnerId: string }) {
                                                         <Link href={reviewHref}>
                                                             <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs font-semibold gap-1">
                                                                 <Eye className="h-3 w-3" />
-                                                                Review
+                                                                Xem lại
                                                             </Button>
                                                         </Link>
                                                     )}
                                                     <Link href={`/practice/${testId}`}>
                                                         <Button size="sm" className="h-7 px-2.5 text-xs font-semibold gap-1">
                                                             <RotateCcw className="h-3 w-3" />
-                                                            Retake
+                                                            Làm lại
                                                         </Button>
                                                     </Link>
                                                 </div>
@@ -395,7 +395,7 @@ export default function UserProfilePage() {
                 <div className="flex gap-1 border-b border-border">
                     {([
                         { key: "goals", label: "Mục tiêu" },
-                        { key: "history", label: "Test History" },
+                        { key: "history", label: "Lịch sử bài làm" },
                         { key: "profile", label: "Personal Info" },
                     ] as const).map(tab => (
                         <button

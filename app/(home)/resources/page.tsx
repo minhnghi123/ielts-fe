@@ -153,7 +153,7 @@ export default function ResourcesPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold mb-1">Study Resources</h1>
+        <h1 className="text-2xl font-bold mb-1">Tài nguyên học tập</h1>
         <p className="text-sm text-muted-foreground">
           Hand-picked materials to boost every IELTS skill — all trusted by successful candidates.
         </p>
@@ -164,7 +164,7 @@ export default function ResourcesPage() {
         <div>
           <div className="flex items-center gap-2 mb-1 opacity-80">
             <span className="material-symbols-outlined text-[18px]">smart_toy</span>
-            <span className="text-xs font-bold uppercase tracking-wider">Personalised guidance</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Gợi ý theo kết quả của bạn</span>
           </div>
           <p className="font-bold text-lg">Not sure where to start?</p>
           <p className="text-sm opacity-80">
@@ -208,7 +208,7 @@ export default function ResourcesPage() {
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
                 <div className={`flex items-center gap-1 text-xs font-semibold ${text} mt-auto`}>
-                  <span>Open resource</span>
+                  <span>Mở tài nguyên</span>
                   <span className="material-symbols-outlined text-[14px]">open_in_new</span>
                 </div>
               </a>

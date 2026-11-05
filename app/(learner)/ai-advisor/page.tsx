@@ -210,7 +210,7 @@ export default function AIAdvisorPage() {
           .sort((a, b) => toUtcMs(b.startedAt) - toUtcMs(a.startedAt))
           .slice(0, 6)
           .map(a => ({
-            testTitle: a.test?.title ?? "Practice Test",
+            testTitle: a.test?.title ?? "Đề luyện tập",
             skill: (a.test as any)?.skill ?? "unknown",
             bandScore: a.bandScore != null ? Number(a.bandScore) : null,
             rawScore: a.rawScore != null ? Number(a.rawScore) : null,
@@ -287,7 +287,7 @@ export default function AIAdvisorPage() {
         body: JSON.stringify({ messages: history, profile }),
       });
 
-      if (!res.ok || !res.body) throw new Error("Request failed");
+      if (!res.ok || !res.body) throw new Error("Yêu cầu thất bại");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -366,7 +366,7 @@ export default function AIAdvisorPage() {
       <div className="shrink-0 px-6 pt-4 pb-1">
         <Breadcrumb items={[
           { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-          { label: 'AI Study Coach', icon: 'smart_toy' },
+          { label: 'Hỏi AI Coach', icon: 'smart_toy' },
         ]} />
       </div>
 
@@ -376,7 +376,7 @@ export default function AIAdvisorPage() {
           <span className="material-symbols-outlined text-white text-[20px]">smart_toy</span>
         </div>
         <div>
-          <h1 className="font-bold text-base leading-tight">AI Study Coach</h1>
+          <h1 className="font-bold text-base leading-tight">AI Coach</h1>
           <p className="text-xs text-muted-foreground">Powered by Gemini · fed by your real test data</p>
         </div>
         <div className="ml-auto flex items-center gap-3">

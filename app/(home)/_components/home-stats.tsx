@@ -10,8 +10,8 @@ import { analyticsApi } from "@/lib/api/analytics";
 import type { DashboardSummary } from "@/lib/types";
 
 const GUEST_STATS = [
-  { title: "Students Enrolled", value: "10,000+", badge: "Growing fast" },
-  { title: "Practice Tests", value: "500+", badge: "Updated weekly" },
+  { title: "Học viên", value: "10,000+", badge: "Đang tăng" },
+  { title: "Đề luyện", value: "500+", badge: "Cập nhật hằng tuần" },
   { title: "Avg Band Improvement", value: "+1.5", badge: "In 3 months" },
 ];
 
@@ -48,7 +48,7 @@ export function HomeStats() {
     <section className="mb-10">
       <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
         <span className="material-symbols-outlined text-zinc-400">analytics</span>
-        {isLoggedIn ? "Your Stats" : "Platform Stats"}
+        {isLoggedIn ? "Số liệu của bạn" : "Số liệu nền tảng"}
       </h2>
 
       {isLoggedIn ? (
@@ -69,13 +69,13 @@ export function HomeStats() {
             animate="visible"
           >
             <motion.div variants={item}>
-              <StatCard title="Tests Completed" value={String(summary?.totalAttempts ?? 0)} badge="Total attempts" />
+              <StatCard title="Bài đã nộp" value={String(summary?.totalAttempts ?? 0)} badge="Tổng lượt làm" />
             </motion.div>
             <motion.div variants={item}>
-              <StatCard title="Avg. Band Score" value={summary?.averageBand ? summary.averageBand.toFixed(1) : "—"} badge="Overall band" />
+              <StatCard title="Avg. Band Score" value={summary?.averageBand ? summary.averageBand.toFixed(1) : "—"} badge="Band tổng" />
             </motion.div>
             <motion.div variants={item}>
-              <StatCard title="Practice Hours" value={summary?.practiceHours ? `${summary.practiceHours}h` : "—"} badge="Time invested" />
+              <StatCard title="Giờ luyện" value={summary?.practiceHours ? `${summary.practiceHours}h` : "—"} badge="Thời gian đã luyện" />
             </motion.div>
             <motion.div variants={item}>
               <Card className="p-6 border-zinc-200 hover:border-zinc-300 transition-colors duration-150 bg-card">
