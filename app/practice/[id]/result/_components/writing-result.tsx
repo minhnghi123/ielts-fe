@@ -1,7 +1,8 @@
 import { writingErrorLabel, writingErrorTip } from "@/lib/writing-errors";
 import { Button } from "@/components/ui/button";
 import type { WritingDiff } from "@/lib/api/writing-progress";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import apiClient from "@/lib/api";
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,22 +45,33 @@ interface WritingResultProps {
 export function WritingResult({ gradingData }: WritingResultProps) {
     const [activeTask, setActiveTask] = useState<"task1" | "task2">("task1");
     const [activeSuggestionId, setActiveSuggestionId] = useState<number | null>(null);
-    const params = useParams<{ id: string }>();
+    const params = useParams<{ id: string }>(); // route [id] = testId
+    const sp = useSearchParams();
+    const attemptId = sp.get("attemptId");
     const router = useRouter();
-    const plain = (html: string | undefined) => (html ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    const plain = (html: string | undefined) => (html ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[\u2010\u2011\u2012\u2013]/g, "-").replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').trim();
     const [revising, setRevising] = useState(false);
     const [rev1, setRev1] = useState("");
     const [rev2, setRev2] = useState("");
     const [revState, setRevState] = useState<"idle" | "grading" | "error">("idle");
     const [revErr, setRevErr] = useState<string | null>(null);
-    const startRevise = () => { setRev1(plain(gradingData.feedback.task1?.annotated_html)); setRev2(plain(gradingData.feedback.task2?.annotated_html)); setRevising(true); };
+    const startRevise = async () => {
+        // Prefer the learner's original text over the AI-annotated HTML (which may alter punctuation).
+        const fetchContent = async (id?: string | null) => {
+            if (!id) return null;
+            try { return (await apiClient.get<{ data: { content?: string } }>(`/api/writing-submissions/${id}`)).data.data?.content ?? null; } catch { return null; }
+        };
+        const fb = gradingData.feedback as { task1?: { submission_id?: string; annotated_html?: string }; task2?: { annotated_html?: string } | null; task2_sub_id?: string | null };
+        const [c1, c2] = await Promise.all([fetchContent(fb.task1?.submission_id), fetchContent(fb.task2_sub_id)]);
+        setRev1(c1 ?? plain(fb.task1?.annotated_html)); setRev2(c2 ?? plain(fb.task2?.annotated_html)); setRevising(true);
+    };
     const submitRevision = async () => {
         setRevState("grading"); setRevErr(null);
         try {
-            const res = await fetch("/api/ai/grade-writing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ parentGradingId: gradingData.id, attemptId: params?.id, task1Content: rev1, task2Content: rev2 }) });
+            const res = await fetch("/api/ai/grade-writing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ parentGradingId: gradingData.id, attemptId: attemptId ?? undefined, task1Content: rev1, task2Content: rev2 }) });
             const data = (await res.json()) as { gradingId?: string; error?: string };
             if (!res.ok || !data.gradingId) throw new Error(data.error || "Không chấm được bản sửa");
-            router.push(`/practice/${params?.id}/result?skill=writing&gradingId=${data.gradingId}`);
+            router.push(`/practice/${params?.id}/result?skill=writing&gradingId=${data.gradingId}${attemptId ? `&attemptId=${attemptId}` : ""}`);
             setRevising(false); setRevState("idle");
         } catch (e) { setRevState("error"); setRevErr(e instanceof Error ? e.message : "Không chấm được bản sửa"); }
     };
@@ -162,10 +174,10 @@ export function WritingResult({ gradingData }: WritingResultProps) {
                             <span className="text-xs text-muted-foreground">Sửa theo các lỗi được chỉ ra; bản sửa được so với bản này để xem lỗi nào đã hết.</span>
                         </div>
                     ) : (
-                        <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4">
+                        <div className="mt-4 space-y-3 rounded-lg border border-border bg-card p-4 max-h-[60vh] overflow-y-auto">
                             <p className="text-sm font-medium">Bản sửa {gradingData.feedback.task2 ? "(Task 1 và Task 2)" : "(Task 1)"}</p>
-                            <textarea value={rev1} onChange={(e) => setRev1(e.target.value)} rows={10} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 1" />
-                            {gradingData.feedback.task2 && <textarea value={rev2} onChange={(e) => setRev2(e.target.value)} rows={14} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 2" />}
+                            <textarea value={rev1} onChange={(e) => setRev1(e.target.value)} rows={7} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 1" />
+                            {gradingData.feedback.task2 && <textarea value={rev2} onChange={(e) => setRev2(e.target.value)} rows={9} className="w-full rounded-md border border-border bg-background p-3 text-sm font-serif leading-relaxed" aria-label="Bản sửa Task 2" />}
                             <div className="flex items-center gap-3">
                                 <Button onClick={submitRevision} disabled={revState === "grading" || (!rev1.trim() && !rev2.trim())}>{revState === "grading" ? "Đang chấm bản sửa…" : "Nộp bản sửa"}</Button>
                                 <Button variant="ghost" onClick={() => setRevising(false)} disabled={revState === "grading"}>Huỷ</Button>

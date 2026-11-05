@@ -298,8 +298,8 @@ Return the JSON evaluation.`;
         });
         const grading = await backendJson<{ id: string }>(gradingRes);
 
-        // ── Step 5: write the band onto the attempt (server-side, cannot be forged) ─
-        if (attemptId) {
+        // ── Step 5: write the band onto the attempt (server-side, cannot be forged). A revision never overwrites the official attempt band. ─
+        if (attemptId && !parent) {
             const summary = [
                 `Overall ${combinedBand.toFixed(1)} (Task 2 weighted ×2).`,
                 `Task 1 ${t1.overall_band.toFixed(1)}: ${t1.examiner_comment ?? ''}`,
