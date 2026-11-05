@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   BookOpen,
   Headphones,
@@ -13,16 +12,13 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  HelpCircle,
-  Layers,
-  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { testsApi } from '@/lib/api/tests';
 import type { Test } from '@/lib/types';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { TestCardSkeleton } from '@/components/ui/skeleton';
+
+const DIFFICULTY_VI: Record<string, string> = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' };
 
 const SKILL_CONFIG: Record<string, {
   icon: React.ElementType;
@@ -70,12 +66,6 @@ const DURATION_MAP: Record<string, string> = {
 
 const SKILLS = ['all', 'reading', 'listening', 'writing', 'speaking'] as const;
 const DIFFICULTIES = ['all', 'easy', 'medium', 'hard'] as const;
-const DIFFICULTY_BADGE: Record<string, string> = {
-  easy: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  hard: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-};
-
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([]);
   const [skill, setSkill] = useState<string>('all');
@@ -154,7 +144,7 @@ export default function TestsPage() {
         </div>
 
         {/* Difficulty */}
-        <div className="flex gap-1 rounded-full border border-border bg-card p-1" role="group" aria-label="Difficulty">
+        <div className="flex gap-1 rounded-full border border-border bg-card p-1" role="group" aria-label="Độ khó">
           {DIFFICULTIES.map((d) => (
             <button
               key={d}
@@ -163,7 +153,7 @@ export default function TestsPage() {
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground'}`}
             >
-              {d === 'all' ? 'Any level' : d}
+              {d === 'all' ? 'Mọi độ khó' : DIFFICULTY_VI[d] ?? d}
             </button>
           ))}
         </div>
@@ -184,127 +174,73 @@ export default function TestsPage() {
                   }`}
               >
                 {Icon && <Icon className="h-3.5 w-3.5" />}
-                {s === 'all' ? 'All Tests' : config.label}
+                {s === 'all' ? 'Tất cả' : config.label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <TestCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="text-center py-16 space-y-4">
-          <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-            <span className="material-symbols-outlined text-destructive text-4xl">error</span>
-          </div>
-          <p className="text-destructive font-medium">{error}</p>
-          <Button onClick={fetchTests} variant="outline">Thử lại</Button>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 space-y-3">
-          <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mx-auto">
-            <span className="material-symbols-outlined text-muted-foreground text-4xl">search_off</span>
-          </div>
-          <p className="font-medium">No tests found</p>
-          <p className="text-muted-foreground text-sm">Thử kỹ năng khác hoặc từ khoá khác</p>
-        </div>
-      ) : (
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-          initial="hidden"
-          animate="visible"
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
-        >
-          {filtered.map((test) => {
-            const config = SKILL_CONFIG[test.skill] ?? SKILL_CONFIG.reading;
-            const Icon = config.icon;
-            const questionCount = test.sections?.reduce((acc, sec) =>
-              acc + (sec.questionGroups?.reduce((qacc, group) => qacc + (group.questions?.length || 0), 0) || 0), 0
-            ) || 0;
-            const sectionCount = test.sections?.length || 0;
-
-            return (
-              <motion.div
-                key={test.id}
-                variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } } }}
-                whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                className="group bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col"
-              >
-                {/* Top gradient stripe */}
-                <div className={`h-1.5 w-full bg-primary`} />
-
-                <div className="p-6 flex flex-col flex-1 gap-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className={`h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 ${config.iconBg} group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 ml-auto">
-                      <Badge className={`text-xs ${config.badge} border-none`}>
-                        {config.label}
-                      </Badge>
-                      {test.isMock && (
-                        <Badge variant="secondary" className="text-xs">Đề thi thử</Badge>
-                      )}
-                      {test.difficulty && (
-                        <Badge className={`text-xs border-none capitalize ${DIFFICULTY_BADGE[test.difficulty] ?? ''}`}>
-                          {test.difficulty}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <div className="flex-1">
-                    <h3 className="font-display font-semibold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                      {test.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Added {new Date(test.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {test.durationMinutes ? `${test.durationMinutes} min` : DURATION_MAP[test.skill] || 'N/A'}
-                    </span>
-                    {sectionCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Layers className="h-3.5 w-3.5" />
-                        {sectionCount} sections
-                      </span>
-                    )}
-                    {questionCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <HelpCircle className="h-3.5 w-3.5" />
-                        {questionCount} questions
-                      </span>
-                    )}
-                  </div>
-
-                  {/* CTA */}
-                  <Link href={`/tests/${test.id}`} className="block mt-auto">
-                    <Button
-                      className={`w-full bg-primary text-white hover:opacity-90 transition-opacity font-semibold shadow-md`}
-                      size="sm"
-                    >
-                      View Test
-                    </Button>
-                  </Link>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      )}
+      {/* Bảng đề */}
+      <div className="overflow-x-auto rounded-md bg-muted">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="px-4 py-3 font-medium">Đề</th>
+              <th className="px-4 py-3 font-medium">Kỹ năng</th>
+              <th className="px-4 py-3 font-medium text-right hidden sm:table-cell">Câu</th>
+              <th className="px-4 py-3 font-medium text-right hidden sm:table-cell">Thời gian</th>
+              <th className="px-4 py-3 font-medium hidden md:table-cell">Độ khó</th>
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  <td colSpan={6} className="px-4 py-3"><div className="h-5 w-2/3 animate-pulse rounded bg-border" /></td>
+                </tr>
+              ))
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center">
+                  <p className="text-destructive">{error}</p>
+                  <Button onClick={fetchTests} variant="outline" size="sm" className="mt-3">Thử lại</Button>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  Không có đề nào khớp. Thử kỹ năng khác hoặc từ khoá khác.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((test) => {
+                const config = SKILL_CONFIG[test.skill] ?? SKILL_CONFIG.reading;
+                const questionCount = test.sections?.reduce((acc, sec) =>
+                  acc + (sec.questionGroups?.reduce((qacc, group) => qacc + (group.questions?.length || 0), 0) || 0), 0
+                ) || 0;
+                const duration = test.durationMinutes ? `${test.durationMinutes} phút` : DURATION_MAP[test.skill] || '—';
+                return (
+                  <tr key={test.id} className="hover:bg-accent">
+                    <td className="px-4 py-3">
+                      <Link href={`/tests/${test.id}`} className="font-medium hover:text-primary">{test.title}</Link>
+                      {test.isMock && <span className="ml-2 text-xs text-muted-foreground">đề thi thử</span>}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{config.label}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden sm:table-cell">{questionCount > 0 ? questionCount : '—'}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground hidden sm:table-cell">{duration}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{test.difficulty ? DIFFICULTY_VI[test.difficulty] ?? test.difficulty : '—'}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Link href={`/tests/${test.id}`} className="text-sm text-primary hover:underline whitespace-nowrap">Xem đề</Link>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
       {!loading && !error && totalPages > 1 && (
@@ -317,10 +253,10 @@ export default function TestsPage() {
             className="gap-1"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            Trước
           </Button>
           <span className="text-sm text-muted-foreground px-2">
-            Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+            Trang <strong>{page}</strong>/<strong>{totalPages}</strong>
           </span>
           <Button
             variant="outline"
@@ -329,7 +265,7 @@ export default function TestsPage() {
             onClick={() => setPage((p) => p + 1)}
             className="gap-1"
           >
-            Next
+            Sau
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
