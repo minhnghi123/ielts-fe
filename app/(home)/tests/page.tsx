@@ -58,10 +58,10 @@ const SKILL_CONFIG: Record<string, {
 };
 
 const DURATION_MAP: Record<string, string> = {
-  reading: '60 min',
-  listening: '30 min',
-  writing: '60 min',
-  speaking: '15 min',
+  reading: '60 phút',
+  listening: '30 phút',
+  writing: '60 phút',
+  speaking: '15 phút',
 };
 
 const SKILLS = ['all', 'reading', 'listening', 'writing', 'speaking'] as const;
