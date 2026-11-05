@@ -8,6 +8,8 @@ import { Check, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { useRegeneratePlan, useSetTaskDone, useToday, useWeekPlan } from "@/lib/hooks/use-plan";
 import { drillHref } from "@/lib/api/drills";
 import type { StudyTask } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { learnerModelApi } from "@/lib/api/learner-model";
 
 const SKILL_VI: Record<string, string> = { listening: "Listening", reading: "Reading", writing: "Writing", speaking: "Speaking" };
 const DAY_VI = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -68,21 +70,25 @@ function TaskRow({ t, learnerId, compact }: { t: StudyTask; learnerId?: string; 
 
 export function BandStrip({ learnerId }: { learnerId?: string }) {
     const { data } = useToday(learnerId);
+    const model = useQuery({ queryKey: ["learner-model", learnerId], queryFn: () => learnerModelApi.get(learnerId!), enabled: !!learnerId, staleTime: 60_000 });
     if (!data) return null;
     return (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {data.bands.map((b) => (
+            {data.bands.map((b) => {
+                const est = model.data?.skills.find((s) => s.skill === b.skill)?.estimate ?? null;
+                return (
                 <div key={b.skill} className="rounded-lg border border-border bg-card px-3 py-2">
                     <p className="text-[11px] text-muted-foreground">{SKILL_VI[b.skill]}</p>
                     <p className="text-sm">
-                        <span className="text-lg font-semibold">{b.current != null ? b.current.toFixed(1) : "—"}</span>
+                        <span className="text-lg font-semibold">{b.current != null ? b.current.toFixed(1) : est ? `${est.low.toFixed(1)}–${est.high.toFixed(1)}` : "—"}</span>
                         {b.target != null && <span className="text-muted-foreground"> → {b.target.toFixed(1)}</span>}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                        {b.current == null ? "chưa có bài đo" : b.gap == null ? "" : b.gap <= 0 ? "đạt mục tiêu" : `còn +${b.gap.toFixed(1)}`}
+                        {b.current == null ? (est ? <Link href="/me/skills" className="hover:underline">ước lượng từ luyện tập</Link> : "chưa có bài đo") : b.gap == null ? "" : b.gap <= 0 ? "đạt mục tiêu" : `còn +${b.gap.toFixed(1)}`}
                     </p>
                 </div>
-            ))}
+                );
+            })}
             {!data.hasGoals && (
                 <Link href="/profile?tab=goals" className="col-span-2 sm:col-span-4 text-xs text-primary hover:underline">
                     Đặt mục tiêu band và ngày thi để kế hoạch bám sát bạn hơn →
