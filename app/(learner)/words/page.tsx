@@ -93,7 +93,7 @@ export default function WordsPage() {
                                 onBlur={(e) => { if (e.target.value !== (w.meaningVi ?? "")) update.mutate({ id: w.id, meaningVi: e.target.value }); }}
                             />
                             <span className="text-[11px] text-muted-foreground">
-                                {w.nextReviewAt && new Date(w.nextReviewAt) > new Date() ? `ôn lại ${new Date(w.nextReviewAt).toLocaleDateString("vi-VN")}` : "đến hạn"} · {w.reviewCount} lần
+                                {w.halfLifeH != null ? `nhớ ${halfLifeLabel(w.halfLifeH)} · ${w.correctCount ?? 0}✓ ${w.lapseCount ?? 0}✗ · ` : ""}{w.nextReviewAt && new Date(w.nextReviewAt) > new Date() ? `ôn lại ${new Date(w.nextReviewAt).toLocaleDateString("vi-VN")}` : "đến hạn"} · {w.reviewCount} lần
                             </span>
                             <button type="button" className="text-xs text-muted-foreground hover:text-rose-600" onClick={() => remove.mutate(w.id)}>Xoá</button>
                         </li>
