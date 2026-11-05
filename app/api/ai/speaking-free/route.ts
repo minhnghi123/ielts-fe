@@ -22,7 +22,8 @@ Return ONLY JSON:
   "nextStepVi": "một việc cụ thể nên làm tiếp, tiếng Việt",
   "sampleAnswer": "a natural 3–4 sentence Part 1 answer to the same question, band 7 level, first person"
 }
-Rules: explanations in Vietnamese; quotes must be verbatim substrings of the transcript; do not rate pronunciation or fluency (they are measured elsewhere); never invent errors that are not in the transcript.`;
+Rules: explanations in Vietnamese; quotes must be verbatim substrings of the transcript; do not rate pronunciation or fluency (they are measured elsewhere); never invent errors that are not in the transcript.
+Only list a card when the quote is actually incorrect or clearly unnatural AND "fix" differs from "quote"; never list stylistic alternatives to a correct sentence (e.g. do not change "I study" to "I am studying" when both are acceptable). If the answer has no real errors, return "errors": [].`;
 
 /**
  * Free speaking (Part 1): Whisper transcript + measured fluency (wpm, pauses, fillers) + LLM rubric for
@@ -85,10 +86,12 @@ export async function POST(req: NextRequest) {
     } catch (e) {
         rubricError = e instanceof Error ? e.message : 'rubric failed';
     }
+    const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9' ]/g, '').replace(/\s+/g, ' ').trim();
     const band = (v: unknown) => (typeof v === 'number' && v >= 1 && v <= 9 ? Math.round(v * 2) / 2 : null);
     const lower = transcript.toLowerCase();
     const errors = (Array.isArray(rubric.errors) ? rubric.errors : [])
         .filter((e) => e && typeof e.quote === 'string' && lower.includes(e.quote.toLowerCase()))
+        .filter((e) => typeof e.fix === 'string' && norm(e.fix) !== norm(e.quote) && !/câu này đúng|không sai|đúng ngữ pháp/i.test(String(e.explainVi ?? '')))
         .slice(0, 5)
         .map((e) => ({ type: (['grammar', 'vocabulary', 'coherence', 'content'].includes(e.type) ? e.type : 'grammar') as FreeResult['errors'][number]['type'], quote: e.quote, fix: String(e.fix ?? ''), explainVi: String(e.explainVi ?? '') }));
 
