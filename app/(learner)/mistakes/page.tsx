@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,10 +34,13 @@ export default function MistakesPage() {
     const [status, setStatus] = useState<MistakeStatus | "all">("all");
     const [skill, setSkill] = useState("");
     const [cause, setCause] = useState("");
+    const [due, setDue] = useState(false);
+    useEffect(() => { if (new URLSearchParams(window.location.search).get("due") === "1") setDue(true); }, []);
 
     const { data: mistakes, isLoading, isError } = useMistakes(learnerId, {
-        status: status === "all" ? undefined : status,
+        status: due ? undefined : status === "all" ? undefined : status,
         skill: skill || undefined,
+        due: due || undefined,
     });
     const { data: summary } = useMistakeSummary(learnerId);
     const update = useUpdateMistakeStatus(learnerId);

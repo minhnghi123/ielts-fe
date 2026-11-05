@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { memoryApi } from "@/lib/api/memory";
+import { QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 
 /** "Ôn trước khi quên": what the forgetting model predicts you are about to lose — with the number, so the nudge is honest. */
 export function MemoryNudge({ learnerId }: { learnerId?: string }) {
@@ -15,7 +16,7 @@ export function MemoryNudge({ learnerId }: { learnerId?: string }) {
             <p className="font-medium">Ôn trước khi quên</p>
             <p className="text-muted-foreground">
                 Mô hình dự đoán bạn sắp quên {d.counts.atRiskWords > 0 ? `${d.counts.atRiskWords} từ` : ""}{d.counts.atRiskWords > 0 && d.counts.atRiskMistakes > 0 ? " và " : ""}{d.counts.atRiskMistakes > 0 ? `${d.counts.atRiskMistakes} câu trong sổ lỗi` : ""}
-                {weakest ? ` — yếu nhất: “${weakest.label ?? weakest.questionType ?? "câu hỏi"}” (nhớ ~${Math.round(weakest.pRecall * 100)}%)` : ""}.
+                {weakest ? ` — yếu nhất: “${weakest.label ?? (normalizeQuestionType(weakest.questionType) ? `câu ${QUESTION_TYPE_LABELS_VI[normalizeQuestionType(weakest.questionType)!]}` : "câu trong sổ lỗi")}” (nhớ ~${Math.round(weakest.pRecall * 100)}%)` : ""}.
             </p>
             <span className="ml-auto flex gap-3">
                 {d.counts.atRiskWords > 0 && <Link href="/words" className="text-primary underline-offset-4 hover:underline">Ôn từ</Link>}
