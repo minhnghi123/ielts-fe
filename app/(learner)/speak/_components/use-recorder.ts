@@ -62,15 +62,25 @@ export function useRecorder(maxSeconds: number) {
     return { state, blob, url, elapsed, start, stop, reset };
 }
 
-/** Model audio without a TTS key: the browser's English voice. Returns false when unavailable. */
-export function speak(text: string, rate = 0.9): boolean {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-GB";
-    u.rate = rate;
-    const voice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("en-GB")) ?? window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
-    if (voice) u.voice = voice;
-    window.speechSynthesis.speak(u);
-    return true;
+/**
+ * Model audio without a TTS key: the browser's English voice.
+ * Resolves true when playback starts, false when speech synthesis is missing or fails (some Chrome builds have no voices).
+ */
+export function speak(text: string, rate = 0.9): Promise<boolean> {
+    return new Promise((resolve) => {
+        if (typeof window === "undefined" || !("speechSynthesis" in window)) return resolve(false);
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-GB";
+        u.rate = rate;
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find((v) => v.lang.startsWith("en-GB")) ?? voices.find((v) => v.lang.startsWith("en"));
+        if (voice) u.voice = voice;
+        let settled = false;
+        const done = (ok: boolean) => { if (!settled) { settled = true; resolve(ok); } };
+        u.onstart = () => done(true);
+        u.onerror = () => done(false);
+        window.speechSynthesis.speak(u);
+        setTimeout(() => done(false), 2500);
+    });
 }
