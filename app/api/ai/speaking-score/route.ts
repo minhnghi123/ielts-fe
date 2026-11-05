@@ -47,9 +47,12 @@ export async function POST(req: NextRequest) {
         const t = await groqRes.text();
         return NextResponse.json({ error: `Groq ${groqRes.status}: ${t.slice(0, 200)}` }, { status: 502 });
     }
-    const data = (await groqRes.json()) as { text?: string; duration?: number; words?: Array<{ word: string; start: number; end: number }>; segments?: Array<{ start: number; end: number; text: string }> };
-    const transcript = (data.text ?? '').trim();
-    const timed: TimedWord[] = (data.words ?? []).map((w) => ({ word: w.word, start: w.start, end: w.end }));
+    const data = (await groqRes.json()) as { text?: string; duration?: number; words?: Array<{ word: string; start: number; end: number }>; segments?: Array<{ start: number; end: number; text: string; no_speech_prob?: number; avg_logprob?: number }> };
+    // Whisper hallucinates short tokens ("you", "Thank you.") on silence/noise; treat those as no speech.
+    const segs = data.segments ?? [];
+    const silent = segs.length === 0 || segs.every((sg) => (sg.no_speech_prob ?? 0) > 0.5 || (sg.avg_logprob ?? 0) < -1.0);
+    const transcript = silent ? '' : (data.text ?? '').trim();
+    const timed: TimedWord[] = silent ? [] : (data.words ?? []).map((w) => ({ word: w.word, start: w.start, end: w.end }));
     const durationS = Math.max(0.1, Number(data.duration ?? (timed.at(-1)?.end ?? data.segments?.at(-1)?.end ?? 0)) || 0.1);
 
     const reference = tokenize(referenceText);
