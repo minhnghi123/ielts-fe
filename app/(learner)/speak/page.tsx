@@ -9,18 +9,19 @@ import { useAuthStore } from "@/stores/auth-store";
 import { speakingApi, type SpeakingLevel } from "@/lib/api/speaking";
 import { WordLevel } from "./_components/word-level";
 import { SentenceBuildLevel } from "./_components/sentence-build-level";
+import { SentenceLevel } from "./_components/sentence-level";
+import { FreeLevel } from "./_components/free-level";
 
 const LEVELS: Array<{ key: SpeakingLevel; title: string; desc: string; ready: boolean }> = [
     { key: "word", title: "Phát âm từ", desc: "Nghe mẫu, đọc một từ, xem âm nào chưa đúng.", ready: true },
     { key: "sentence_build", title: "Ghép câu", desc: "Xếp từ thành câu đúng rồi đọc to.", ready: true },
-    { key: "sentence", title: "Câu dài", desc: "Đọc theo câu 12–25 từ, đo tốc độ và ngắt nghỉ.", ready: false },
-    { key: "free", title: "Nói tự do", desc: "Trả lời câu hỏi Part 1 trong 30–60 giây.", ready: false },
+    { key: "sentence", title: "Câu dài", desc: "Đọc theo câu 12–25 từ, đo tốc độ và ngắt nghỉ.", ready: true },
+    { key: "free", title: "Nói tự do", desc: "Trả lời câu hỏi Part 1 trong 30–60 giây.", ready: true },
 ];
 const MASTERY_VI: Record<string, string> = { chua_du_du_lieu: "chưa đủ dữ liệu", yeu: "yếu", dang_hoc: "đang học", vung: "vững", thanh_thao: "thành thạo" };
 
 /**
  * Luyện nói: tiến độ 4 bậc + âm yếu ở trên, bậc đang luyện ở dưới.
- * Bậc 1–2 trong PR này; bậc 3–4 ở PR 9c.
  */
 export default function SpeakPage() {
     return <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Đang tải…</p>}><SpeakInner /></Suspense>;
@@ -89,7 +90,8 @@ function SpeakInner() {
 
             {level === "word" && <WordLevel sound={sound} soundTips={soundTips} onSaved={onSaved} />}
             {level === "sentence_build" && <SentenceBuildLevel soundTips={soundTips} onSaved={onSaved} />}
-            {(level === "sentence" || level === "free") && <p className="text-sm text-muted-foreground">Bậc này sẽ có ở bản cập nhật tiếp theo.</p>}
+            {level === "sentence" && <SentenceLevel soundTips={soundTips} onSaved={onSaved} />}
+            {level === "free" && <FreeLevel onSaved={onSaved} />}
         </div>
     );
 }

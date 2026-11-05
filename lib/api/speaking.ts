@@ -30,6 +30,25 @@ export interface ScoreResult {
     attemptId: string | null;
 }
 
+export interface FreeResult {
+    transcript: string; durationS: number; wpm: number | null; pauses: number; fillers: number;
+    scores: { fluencyBand: number | null; lexical: number | null; grammar: number | null; content: number | null };
+    errors: Array<{ type: 'grammar' | 'vocabulary' | 'coherence' | 'content' | 'fluency'; quote: string; fix: string; explainVi: string }>;
+    strengthsVi: string[]; nextStepVi: string; sampleAnswer: string | null; commentVi: string[]; attemptId: string | null;
+}
+
+/** Best-effort upload of the recording so the learner can listen again later; null when upload is unavailable. */
+export async function uploadAudio(blob: Blob): Promise<string | null> {
+    try {
+        const fd = new FormData();
+        fd.append('file', new File([blob], 'speak.webm', { type: blob.type || 'audio/webm' }));
+        const res = await fetch('/api/upload/audio', { method: 'POST', body: fd, credentials: 'include' });
+        if (!res.ok) return null;
+        const json = (await res.json()) as { url?: string };
+        return json.url ?? null;
+    } catch { return null; }
+}
+
 const base = '/api/analytics/speaking';
 export const speakingApi = {
     exercises: (q: { level?: SpeakingLevel; topic?: string; sound?: string; limit?: number; offset?: number }) => {
@@ -59,6 +78,20 @@ export const speakingApi = {
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json?.error || 'Không chấm được bản ghi');
         return json as ScoreResult;
+    },
+    /** Free speaking: transcript → measured fluency + LLM rubric (lexical / grammar / content) with Vietnamese error cards. */
+    scoreFree: async (input: { blob: Blob; question: string; exerciseId?: string; sampleAnswer?: string | null; audioUrl?: string | null; peakLevel?: number | null }) => {
+        const fd = new FormData();
+        fd.append('file', input.blob, 'speech.webm');
+        fd.append('question', input.question);
+        if (input.exerciseId) fd.append('exerciseId', input.exerciseId);
+        if (input.sampleAnswer) fd.append('sampleAnswer', input.sampleAnswer);
+        if (input.audioUrl) fd.append('audioUrl', input.audioUrl);
+        if (input.peakLevel != null) fd.append('peakLevel', String(input.peakLevel));
+        const res = await fetch('/api/ai/speaking-free', { method: 'POST', body: fd, credentials: 'include' });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error || 'Không chấm được bản ghi');
+        return json as FreeResult;
     },
 };
 

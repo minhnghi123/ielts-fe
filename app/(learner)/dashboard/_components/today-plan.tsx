@@ -17,6 +17,10 @@ export function taskHref(t: StudyTask): string {
     if (t.taskType === "placement" && !t.skill) return "/profile?tab=goals";
     if (t.taskType === "review") return "/mistakes";
     if (t.taskType === "drill" && (t.skill === "reading" || t.skill === "listening")) return drillHref({ skill: t.skill, questionType: t.kc ?? undefined });
+    if (t.taskType === "speaking" && t.refType !== "test") {
+        if (t.kc?.startsWith("ph:")) return `/speak?level=word&sound=${encodeURIComponent(t.kc.slice(3))}`;
+        return `/speak?level=${t.kc === "free" ? "free" : "word"}`;
+    }
     if (t.refType === "test" && t.refId) return `/practice/${t.refId}`;
     return t.skill ? `/tests?skill=${t.skill}` : "/tests";
 }

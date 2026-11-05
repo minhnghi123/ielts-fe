@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { speakingApi, type ScoreResult, type SpeakingExercise } from "@/lib/api/speaking";
+import { speakingApi, uploadAudio, type ScoreResult, type SpeakingExercise } from "@/lib/api/speaking";
 import { RecorderPanel } from "./recorder-panel";
 import { ScoreView } from "./score-view";
 import { SOUND_LABEL } from "@/lib/speaking/align";
@@ -25,7 +25,7 @@ export function WordLevel({ sound, soundTips, onSaved }: { sound: string | null;
 
     const score = async (blob: Blob, peakLevel: number | null) => {
         setScoring(true); setError(null);
-        try { setResult(await speakingApi.score({ blob, referenceText: ex.text, level: "word", exerciseId: ex.id, targetSounds: ex.targetSounds, peakLevel })); onSaved(); }
+        try { setResult(await speakingApi.score({ blob, referenceText: ex.text, level: "word", exerciseId: ex.id, targetSounds: ex.targetSounds, peakLevel, audioUrl: await uploadAudio(blob) })); onSaved(); }
         catch (e) { setError(e instanceof Error ? e.message : "Không chấm được"); }
         finally { setScoring(false); }
     };
