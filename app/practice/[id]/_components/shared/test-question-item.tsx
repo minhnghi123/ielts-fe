@@ -124,7 +124,7 @@ export function QuestionItem({
           <input
             type="text"
             value={answer}
-            placeholder="Your answer…"
+            placeholder="Câu trả lời của bạn…"
             onChange={(e) => onAnswerChange(id, e.target.value)}
             className="flex-1 h-9 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
           />
@@ -248,7 +248,7 @@ export function QuestionItem({
               <input
                 type="text"
                 value={answer}
-                placeholder="Your answer…"
+                placeholder="Câu trả lời của bạn…"
                 onChange={(e) => onAnswerChange(id, e.target.value)}
                 className="w-full h-9 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-shadow placeholder:text-muted-foreground/60"
               />

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { analyticsApi } from "@/lib/api/analytics";
-import { errorCauseAdvice, errorCauseLabel } from "@/lib/error-causes";
+import { errorCauseAdvice, errorCauseLabel, type ErrorCause } from "@/lib/error-causes";
+import { tutorApi, selfCauseOptions } from "@/lib/api/tutor";
 import { QUESTION_TYPE_HINTS_VI, normalizeQuestionType } from "@/lib/question-types";
 import type { EvidenceAnchor } from "@/lib/types";
 
@@ -60,6 +61,12 @@ function Highlighted({ text, quote }: { text: string; quote: string | null }) {
 }
 
 export function WrongAnswerCard(p: WrongAnswerCardProps) {
+    const [selfCause, setSelfCause] = useState<ErrorCause | null>(null);
+    const [selfState, setSelfState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const pickSelfCause = async (c: ErrorCause) => {
+        setSelfCause(c); setSelfState("saving");
+        try { await tutorApi.selfCause({ questionId: p.questionId, attemptId: p.attemptId, selfCause: c }); setSelfState("saved"); } catch { setSelfState("error"); }
+    };
     const [explain, setExplain] = useState<ExplainResult | null>(
         p.authorExplanation
             ? {
@@ -172,6 +179,21 @@ export function WrongAnswerCard(p: WrongAnswerCardProps) {
                 </div>
             )}
 
+            {!skipped && (
+                <div className="rounded-md border border-border bg-background px-3 py-2 space-y-1.5">
+                    <p className="text-xs font-medium">Vì sao bạn chọn đáp án này?</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {selfCauseOptions(p.questionType ?? null, p.skill ?? "reading").map((c) => (
+                            <button key={c} type="button" disabled={selfState === "saving" || selfState === "saved"} onClick={() => pickSelfCause(c)}
+                                className={`rounded-full border px-2.5 py-0.5 text-xs ${selfCause === c ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted"}`}>
+                                {c === "unknown" ? "Mình đoán" : errorCauseLabel(c)}
+                            </button>
+                        ))}
+                    </div>
+                    {selfState === "saved" && selfCause && <p className="text-xs text-muted-foreground">Đã ghi vào sổ lỗi. {errorCauseAdvice(selfCause)}</p>}
+                    {selfState === "error" && <p className="text-xs text-rose-600">Chưa lưu được, bạn có thể bỏ qua.</p>}
+                </div>
+            )}
             {explain ? (
                 <div className="space-y-2">
                     <p className="leading-relaxed">{explain.explanationVi}</p>

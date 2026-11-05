@@ -8,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { QuestionItem } from "@/app/practice/[id]/_components/shared/test-question-item";
 import { drillsApi, type DrillBuild, type DrillCheck, type DrillItem } from "@/lib/api/drills";
-import { errorCauseAdvice, errorCauseLabel } from "@/lib/error-causes";
+import { errorCauseAdvice, errorCauseLabel, type ErrorCause } from "@/lib/error-causes";
+import { tutorApi, selfCauseOptions, type HintResult } from "@/lib/api/tutor";
 import { QUESTION_TYPE_HINTS_VI, QUESTION_TYPE_LABELS_VI, normalizeQuestionType } from "@/lib/question-types";
 
 type Phase = "loading" | "error" | "empty" | "question" | "feedback" | "done";
@@ -39,7 +40,42 @@ function paragraphWithQuote(passage: string | null, quote: string | null, paragr
     return null;
 }
 
-function Feedback({ item, check, skill }: { item: DrillItem; check: DrillCheck; skill: string }) {
+function SelfCause({ questionId, questionType, skill, autoCause }: { questionId: string; questionType: string; skill: string; autoCause: string | null }) {
+    const [picked, setPicked] = useState<ErrorCause | null>(null);
+    const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const [agrees, setAgrees] = useState<boolean | null>(null);
+    const choose = async (c: ErrorCause) => {
+        setPicked(c); setState("saving");
+        const attempt = () => tutorApi.selfCause({ questionId, selfCause: c });
+        try {
+            let r;
+            try { r = await attempt(); } catch { await new Promise((res) => setTimeout(res, 1200)); r = await attempt(); }
+            setAgrees(autoCause ? autoCause === c : r.agrees); setState("saved");
+        } catch { setState("error"); }
+    };
+    return (
+        <div className="rounded-md border border-border bg-background px-3 py-2 space-y-1.5">
+            <p className="text-xs font-medium">Vì sao bạn chọn đáp án này? <span className="font-normal text-muted-foreground">Tự nhìn lại giúp nhớ lâu hơn và giúp hệ thống hiểu đúng lỗi của bạn.</span></p>
+            <div className="flex flex-wrap gap-1.5">
+                {selfCauseOptions(questionType, skill).map((c) => (
+                    <button key={c} type="button" disabled={state === "saving" || state === "saved"} onClick={() => choose(c)}
+                        className={`rounded-full border px-2.5 py-0.5 text-xs ${picked === c ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted"}`}>
+                        {c === "unknown" ? "Mình đoán" : errorCauseLabel(c)}
+                    </button>
+                ))}
+            </div>
+            {state === "saved" && picked && (
+                <p className="text-xs text-muted-foreground">
+                    {agrees ? "Trùng với nhận định của hệ thống. " : autoCause ? `Hệ thống đoán là “${errorCauseLabel(autoCause)}”, nhưng mình tin bạn — đã ghi lại theo lựa chọn của bạn. ` : "Đã ghi lại. "}
+                    <span className="text-foreground">{errorCauseAdvice(picked)}</span>
+                </p>
+            )}
+            {state === "error" && <p className="text-xs text-rose-600">Chưa lưu được, bạn có thể bỏ qua.</p>}
+        </div>
+    );
+}
+
+function Feedback({ item, check, skill, hintLevel }: { item: DrillItem; check: DrillCheck; skill: string; hintLevel: number }) {
     const quote = check.evidenceAnchor?.quote ?? null;
     const para = paragraphWithQuote(item.passage, quote, check.evidenceAnchor?.kind === "passage" ? check.evidenceAnchor.paragraph ?? null : null);
     const startMs = check.evidenceAnchor?.kind === "audio" ? check.evidenceAnchor.startMs ?? null : null;
@@ -47,7 +83,7 @@ function Feedback({ item, check, skill }: { item: DrillItem; check: DrillCheck; 
     return (
         <div className={`rounded-lg border p-4 space-y-3 text-sm ${check.isCorrect ? "border-emerald-200 bg-emerald-50/60" : "border-rose-200 bg-rose-50/50"}`}>
             <p className="font-semibold">
-                {check.isCorrect ? "Chính xác." : "Chưa đúng."}
+                {check.isCorrect ? (hintLevel > 0 ? `Chính xác (có dùng ${hintLevel} gợi ý).` : "Chính xác.") : "Chưa đúng."}
                 <span className="ml-2 font-normal text-muted-foreground">Đáp án: <span className="font-mono font-semibold text-foreground">{check.correctAnswers.join(" / ") || "—"}</span></span>
             </p>
             {!check.isCorrect && check.errorCause && (
@@ -56,6 +92,7 @@ function Feedback({ item, check, skill }: { item: DrillItem; check: DrillCheck; 
                     <span className="ml-2 text-xs text-muted-foreground">{errorCauseAdvice(check.errorCause)}</span>
                 </p>
             )}
+            {!check.isCorrect && <SelfCause questionId={item.question.id} questionType={item.question.questionType} skill={skill} autoCause={check.errorCause} />}
             {(quote || para || startMs != null) && (
                 <div className="rounded-md border border-amber-200 bg-amber-50/70 px-3 py-2 space-y-1">
                     <p className="text-[11px] font-medium text-amber-800">Bằng chứng trong bài{startMs != null ? ` · tại ${Math.floor(startMs / 60000)}:${String(Math.floor((startMs % 60000) / 1000)).padStart(2, "0")}` : ""}</p>
@@ -90,6 +127,11 @@ function DrillInner() {
     const [checking, setChecking] = useState(false);
     const [err, setErr] = useState<string | null>(null);
     const [showPassage, setShowPassage] = useState(false);
+    const [hintLevel, setHintLevel] = useState(0);
+    const [hint, setHint] = useState<HintResult | null>(null);
+    const [hintBusy, setHintBusy] = useState(false);
+    const [hintErr, setHintErr] = useState<string | null>(null);
+    const [hintsUsed, setHintsUsed] = useState(0);
     const started = useRef(false);
 
     useEffect(() => {
@@ -100,6 +142,7 @@ function DrillInner() {
     }, []);
 
     const item = drill?.items[idx];
+    const canonicalItem = item ? normalizeQuestionType(item.question.questionType) : null;
     const total = drill?.items.length ?? 0;
     const canonical = questionType ? normalizeQuestionType(questionType) : null;
     const title = canonical ? `Luyện ${QUESTION_TYPE_LABELS_VI[canonical]}` : errorCause ? `Sửa lỗi: ${errorCauseLabel(errorCause)}` : `Luyện ${skill === "reading" ? "Reading" : "Listening"}`;
@@ -109,7 +152,8 @@ function DrillInner() {
         setChecking(true);
         setErr(null);
         try {
-            const c = await drillsApi.check(skill, item.question.id, value);
+            const c = await drillsApi.check(skill, item.question.id, value, hintLevel || undefined);
+            if (hintLevel > 0) setHintsUsed((n) => n + 1);
             setCheck(c);
             setResults((r) => [...r, c]);
             setPhase("feedback");
@@ -120,6 +164,24 @@ function DrillInner() {
         }
     };
 
+    const askHint = async () => {
+        if (!item || hintBusy || hintLevel >= 3) return;
+        const nextLevel = hintLevel + 1;
+        setHintErr(null);
+        if (nextLevel === 1) { setHintLevel(1); return; }
+        setHintBusy(true);
+        try {
+            const h = await tutorApi.hint({ questionId: item.question.id, level: nextLevel as 2 | 3, skill, questionType: item.question.questionType, questionText: item.question.questionText ?? "", instructions: item.instructions, passage: item.passage, options: (item.question as { config?: { options?: unknown } }).config?.options ?? null });
+            setHint(h);
+            setHintLevel(nextLevel);
+            if (nextLevel === 2 && skill === "reading" && item.passage) setShowPassage(true);
+        } catch (e) {
+            setHintErr(e instanceof Error ? e.message : "Không lấy được gợi ý");
+        } finally {
+            setHintBusy(false);
+        }
+    };
+
     const load = () => {
         setPhase("loading");
         setDrill(null);
@@ -127,6 +189,7 @@ function DrillInner() {
         setAnswer("");
         setCheck(null);
         setResults([]);
+        setHintsUsed(0); setHintLevel(0); setHint(null); setHintErr(null);
         drillsApi
             .build({ skill, questionType, errorCause, limit: 8 })
             .then((d) => { setDrill(d); setPhase(d.items.length ? "question" : "empty"); })
@@ -137,11 +200,13 @@ function DrillInner() {
         setCheck(null);
         setAnswer("");
         setShowPassage(false);
+        setHintLevel(0); setHint(null); setHintErr(null);
         if (idx + 1 >= total) setPhase("done");
         else { setIdx((i) => i + 1); setPhase("question"); }
     };
 
     const correct = results.filter((r) => r.isCorrect).length;
+    const hintNote = hintsUsed > 0 ? ` · ${hintsUsed} câu có dùng gợi ý` : "";
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
@@ -196,9 +261,23 @@ function DrillInner() {
                             <QuestionItem question={item.question} answer={answer} onAnswerChange={(_, v) => setAnswer(v)} displayOrder={idx + 1} />
                         </div>
 
+                        {phase === "question" && (hintLevel > 0 || hintErr) && (
+                            <div className="rounded-md border border-sky-200 bg-sky-50/70 px-3 py-2 text-sm space-y-1" aria-live="polite">
+                                <p className="text-[11px] font-medium text-sky-800">Gợi ý {hintLevel}/3 — không có đáp án, chỉ có cách tìm</p>
+                                {hintLevel >= 1 && canonicalItem && <p><span className="font-medium">Chiến lược:</span> {QUESTION_TYPE_HINTS_VI[canonicalItem]}</p>}
+                                {hintLevel >= 2 && hint && <p><span className="font-medium">Tìm ở đâu:</span> {hint.paragraph ? `đoạn ${hint.paragraph}. ` : ""}{hint.location ?? "Hãy đọc lướt từng đoạn tìm ý của câu hỏi."}</p>}
+                                {hintLevel >= 3 && hint && (
+                                    <p><span className="font-medium">Từ khoá được diễn đạt lại:</span> {hint.keywords.length ? hint.keywords.map((k) => <span key={k} className="mx-0.5 rounded bg-background px-1.5 py-0.5 font-mono text-xs border border-border">{k}</span>) : "không tìm được từ khoá chắc chắn"}{hint.paraphrase ? ` — ${hint.paraphrase}` : ""}{hint.redacted ? " (một phần gợi ý được ẩn vì chạm vào đáp án)" : ""}</p>
+                                )}
+                                {hintErr && <p className="text-xs text-rose-600">{hintErr}</p>}
+                            </div>
+                        )}
                         {phase === "question" ? (
                             <div className="flex items-center gap-3">
                                 <Button onClick={() => grade(answer)} disabled={!answer.trim() || checking}>{checking ? "Đang chấm…" : "Kiểm tra"}</Button>
+                                {hintLevel < 3 && (
+                                    <Button variant="outline" size="sm" onClick={askHint} disabled={hintBusy || checking}>{hintBusy ? "Đang lấy gợi ý…" : hintLevel === 0 ? "Gợi ý" : `Gợi ý thêm (${hintLevel}/3)`}</Button>
+                                )}
                                 <button type="button" disabled={checking} onClick={() => { setAnswer(""); void grade(""); }} className="text-xs text-muted-foreground hover:underline">
                                     Bỏ qua, xem đáp án
                                 </button>
@@ -207,7 +286,7 @@ function DrillInner() {
                         ) : (
                             check && (
                                 <>
-                                    <Feedback item={item} check={check} skill={skill} />
+                                    <Feedback item={item} check={check} skill={skill} hintLevel={hintLevel} />
                                     <Button onClick={next}>{idx + 1 >= total ? "Xem kết quả" : "Câu tiếp theo"}</Button>
                                 </>
                             )
@@ -219,7 +298,7 @@ function DrillInner() {
             {phase === "done" && (
                 <Card className="bg-card shadow-sm">
                     <CardContent className="p-6 space-y-4">
-                        <p className="text-lg font-semibold">Đúng {correct}/{total}</p>
+                        <p className="text-lg font-semibold">Đúng {correct}/{total}<span className="text-sm font-normal text-muted-foreground">{hintNote}</span></p>
                         <p className="text-sm text-muted-foreground">
                             {correct === total
                                 ? "Bạn đã nắm dạng này trong bài luyện hôm nay. Câu từ sổ lỗi trả lời đúng 2 lần liên tiếp sẽ được đánh dấu đã nắm."

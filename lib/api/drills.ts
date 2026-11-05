@@ -35,9 +35,9 @@ export interface BuildDrillInput {
 export const drillsApi = {
     build: (input: BuildDrillInput) =>
         apiClient.post<ApiResponse<DrillBuild>>('/api/drills/build', input).then((r) => r.data.data),
-    check: (skill: string, questionId: string, answer: string) =>
+    check: (skill: string, questionId: string, answer: string, hintLevel?: number) =>
         apiClient
-            .post<ApiResponse<DrillCheck>>(`/api/drills/check?skill=${encodeURIComponent(skill)}`, { questionId, answer })
+            .post<ApiResponse<DrillCheck>>(`/api/drills/check?skill=${encodeURIComponent(skill)}`, { questionId, answer, ...(hintLevel ? { hintLevel } : {}) })
             .then((r) => r.data.data),
 };
 
